@@ -1,0 +1,97 @@
+﻿/* Tổng thể khung chứa */
+.form-container {
+    background: #ffffff;
+    padding: 40px;
+    border: 1px solid #eee;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border-radius: 0; /* Phẳng hoàn toàn */
+}
+
+/* Tiêu đề */
+h2 {
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #222;
+    margin-bottom: 30px;
+}
+
+/* Label (Nhãn chữ) */
+.control-label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    color: #444;
+}
+
+/* Ô nhập liệu Input & Select */
+.form-control, .form-select {
+    border-radius: 0 !important;
+    border: 1px solid #e1e1e1 !important;
+    padding: 12px 15px !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease;
+    background-color: #fcfcfc;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: #333 !important;
+        background-color: #fff;
+        box-shadow: none !important;
+    }
+
+/* Ô mô tả (Textarea) */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Checkbox sản phẩm nổi bật */
+.form-check-input {
+    border-radius: 0;
+    cursor: pointer;
+}
+
+    .form-check-input:checked {
+        background-color: #333;
+        border-color: #333;
+    }
+
+/* Nút bấm */
+.btn {
+    border-radius: 0;
+    padding: 12px 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-dark {
+    background-color: #333;
+    border: 1px solid #333;
+    color: #fff;
+}
+
+    .btn-dark:hover {
+        background-color: #ff5a00; /* Màu cam khi hover giống Moho */
+        border-color: #ff5a00;
+    }
+
+.btn-outline-secondary {
+    border: 1px solid #ddd;
+    color: #666;
+}
+
+    .btn-outline-secondary:hover {
+        background-color: #f8f8f8;
+        color: #333;
+    }
+
+/* Thông báo lỗi */
+.text-danger {
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}

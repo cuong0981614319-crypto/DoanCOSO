@@ -1,0 +1,136 @@
+﻿/* 1. Header & Navigation */
+.header-nav {
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.nav-link {
+    transition: color 0.3s ease;
+    padding: 10px 15px !important;
+}
+
+    .nav-link:hover {
+        color: #007bff !important;
+    }
+
+/* 2. Footer Styling */
+.main-footer {
+    background-color: #fcfcfc;
+    color: #444;
+}
+
+.footer-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+    .footer-title::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 2px;
+        background-color: #007bff;
+    }
+
+.footer-text, .footer-contact p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+}
+
+.footer-links li {
+    margin-bottom: 8px;
+}
+
+    .footer-links li a {
+        text-decoration: none;
+        color: #666;
+        transition: all 0.3s ease;
+    }
+
+        .footer-links li a:hover {
+            color: #007bff;
+            padding-left: 5px;
+        }
+
+/* 3. Social Icons */
+.social-icons a {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.fb {
+    background: #e7f3ff;
+    color: #1877f2;
+}
+
+.yt {
+    background: #ffe7e7;
+    color: #ff0000;
+}
+
+.ig {
+    background: #fef0f0;
+    color: #c32aa3;
+}
+
+.tt {
+    background: #f0f0f0;
+    color: #000;
+}
+
+.social-icons a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+/* 4. Footer Bottom */
+.footer-bottom {
+    letter-spacing: 1px;
+}
+/* Thanh tìm kiếm phẳng */
+.search-group .form-control {
+    border-radius: 0;
+    border: 1px solid #e1e1e1;
+    background-color: #fcfcfc;
+    height: 45px;
+}
+
+.search-group .btn-dark {
+    border-radius: 0;
+    background-color: #444;
+}
+
+/* Hiệu ứng hover cho menu tầng 2 */
+.navbar-nav .nav-link:hover {
+    color: #ff5a00 !important;
+}
+
+/* Xóa viền tập trung mặc định */
+.form-control:focus {
+    border-color: #444;
+    box-shadow: none;
+}
+
+/* Tạo mũi tên cho dropdown giỏ hàng và tài khoản */
+.dropdown-menu::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+    position: absolute;
+    top: -10px;
+    right: 30px;
+}

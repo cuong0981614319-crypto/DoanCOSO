@@ -1,0 +1,223 @@
+/* Tùy chỉnh ô nhập liệu phẳng */
+.custom-login-input {
+    border-radius: 0 !important;
+    border: 1px solid #ddd !important;
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+}
+
+    .custom-login-input:focus {
+        border-color: #333 !important;
+        box-shadow: none !important;
+    }
+
+/* Tạo mũi tên nhọn cho Dropdown */
+.dropdown-menu-end::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+    position: absolute;
+    top: -10px;
+    right: 25px;
+}
+
+/* Chữ reCAPTCHA nhỏ */
+.recaptcha-text {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.4;
+    text-align: left;
+}
+
+/* Căn chỉnh cụm text tài khoản */
+.user-info {
+    line-height: 1.2;
+}
+/* Thanh tìm kiếm phẳng */
+.search-group .form-control {
+    border-radius: 0;
+    border: 1px solid #e1e1e1;
+    background-color: #fcfcfc;
+    height: 45px;
+}
+
+.search-group .btn-dark {
+    border-radius: 0;
+    background-color: #444;
+}
+
+/* Hiệu ứng hover cho menu tầng 2 */
+.navbar-nav .nav-link:hover {
+    color: #ff5a00 !important;
+}
+
+/* Xóa viền tập trung mặc định */
+.form-control:focus {
+    border-color: #444;
+    box-shadow: none;
+}
+
+/* Tạo mũi tên cho dropdown giỏ hàng và tài khoản */
+.dropdown-menu::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+    position: absolute;
+    top: -10px;
+    right: 30px;
+}
+/* Làm cho ô search mỏng và phẳng giống Moho */
+.search-group .form-control {
+    border-radius: 4px 0 0 4px !important;
+    border: 1px solid #eee !important;
+    height: 40px;
+}
+
+.search-group .btn-dark {
+    border-radius: 0 4px 4px 0 !important;
+    height: 40px;
+    background-color: #333;
+}
+
+/* Căn chỉnh cụm Menu điều hướng tầng 2 */
+.navbar-nav .nav-link {
+    padding: 15px 0 !important;
+    color: #333 !important;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: #ff5a00 !important; /* Màu cam đặc trưng */
+    }
+
+/* Xử lý icon để không bị lệch */
+.bi-person, .bi-bag {
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* Phóng to Icon */
+.header-item .icon-box i {
+    font-size: 28px; /* Tăng kích thước icon người và túi xách */
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+/* Tinh chỉnh chữ bên cạnh icon */
+.header-item .text-box {
+    line-height: 1.2;
+}
+
+.header-item .sub-text {
+    display: block;
+    font-size: 11px;
+    color: #888;
+}
+
+.header-item .main-text {
+    display: block;
+    font-size: 14px; /* Chữ to và rõ hơn */
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+}
+
+/* Làm badge số lượng giỏ hàng nổi bật (màu cam Moho) */
+.badge-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #ff5a00; /* Màu cam đặc trưng */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 50%;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Hiệu ứng khi di chuột vào (Hover) */
+.header-item:hover .main-text, 
+.header-item:hover i {
+    color: #ff5a00;
+    cursor: pointer;
+}
+
+/* Tùy chỉnh Menu thả xuống */
+.custom-nav-dropdown .dropdown-menu {
+    border-radius: 0; /* Phẳng giống Moho */
+    margin-top: 0;
+    min-width: 200px;
+    padding: 10px 0;
+    top: 95%; /* Đẩy xuống một chút để không dính sát menu chính */
+}
+
+    /* Tạo mũi tên nhọn phía trên dropdown */
+    .custom-nav-dropdown .dropdown-menu::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid white;
+        position: absolute;
+        top: -8px;
+        left: 20px; /* Căn chỉnh mũi tên theo chữ Sản phẩm */
+    }
+
+/* Hiệu ứng hover cho các mục bên trong */
+.dropdown-item {
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #ff5a00 !important; /* Màu cam Moho */
+        padding-left: 25px; /* Hiệu ứng đẩy nhẹ sang phải khi hover */
+    }
+
+/* Hiệu ứng mượt mà khi hiện menu (Fade In) */
+.animated-fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Xóa mũi tên mặc định của Bootstrap nếu muốn giống Moho hơn */
+.dropdown-toggle::after {
+    display: none !important;
+}
+/* Hoặc thêm icon chevron nhỏ thay thế */
+.custom-nav-dropdown .nav-link::after {
+    content: '\F282'; /* Bi-chevron-down */
+    font-family: "bootstrap-icons";
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+
+

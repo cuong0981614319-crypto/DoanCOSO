@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BanHang</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BanHang.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <header class="bg-white border-bottom">
+        <div class="container py-3">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <a href="/">
+                        <img src="/img/anh1.png" alt="Hung Hanh Logo" style="height: 80px; width: auto; object-fit: contain;">
+                    </a>
+                </div>
+
+                <div class="col-md-5">
+                    <form class="input-group search-group">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="btn btn-dark px-3" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="col-md-4 d-flex justify-content-end align-items-center gap-4">
+                
+                    <partial name="_LoginPartial" />
+
+                    <div class="dropdown cart-dropdown">
+                        <a href="#" class="text-dark text-decoration-none d-flex align-items-center position-relative" data-bs-toggle="dropdown">
+                            <div class="me-2 position-relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-bag" viewBox="0 0 16 16">
+                                    <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                </svg>
+                                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 15px;">0</span>
+                            </div>
+                            <span class="fw-bold" style="font-size: 24px;">Giỏ hàng</span>
+                        </a>
+                    
+                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 mt-3" style="width:350px;">
+                            <h6 class="fw-bold">GIỎ HÀNG</h6>
+                            <hr />
+                            <div id="cart-items" class="py-2 text-center text-muted small">Giỏ hàng trống</div>
+                            <hr />
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fw-semibold">TỔNG TIỀN:</span>
+                                <span id="cart-total" class="fw-bold text-danger">0đ</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="/GioHang" class="btn btn-outline-dark flex-grow-1 btn-sm fw-bold py-2">XEM GIỎ HÀNG</a>
+                                <a href="/GioHang" class="btn btn-dark flex-grow-1 btn-sm fw-bold py-2">THANH TOÁN</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-expand-lg py-0 border-top">
+            <div class="container justify-content-center">
+                <ul class="navbar-nav gap-4 fw-semibold text-uppercase" style="font-size: 13px;">
+                    @await Component.InvokeAsync("Menu")
+	
+                    <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Thiết kế - Thi công</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Khuyến mãi</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Tin tức</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Về MOHO</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Cửa hàng</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+        
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+      
+
+        <footer class="border-top footer text-muted">
+            <div class="container">
+             
+            </div>
+        </footer>
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        @await RenderSectionAsync("Scripts", required: false)
+
+
+
+
+            <footer class="bg-light pt-5">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-md-3">
+                    <h5 class="fw-bold">NỘI THẤT HƯNG HẠNH</h5>
+                    <p>
+                        Nội thất Hưng Hạnh chuyên cung cấp các sản phẩm nội thất
+                        nhựa Đài Loan chất lượng cao, thiết kế hiện đại và bền bỉ.
+                    </p>
+                </div>
+
+                <div class="col-md-3">
+                    <h5 class="fw-bold">THÔNG TIN</h5>
+                    <ul class="list-unstyled">
+                        <li>Chính Sách Bán Hàng</li>
+                        <li>Chính Sách Giao Hàng</li>
+                        <li>Chính Sách Bảo Hành</li>
+                        <li>Chính Sách Đổi Trả</li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3">
+                    <h5 class="fw-bold">THÔNG TIN LIÊN HỆ</h5>
+                    <p>📍 162 HT17, P. Hiệp Thành, Q12, TP.HCM</p>
+                    <p>📞 0971 114 140</p>
+                    <p>✉ hunganh@gmail.com</p>
+                </div>
+
+                <div class="col-md-3">
+                    <h5 class="fw-bold">FANPAGE</h5>
+                    <img src="/images/1.png" style="width:120px;">
+                </div>
+
+            </div>
+
+            <div class="text-center mt-4">
+                <span class="mx-2">🔵 Facebook</span>
+                <span class="mx-2">🔴 Youtube</span>
+                <span class="mx-2">🟣 Instagram</span>
+                <span class="mx-2">⚫ TikTok</span>
+            </div>
+        </div>
+
+        <div class="bg-dark text-white text-center mt-4 p-3">
+       
+        </div>
+
+    </footer>
+    </body>
+</html>
