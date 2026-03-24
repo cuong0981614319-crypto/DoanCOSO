@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Trang chủ";
+
+    var sanPhamNoiBat = Model?.Where(x => x.KhuVucHienThi == "NoiBat").ToList() ?? new List<BanHang.Models.SanPham>();
+    var sanPhamMoi = Model?.Where(x => x.KhuVucHienThi == "Moi").ToList() ?? new List<BanHang.Models.SanPham>();
+    var giaSieuTot = Model?.Where(x => x.KhuVucHienThi == "GiaTot").ToList() ?? new List<BanHang.Models.SanPham>();
 }
 
 <div class="container-fluid p-0">
@@ -40,47 +44,54 @@
 </div>
 
 <div class="container mt-4">
+    <!-- SẢN PHẨM NỔI BẬT -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold">🛒 Sản phẩm nổi bật</h1>
-        
+        <h4 class="fw-bold">🛒 Sản phẩm nổi bật</h4>
+
         @if (User.IsInRole("Admin"))
         {
-            <a asp-area="Admin" asp-controller="Product" asp-action="Create" class="btn btn-primary shadow-sm">
+            <a asp-area="Admin"
+               asp-controller="Product"
+               asp-action="Create"
+               asp-route-khuVuc="NoiBat"
+               class="btn btn-primary shadow-sm">
                 + Thêm sản phẩm mới
             </a>
         }
     </div>
 
     <div class="row">
-        @if (Model != null && Model.Any())
+        @if (sanPhamNoiBat.Any())
         {
-            @foreach (var item in Model)
+            @foreach (var item in sanPhamNoiBat)
             {
                 <div class="col-md-3 mb-4">
                     <div class="card h-100 shadow-sm border-0">
-                        @* Sử dụng thuộc tính HinhAnh từ database, nếu trống thì dùng ảnh mặc định *@
                         <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
                              class="card-img-top p-2"
                              alt="@item.TenSanPham"
-                             style="height: 200px; object-fit: contain;">
-                        
+                             style="height: 150px; object-fit: contain;">
+
                         <div class="card-body d-flex flex-column">
-                            @* Đổi thành TenSanPham *@
                             <h5 class="card-title text-truncate">@item.TenSanPham</h5>
-                            @* Đổi thành Gia *@
                             <p class="card-text text-danger fw-bold fs-5">@item.Gia.ToString("N0") VNĐ</p>
-                            
+
                             <div class="mt-auto d-grid gap-2">
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <div class="btn-group">
-                                        @* Sử dụng MaSanPham thay cho Id *@
-                                        <a asp-area="Admin" asp-controller="Product" asp-action="Edit" asp-route-id="@item.MaSanPham"
+                                        <a asp-area="Admin"
+                                           asp-controller="Product"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.MaSanPham"
                                            class="btn btn-sm btn-outline-warning">Sửa</a>
-                                        
-                                        @* Lưu ý: Delete thường là POST, nếu dùng thẻ <a> cần dùng form hoặc JS *@
-                                        <form asp-area="Admin" asp-controller="Product" asp-action="Delete" asp-route-id="@item.MaSanPham"
-                                              method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+
+                                        <form asp-area="Admin"
+                                              asp-controller="Product"
+                                              asp-action="Delete"
+                                              asp-route-id="@item.MaSanPham"
+                                              method="post"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
                                             <button type="submit" class="btn btn-sm btn-outline-danger w-100">Xóa</button>
                                         </form>
                                     </div>
@@ -88,9 +99,9 @@
                                 else
                                 {
                                     <a asp-controller="Cart"
-                                           asp-action="AddToCart"
-                                           asp-route-id="@item.MaSanPham"
-                                           class="btn btn-dark">
+                                       asp-action="AddToCart"
+                                       asp-route-id="@item.MaSanPham"
+                                       class="btn btn-dark">
                                         Thêm vào giỏ
                                     </a>
                                 }
@@ -102,8 +113,162 @@
         }
         else
         {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted">Chưa có sản phẩm nào được đăng bán.</p>
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Chưa có sản phẩm nổi bật.</p>
+            </div>
+        }
+    </div>
+
+    <hr class="my-5" />
+
+    <!-- SẢN PHẨM MỚI -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">✨ Sản phẩm mới</h2>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-area="Admin"
+               asp-controller="Product"
+               asp-action="Create"
+               asp-route-khuVuc="Moi"
+               class="btn btn-primary shadow-sm">
+                + Thêm sản phẩm mới
+            </a>
+        }
+    </div>
+
+    <div class="row">
+        @if (sanPhamMoi.Any())
+        {
+            @foreach (var item in sanPhamMoi)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
+                             class="card-img-top p-2"
+                             alt="@item.TenSanPham"
+                             style="height: 100px; object-fit: contain;">
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate">@item.TenSanPham</h5>
+                            <p class="card-text text-danger fw-bold fs-5">@item.Gia.ToString("N0") VNĐ</p>
+
+                            <div class="mt-auto d-grid gap-2">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <div class="btn-group">
+                                        <a asp-area="Admin"
+                                           asp-controller="Product"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.MaSanPham"
+                                           class="btn btn-sm btn-outline-warning">Sửa</a>
+
+                                        <form asp-area="Admin"
+                                              asp-controller="Product"
+                                              asp-action="Delete"
+                                              asp-route-id="@item.MaSanPham"
+                                              method="post"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Xóa</button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Cart"
+                                       asp-action="AddToCart"
+                                       asp-route-id="@item.MaSanPham"
+                                       class="btn btn-dark">
+                                        Thêm vào giỏ
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Chưa có sản phẩm mới.</p>
+            </div>
+        }
+    </div>
+
+    <hr class="my-5" />
+
+    <!-- GIÁ SIÊU TỐT -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">🔥 Giá siêu tốt</h2>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-area="Admin"
+               asp-controller="Product"
+               asp-action="Create"
+               asp-route-khuVuc="GiaTot"
+               class="btn btn-primary shadow-sm">
+                + Thêm sản phẩm mới
+            </a>
+        }
+    </div>
+
+    <div class="row">
+        @if (giaSieuTot.Any())
+        {
+            @foreach (var item in giaSieuTot)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
+                             class="card-img-top p-2"
+                             alt="@item.TenSanPham"
+                             style="height: 200px; object-fit: contain;">
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate">@item.TenSanPham</h5>
+                            <p class="card-text text-danger fw-bold fs-5">@item.Gia.ToString("N0") VNĐ</p>
+
+                            <div class="mt-auto d-grid gap-2">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <div class="btn-group">
+                                        <a asp-area="Admin"
+                                           asp-controller="Product"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.MaSanPham"
+                                           class="btn btn-sm btn-outline-warning">Sửa</a>
+
+                                        <form asp-area="Admin"
+                                              asp-controller="Product"
+                                              asp-action="Delete"
+                                              asp-route-id="@item.MaSanPham"
+                                              method="post"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Xóa</button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Cart"
+                                       asp-action="AddToCart"
+                                       asp-route-id="@item.MaSanPham"
+                                       class="btn btn-dark">
+                                        Thêm vào giỏ
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Chưa có sản phẩm giá siêu tốt.</p>
             </div>
         }
     </div>

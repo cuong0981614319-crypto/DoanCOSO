@@ -15,6 +15,12 @@
 
                 <input type="hidden" asp-for="MaSanPham" />
                 <input type="hidden" asp-for="HinhAnh" />
+                <input type="hidden" asp-for="KhuVucHienThi" />
+
+                <div class="mb-3">
+                    <label class="form-label">Khu vực hiển thị</label>
+                    <input type="text" class="form-control" value="@Model.KhuVucHienThi" readonly />
+                </div>
 
                 <div class="mb-3">
                     <label asp-for="TenSanPham" class="form-label">Tên sản phẩm</label>

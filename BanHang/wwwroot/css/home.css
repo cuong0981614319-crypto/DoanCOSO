@@ -44,3 +44,66 @@
     border-radius: 50%;
     background-color: #333;
 }
+/* =========================
+   THU NHỎ KHU SẢN PHẨM
+========================= */
+
+/* Tiêu đề section nhỏ lại */
+.product-section-title {
+    font-size: 24px !important;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Nút thêm sản phẩm nhỏ lại */
+.btn-primary.shadow-sm {
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+/* Card nhỏ và gọn hơn */
+.product-card {
+    transform: scale(0.9);
+    transform-origin: top center;
+}
+
+.product-card-wrapper {
+    margin-bottom: -25px;
+}
+
+/* Ảnh sản phẩm nhỏ lại */
+.product-card .card-img-top {
+    height: 150px !important;
+    object-fit: contain !important;
+    padding: 10px !important;
+}
+
+/* Chữ trong card nhỏ lại */
+.product-card .card-title {
+    font-size: 14px;
+    min-height: 38px;
+    margin-bottom: 8px;
+}
+
+.product-card .card-text {
+    font-size: 15px !important;
+    margin-bottom: 10px;
+}
+
+/* Nút sửa/xóa/thêm giỏ nhỏ lại */
+.product-card .btn,
+.product-card button {
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+/* Đường kẻ section gọn hơn */
+.section-divider {
+    margin: 24px 0 !important;
+}
+
+/* Text chưa có sản phẩm nhỏ lại */
+.text-muted {
+    font-size: 14px;
+}

@@ -25,7 +25,7 @@ namespace BanHang.Controllers
             }
 
             var products = await query
-                .OrderByDescending(x => x.MaSanPham)
+                .OrderBy(x => x.MaSanPham)
                 .ToListAsync();
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;

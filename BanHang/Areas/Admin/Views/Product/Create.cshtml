@@ -1,11 +1,10 @@
 @model BanHang.Models.SanPham
 @using Microsoft.EntityFrameworkCore
-@* Đảm bảo namespace này trùng khớp hoàn toàn với file ApplicationDbContext.cs *@
 @using BanHang.Models
 @inject ApplicationDbContext _context
+
 @{
     ViewData["Title"] = "Thêm sản phẩm mới";
-    // Sửa đường dẫn Layout trỏ ra ngoài thư mục gốc để tránh lỗi không tìm thấy Layout
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,6 +19,13 @@
                     <form asp-action="Create" method="post" enctype="multipart/form-data">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+                        <input type="hidden" asp-for="KhuVucHienThi" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Khu vực hiển thị</label>
+                            <input class="form-control" value="@Model.KhuVucHienThi" readonly />
+                        </div>
+
                         <div class="mb-3">
                             <label asp-for="TenSanPham" class="form-label fw-bold">Tên sản phẩm</label>
                             <input asp-for="TenSanPham" class="form-control" placeholder="Nhập tên sản phẩm..." />
@@ -32,7 +38,7 @@
                                 <input asp-for="Gia" type="number" class="form-control" />
                                 <span asp-validation-for="Gia" class="text-danger"></span>
                             </div>
-                            
+
                             <div class="col-md-6 mb-3">
                                 <label asp-for="SoLuong" class="form-label fw-bold">Số lượng trong kho</label>
                                 <input asp-for="SoLuong" type="number" class="form-control" />
@@ -44,9 +50,8 @@
                             <label class="form-label fw-bold">Danh mục sản phẩm</label>
                             <select asp-for="MaDanhMuc" class="form-select">
                                 <option value="">-- Chọn một danh mục --</option>
-        
+
                                 @{
-                                    // Tự lấy dữ liệu trực tiếp từ Database
                                     var danhMucs = await _context.DanhMucs.ToListAsync();
                                 }
 
@@ -66,7 +71,7 @@
 
                         <div class="mb-3">
                             <label asp-for="ImageFile" class="form-label fw-bold">Hình ảnh sản phẩm</label>
-                            <input asp-for="ImageFile" type="file" class="form-control" accept="img/*" />
+                            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
                             <small class="text-muted">Nên chọn ảnh định dạng .jpg, .png</small>
                             <span asp-validation-for="ImageFile" class="text-danger"></span>
                         </div>

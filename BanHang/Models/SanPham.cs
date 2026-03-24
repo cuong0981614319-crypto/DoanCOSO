@@ -25,6 +25,8 @@ namespace BanHang.Models
 
         public int MaDanhMuc { get; set; }
 
+        public string? KhuVucHienThi { get; set; }
+
         [ForeignKey("MaDanhMuc")]
         public virtual DanhMuc? DanhMuc { get; set; } // Thêm virtual để hỗ trợ Lazy Loading nếu cần
     }

@@ -19,18 +19,24 @@ namespace BanHang.Areas.Admin.Controllers
             _env = env;
         }
 
-        // Vào /Admin/Product sẽ tự chuyển sang /Admin/Product/Create
         public IActionResult Index()
         {
             return RedirectToAction(nameof(Create));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(string? khuVuc)
         {
             var categories = await _context.DanhMucs.ToListAsync();
             ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc");
-            return View();
+            ViewBag.KhuVuc = khuVuc;
+
+            var model = new SanPham
+            {
+                KhuVucHienThi = khuVuc
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -59,6 +65,7 @@ namespace BanHang.Areas.Admin.Controllers
 
             var categories = await _context.DanhMucs.ToListAsync();
             ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
+            ViewBag.KhuVuc = p.KhuVucHienThi;
 
             return View(p);
         }
@@ -92,6 +99,10 @@ namespace BanHang.Areas.Admin.Controllers
                 existingProduct.MoTa = p.MoTa;
                 existingProduct.SoLuong = p.SoLuong;
                 existingProduct.MaDanhMuc = p.MaDanhMuc;
+
+                existingProduct.KhuVucHienThi = string.IsNullOrEmpty(p.KhuVucHienThi)
+                    ? existingProduct.KhuVucHienThi
+                    : p.KhuVucHienThi;
 
                 if (p.ImageFile != null && p.ImageFile.Length > 0)
                 {
