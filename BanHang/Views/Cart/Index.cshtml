@@ -1,0 +1,71 @@
+﻿@model List<BanHang.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var tongTien = Model.Sum(x => x.ThanhTien);
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Giỏ hàng</h2>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Giỏ hàng trống</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="width:100px">
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="@item.HinhAnh" style="width:80px;height:80px;object-fit:contain" />
+                                }
+                            </td>
+                            <td>@item.TenSanPham</td>
+                            <td>@item.Gia.ToString("N0") đ</td>
+                            <td>
+                                <form asp-action="UpdateQuantity" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="id" value="@item.MaSanPham" />
+                                    <input type="number" name="quantity" value="@item.SoLuong" min="1" class="form-control" style="width:90px" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+                                </form>
+                            </td>
+                            <td>@item.ThanhTien.ToString("N0") đ</td>
+                            <td>
+                                <a asp-action="Remove" asp-route-id="@item.MaSanPham" class="btn btn-sm btn-danger">Xóa</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <h4>Tổng tiền: <span class="text-danger">@tongTien.ToString("N0") đ</span></h4>
+            <div class="d-flex gap-2">
+                <a asp-action="ClearCart" class="btn btn-outline-danger">Xóa hết</a>
+                <a asp-action="Checkout" class="btn btn-success">Thanh toán</a>
+            </div>
+        </div>
+    }
+</div>

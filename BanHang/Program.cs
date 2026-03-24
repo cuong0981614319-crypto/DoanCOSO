@@ -1,7 +1,7 @@
 using BanHang.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.UI.Services; // Cần cho IEmailSender
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Cấu hình Identity 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+// 2. Cấu hình Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 3;
     options.Password.RequireNonAlphanumeric = false;
@@ -21,15 +22,25 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Đăng ký dịch vụ Email giả để không bị lỗi khi Đăng ký tài khoản
+// 3. Đăng ký Email giả để không lỗi khi đăng ký
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
+// 4. Bật MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+// 5. Bật Session để làm giỏ hàng
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
-// 3. Cấu hình Middleware
+// 6. Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -38,42 +49,30 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-
-    // Tự động tạo Danh mục nếu bảng đang trống
-    if (!context.DanhMucs.Any()) // Lưu ý: Đổi thành context.KhachHangs nếu DbContext bạn đặt tên vậy
-    {
-        context.DanhMucs.AddRange(
-            new DanhMuc { TenDanhMuc = "Tủ Quần Áo", MoTa = "Các loại tủ gỗ, kính cao cấp" },
-            new DanhMuc { TenDanhMuc = "Bàn Làm Việc", MoTa = "Bàn văn phòng hiện đại" },
-            new DanhMuc { TenDanhMuc = "Ghế Sofa", MoTa = "Sofa da và nỉ nhập khẩu" }
-        );
-        await context.SaveChangesAsync();
-    }
-
-    // (Giữ nguyên đoạn code tạo Role Admin của bạn ở đây...)
-}
-// 4. Tạo Role và Admin mặc định
+// 7. Tạo Role và tài khoản Admin mặc định
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    Task.Run(async () => {
+    Task.Run(async () =>
+    {
         string[] roles = { "Admin", "User" };
+
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
+            {
                 await roleManager.CreateAsync(new IdentityRole(role));
+            }
         }
 
         var adminEmail = "admin@gmail.com";
@@ -81,9 +80,23 @@ using (var scope = app.Services.CreateScope())
 
         if (admin == null)
         {
-            admin = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+            admin = new IdentityUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+
             var result = await userManager.CreateAsync(admin, "123456");
             if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+        }
+        else
+        {
+            // Nếu tài khoản đã có sẵn nhưng chưa có quyền Admin thì thêm vào
+            if (!await userManager.IsInRoleAsync(admin, "Admin"))
             {
                 await userManager.AddToRoleAsync(admin, "Admin");
             }
@@ -91,28 +104,25 @@ using (var scope = app.Services.CreateScope())
     }).Wait();
 }
 
-// 5. Cấu hình Route
-// Route cho các trang trong Area (Admin)
+// 8. Route cho Area Admin
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Route cho các trang bình thường (Khách)
+// 9. Route mặc định
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.Run();
 
-// --- ĐỊNH NGHĨA CLASS EMAIL SENDER TẠI ĐÂY ---
+// ===== EmailSender giả =====
 public class EmailSender : IEmailSender
 {
     public Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        return Task.CompletedTask; // Không làm gì cả, chỉ để ứng dụng không báo lỗi
+        return Task.CompletedTask;
     }
 }
-
-
-//12345

@@ -1,8 +1,8 @@
-using BanHang.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using BanHang.Models;
 
 namespace BanHang.Areas.Admin.Controllers
 {
@@ -19,19 +19,17 @@ namespace BanHang.Areas.Admin.Controllers
             _env = env;
         }
 
-        public async Task<IActionResult> Index()
+        // Vào /Admin/Product sẽ tự chuyển sang /Admin/Product/Create
+        public IActionResult Index()
         {
-            var products = await _context.SanPhams
-                .Include(p => p.DanhMuc)
-                .OrderByDescending(p => p.MaSanPham)
-                .ToListAsync();
-
-            return View(products);
+            return RedirectToAction(nameof(Create));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await LoadDanhMucAsync();
+            var categories = await _context.DanhMucs.ToListAsync();
+            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc");
             return View();
         }
 
@@ -39,33 +37,38 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPham p)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                await LoadDanhMucAsync(p.MaDanhMuc);
-                return View(p);
+                if (p.ImageFile != null && p.ImageFile.Length > 0)
+                {
+                    p.HinhAnh = await SaveImage(p.ImageFile);
+                }
+
+                _context.SanPhams.Add(p);
+                await _context.SaveChangesAsync();
+                TempData["success"] = "Thêm sản phẩm thành công!";
+
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
 
-            if (p.ImageFile != null && p.ImageFile.Length > 0)
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors)
             {
-                p.HinhAnh = await SaveImage(p.ImageFile);
+                Console.WriteLine(error.ErrorMessage);
             }
 
-            _context.SanPhams.Add(p);
-            await _context.SaveChangesAsync();
+            var categories = await _context.DanhMucs.ToListAsync();
+            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
 
-            TempData["success"] = "Thêm sản phẩm thành công!";
-            return RedirectToAction(nameof(Index));
+            return View(p);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
             var p = await _context.SanPhams.FindAsync(id);
-            if (p == null)
-            {
-                return NotFound();
-            }
+            if (p == null) return NotFound();
 
-            await LoadDanhMucAsync(p.MaDanhMuc);
+            ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
             return View(p);
         }
 
@@ -75,32 +78,37 @@ namespace BanHang.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadDanhMucAsync(p.MaDanhMuc);
+                ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
                 return View(p);
             }
 
+            var existingProduct = await _context.SanPhams.FindAsync(p.MaSanPham);
+            if (existingProduct == null) return NotFound();
+
             try
             {
+                existingProduct.TenSanPham = p.TenSanPham;
+                existingProduct.Gia = p.Gia;
+                existingProduct.MoTa = p.MoTa;
+                existingProduct.SoLuong = p.SoLuong;
+                existingProduct.MaDanhMuc = p.MaDanhMuc;
+
                 if (p.ImageFile != null && p.ImageFile.Length > 0)
                 {
-                    p.HinhAnh = await SaveImage(p.ImageFile);
+                    existingProduct.HinhAnh = await SaveImage(p.ImageFile);
                 }
 
-                _context.Update(p);
                 await _context.SaveChangesAsync();
-                TempData["success"] = "Cập nhật thành công!";
+
+                TempData["success"] = "Cập nhật sản phẩm thành công!";
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!ProductExists(p.MaSanPham))
-                {
-                    return NotFound();
-                }
-
-                throw;
+                Console.WriteLine(ex.Message);
+                ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
+                return View(p);
             }
-
-            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -115,36 +123,24 @@ namespace BanHang.Areas.Admin.Controllers
                 TempData["success"] = "Xóa sản phẩm thành công!";
             }
 
-            return RedirectToAction(nameof(Index));
-        }
-
-        private async Task LoadDanhMucAsync(int? selectedId = null)
-        {
-            var categories = await _context.DanhMucs
-                .AsNoTracking()
-                .OrderBy(x => x.TenDanhMuc)
-                .ToListAsync();
-
-            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", selectedId);
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         private async Task<string> SaveImage(IFormFile imageFile)
         {
-            var uploads = Path.Combine(_env.WebRootPath, "images", "products");
+            var uploads = Path.Combine(_env.WebRootPath, "images/products");
             if (!Directory.Exists(uploads))
-            {
                 Directory.CreateDirectory(uploads);
-            }
 
-            var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
             var filePath = Path.Combine(uploads, fileName);
 
-            await using (var stream = new FileStream(filePath, FileMode.Create))
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await imageFile.CopyToAsync(stream);
             }
 
-            return $"/images/products/{fileName}";
+            return "/images/products/" + fileName;
         }
 
         private bool ProductExists(int id)

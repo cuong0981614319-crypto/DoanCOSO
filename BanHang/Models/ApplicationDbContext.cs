@@ -11,5 +11,4 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<DonHang> DonHangs { get; set; }
     public DbSet<ChiTietDonHang> ChiTietDonHangs { get; set; }
     public DbSet<NguoiDung> NguoiDungs { get; set; }
-    public DbSet<ThanhToan> ThanhToans { get; set; }
 }

@@ -2,7 +2,7 @@ using BanHang.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebBanHang.Controllers
+namespace BanHang.Controllers
 {
     public class HomeController : Controller
     {
@@ -13,10 +13,23 @@ namespace WebBanHang.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? maDanhMuc)
         {
-            // Lấy toàn bộ sản phẩm đổ ra trang chủ
-            var products = await _context.SanPhams.ToListAsync();
+            var query = _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .AsQueryable();
+
+            if (maDanhMuc.HasValue)
+            {
+                query = query.Where(x => x.MaDanhMuc == maDanhMuc.Value);
+            }
+
+            var products = await query
+                .OrderByDescending(x => x.MaSanPham)
+                .ToListAsync();
+
+            ViewBag.MaDanhMucDangChon = maDanhMuc;
+
             return View(products);
         }
     }

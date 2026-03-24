@@ -1,7 +1,12 @@
 @model BanHang.Models.SanPham
-
+@using Microsoft.EntityFrameworkCore
+@* Đảm bảo namespace này trùng khớp hoàn toàn với file ApplicationDbContext.cs *@
+@using BanHang.Models
+@inject ApplicationDbContext _context
 @{
     ViewData["Title"] = "Thêm sản phẩm mới";
+    // Sửa đường dẫn Layout trỏ ra ngoài thư mục gốc để tránh lỗi không tìm thấy Layout
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
@@ -16,50 +21,64 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <div class="mb-3">
-                            <label asp-for="TenSanPham" class="form-label fw-bold"></label>
+                            <label asp-for="TenSanPham" class="form-label fw-bold">Tên sản phẩm</label>
                             <input asp-for="TenSanPham" class="form-control" placeholder="Nhập tên sản phẩm..." />
                             <span asp-validation-for="TenSanPham" class="text-danger"></span>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Gia" class="form-label fw-bold"></label>
-                                <input asp-for="Gia" type="number" step="0.01" class="form-control" />
+                                <label asp-for="Gia" class="form-label fw-bold">Giá bán (VNĐ)</label>
+                                <input asp-for="Gia" type="number" class="form-control" />
                                 <span asp-validation-for="Gia" class="text-danger"></span>
                             </div>
-
+                            
                             <div class="col-md-6 mb-3">
-                                <label asp-for="SoLuong" class="form-label fw-bold"></label>
+                                <label asp-for="SoLuong" class="form-label fw-bold">Số lượng trong kho</label>
                                 <input asp-for="SoLuong" type="number" class="form-control" />
                                 <span asp-validation-for="SoLuong" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="MaDanhMuc" class="form-label fw-bold">Danh mục sản phẩm</label>
-                            <select asp-for="MaDanhMuc" asp-items="ViewBag.MaDanhMuc" class="form-select">
+                            <label class="form-label fw-bold">Danh mục sản phẩm</label>
+                            <select asp-for="MaDanhMuc" class="form-select">
                                 <option value="">-- Chọn một danh mục --</option>
+        
+                                @{
+                                    // Tự lấy dữ liệu trực tiếp từ Database
+                                    var danhMucs = await _context.DanhMucs.ToListAsync();
+                                }
+
+                                @foreach (var item in danhMucs)
+                                {
+                                    <option value="@item.MaDanhMuc">@item.TenDanhMuc</option>
+                                }
                             </select>
                             <span asp-validation-for="MaDanhMuc" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="MoTa" class="form-label fw-bold"></label>
+                            <label asp-for="MoTa" class="form-label fw-bold">Mô tả chi tiết</label>
                             <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
                             <span asp-validation-for="MoTa" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="ImageFile" class="form-label fw-bold">Hình ảnh sản phẩm</label>
-                            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                            <input asp-for="ImageFile" type="file" class="form-control" accept="img/*" />
                             <small class="text-muted">Nên chọn ảnh định dạng .jpg, .png</small>
                             <span asp-validation-for="ImageFile" class="text-danger"></span>
                         </div>
 
                         <hr />
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success px-4">Lưu sản phẩm</button>
-                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Quay lại</a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-save"></i> Lưu sản phẩm
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary px-4">
+                                Quay lại Home
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -69,5 +88,7 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

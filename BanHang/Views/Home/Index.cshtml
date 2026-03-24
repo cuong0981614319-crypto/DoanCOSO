@@ -87,10 +87,11 @@
                                 }
                                 else
                                 {
-                                    @* KHÁCH: MaSanPham *@
-                                    <a asp-area="" asp-controller="Product" asp-route-id="@item.MaSanPham"
-                                           class="btn btn-success shadow-sm">
-                                        🛒 Mua ngay
+                                    <a asp-controller="Cart"
+                                           asp-action="AddToCart"
+                                           asp-route-id="@item.MaSanPham"
+                                           class="btn btn-dark">
+                                        Thêm vào giỏ
                                     </a>
                                 }
                             </div>

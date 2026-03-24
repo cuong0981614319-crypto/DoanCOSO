@@ -1,19 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BanHang.Models
 {
     public class ThanhToan
     {
-        [Key]
-        public int MaThanhToan { get; set; }
+        [Required]
+        public string HoTen { get; set; } = "";
 
-        public int MaDonHang { get; set; }
+        [Required]
+        public string SoDienThoai { get; set; } = "";
 
-        public string PhuongThuc { get; set; }
+        [Required]
+        public string DiaChi { get; set; } = "";
 
-        public string TrangThai { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
 
-        [ForeignKey("MaDonHang")]
-        public DonHang DonHang { get; set; }
+        [Required]
+        public string PhuongThucThanhToan { get; set; } = "";
+
+        public string? GhiChu { get; set; }
     }
 }
