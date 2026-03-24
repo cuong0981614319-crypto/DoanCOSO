@@ -19,24 +19,23 @@ namespace BanHang.Areas.Admin.Controllers
             _env = env;
         }
 
-        public IActionResult Index()
+        // ===================== DANH SÁCH =====================
+        public async Task<IActionResult> Index()
         {
-            return RedirectToAction(nameof(Create));
+            var products = await _context.SanPhams
+                .Include(p => p.DanhMuc)
+                .Include(p => p.KhuVucHienThi)
+                .ToListAsync();
+
+            return View(products);
         }
 
+        // ===================== CREATE =====================
         [HttpGet]
-        public async Task<IActionResult> Create(string? khuVuc)
+        public async Task<IActionResult> Create()
         {
-            var categories = await _context.DanhMucs.ToListAsync();
-            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc");
-            ViewBag.KhuVuc = khuVuc;
-
-            var model = new SanPham
-            {
-                KhuVucHienThi = khuVuc
-            };
-
-            return View(model);
+            await LoadDropdowns();
+            return View();
         }
 
         [HttpPost]
@@ -52,30 +51,22 @@ namespace BanHang.Areas.Admin.Controllers
 
                 _context.SanPhams.Add(p);
                 await _context.SaveChangesAsync();
+
                 TempData["success"] = "Thêm sản phẩm thành công!";
-
-                return RedirectToAction("Index", "Home", new { area = "" });
+                return RedirectToAction(nameof(Index));
             }
 
-            var errors = ModelState.Values.SelectMany(v => v.Errors);
-            foreach (var error in errors)
-            {
-                Console.WriteLine(error.ErrorMessage);
-            }
-
-            var categories = await _context.DanhMucs.ToListAsync();
-            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
-            ViewBag.KhuVuc = p.KhuVucHienThi;
-
+            await LoadDropdowns(p);
             return View(p);
         }
 
+        // ===================== EDIT =====================
         public async Task<IActionResult> Edit(int id)
         {
             var p = await _context.SanPhams.FindAsync(id);
             if (p == null) return NotFound();
 
-            ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
+            await LoadDropdowns(p);
             return View(p);
         }
 
@@ -85,7 +76,7 @@ namespace BanHang.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
+                await LoadDropdowns(p);
                 return View(p);
             }
 
@@ -99,10 +90,7 @@ namespace BanHang.Areas.Admin.Controllers
                 existingProduct.MoTa = p.MoTa;
                 existingProduct.SoLuong = p.SoLuong;
                 existingProduct.MaDanhMuc = p.MaDanhMuc;
-
-                existingProduct.KhuVucHienThi = string.IsNullOrEmpty(p.KhuVucHienThi)
-                    ? existingProduct.KhuVucHienThi
-                    : p.KhuVucHienThi;
+                existingProduct.KhuVucHienThiId = p.KhuVucHienThiId;
 
                 if (p.ImageFile != null && p.ImageFile.Length > 0)
                 {
@@ -112,16 +100,17 @@ namespace BanHang.Areas.Admin.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["success"] = "Cập nhật sản phẩm thành công!";
-                return RedirectToAction("Index", "Home", new { area = "" });
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                ViewBag.MaDanhMuc = new SelectList(_context.DanhMucs, "MaDanhMuc", "TenDanhMuc", p.MaDanhMuc);
+                await LoadDropdowns(p);
                 return View(p);
             }
         }
 
+        // ===================== DELETE =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -131,15 +120,28 @@ namespace BanHang.Areas.Admin.Controllers
             {
                 _context.SanPhams.Remove(p);
                 await _context.SaveChangesAsync();
+
                 TempData["success"] = "Xóa sản phẩm thành công!";
             }
 
-            return RedirectToAction("Index", "Home", new { area = "" });
+            return RedirectToAction(nameof(Index));
         }
 
+        // ===================== LOAD DROPDOWN =====================
+        private async Task LoadDropdowns(SanPham? p = null)
+        {
+            var categories = await _context.DanhMucs.ToListAsync();
+            var khuVucs = await _context.KhuVucHienThis.ToListAsync();
+
+            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", p?.MaDanhMuc);
+            ViewBag.KhuVucHienThiId = new SelectList(khuVucs, "Id", "Ten", p?.KhuVucHienThiId);
+        }
+
+        // ===================== SAVE IMAGE =====================
         private async Task<string> SaveImage(IFormFile imageFile)
         {
             var uploads = Path.Combine(_env.WebRootPath, "images/products");
+
             if (!Directory.Exists(uploads))
                 Directory.CreateDirectory(uploads);
 

@@ -1,0 +1,35 @@
+﻿@model BanHang.Models.DanhMuc
+
+@{
+    ViewData["Title"] = "Thêm danh mục";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">Thêm danh mục</h2>
+
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label asp-for="TenDanhMuc" class="form-label"></label>
+                    <input asp-for="TenDanhMuc" class="form-control" />
+                    <span asp-validation-for="TenDanhMuc" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="MoTa" class="form-label"></label>
+                    <input asp-for="MoTa" class="form-control" />
+                    <span asp-validation-for="MoTa" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success">Lưu</button>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

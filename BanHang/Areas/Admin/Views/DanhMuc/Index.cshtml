@@ -1,0 +1,95 @@
+﻿@model IEnumerable<BanHang.Models.DanhMuc>
+
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Quản lý danh mục</h2>
+
+        <div class="d-flex gap-2">
+            <a asp-area=""
+                   asp-controller="Home"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+                Về trang chủ
+            </a>
+
+            <a asp-action="Create" class="btn btn-primary">
+                + Thêm danh mục
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Mã danh mục</th>
+                            <th>Tên danh mục</th>
+                            <th class="text-center" style="width: 180px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.MaDanhMuc</td>
+                                    <td>@item.TenDanhMuc</td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a asp-action="Edit"
+                                                   asp-route-id="@item.MaDanhMuc"
+                                                   class="btn btn-sm btn-outline-warning">
+                                                Sửa
+                                            </a>
+
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@item.MaDanhMuc"
+                                                  method="post"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Xóa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    Chưa có danh mục nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

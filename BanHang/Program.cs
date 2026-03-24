@@ -57,13 +57,15 @@ app.UseAuthorization();
 app.UseSession();
 
 // 7. Tạo Role và tài khoản Admin mặc định
+// 7. Tạo Role và tài khoản Admin mặc định
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    Task.Run(async () =>
+    await Task.Run(async () =>
     {
         string[] roles = { "Admin", "User" };
 
@@ -88,6 +90,7 @@ using (var scope = app.Services.CreateScope())
             };
 
             var result = await userManager.CreateAsync(admin, "123456");
+
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(admin, "Admin");
@@ -95,13 +98,13 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            // Nếu tài khoản đã có sẵn nhưng chưa có quyền Admin thì thêm vào
             if (!await userManager.IsInRoleAsync(admin, "Admin"))
             {
                 await userManager.AddToRoleAsync(admin, "Admin");
             }
         }
-    }).Wait();
+
+    });
 }
 
 // 8. Route cho Area Admin

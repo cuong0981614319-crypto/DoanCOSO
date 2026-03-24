@@ -1,5 +1,4 @@
-﻿using BanHang.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BanHang.Models
@@ -10,11 +9,11 @@ namespace BanHang.Models
         public int MaSanPham { get; set; }
 
         [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
-        public string TenSanPham { get; set; } = string.Empty; // Thêm = string.Empty để hết warning
+        public string TenSanPham { get; set; } = string.Empty;
 
         public decimal Gia { get; set; }
 
-        public string? MoTa { get; set; } // Thêm dấu ? để chấp nhận null
+        public string? MoTa { get; set; }
 
         public string? HinhAnh { get; set; }
 
@@ -23,11 +22,16 @@ namespace BanHang.Models
 
         public int SoLuong { get; set; }
 
+        // ================= DANH MỤC =================
         public int MaDanhMuc { get; set; }
 
-        public string? KhuVucHienThi { get; set; }
-
         [ForeignKey("MaDanhMuc")]
-        public virtual DanhMuc? DanhMuc { get; set; } // Thêm virtual để hỗ trợ Lazy Loading nếu cần
+        public virtual DanhMuc? DanhMuc { get; set; }
+
+        // ================= KHU VỰC HIỂN THỊ =================
+        public int? KhuVucHienThiId { get; set; }
+
+        [ForeignKey("KhuVucHienThiId")] // ✅ SỬA Ở ĐÂY
+        public virtual KhuVucHienThi? KhuVucHienThi { get; set; }
     }
 }

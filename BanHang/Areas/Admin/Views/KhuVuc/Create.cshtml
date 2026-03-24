@@ -1,0 +1,17 @@
+﻿@model BanHang.Models.KhuVucHienThi
+
+<h2>Thêm khu vực</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label>Tên khu vực</label>
+        <input asp-for="Ten" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Thứ tự</label>
+        <input asp-for="ThuTu" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success mt-2">Lưu</button>
+</form>

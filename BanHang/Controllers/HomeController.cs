@@ -15,22 +15,26 @@ namespace BanHang.Controllers
 
         public async Task<IActionResult> Index(int? maDanhMuc)
         {
-            var query = _context.SanPhams
-                .Include(x => x.DanhMuc)
-                .AsQueryable();
+            // Lấy khu vực + sản phẩm
+            var khuVucs = await _context.KhuVucHienThis
+                .Include(k => k.SanPhams)
+                    .ThenInclude(sp => sp.DanhMuc)
+                .ToListAsync();
 
+            // Nếu có lọc danh mục
             if (maDanhMuc.HasValue)
             {
-                query = query.Where(x => x.MaDanhMuc == maDanhMuc.Value);
+                foreach (var kv in khuVucs)
+                {
+                    kv.SanPhams = kv.SanPhams?
+                        .Where(sp => sp.MaDanhMuc == maDanhMuc.Value)
+                        .ToList();
+                }
             }
-
-            var products = await query
-                .OrderBy(x => x.MaSanPham)
-                .ToListAsync();
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;
 
-            return View(products);
+            return View(khuVucs);
         }
     }
 }

@@ -1,0 +1,40 @@
+﻿@model BanHang.Models.KhuVucHienThi
+
+@{
+    ViewData["Title"] = "Sửa khu vực";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">Sửa khu vực</h2>
+
+            <form asp-area="Admin" asp-controller="KhuVuc" asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <input asp-for="Id" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Ten" class="form-label"></label>
+                    <input asp-for="Ten" class="form-control" />
+                    <span asp-validation-for="Ten" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ThuTu" class="form-label"></label>
+                    <input asp-for="ThuTu" class="form-control" />
+                    <span asp-validation-for="ThuTu" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-warning">Cập nhật</button>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
