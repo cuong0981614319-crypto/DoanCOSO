@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BanHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325172531_addmausac")]
+    partial class addmausac
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,28 +111,6 @@ namespace BanHang.Migrations
                     b.ToTable("DonHangs");
                 });
 
-            modelBuilder.Entity("BanHang.Models.HinhAnhSanPham", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DuongDanAnh")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MaSanPham")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MaSanPham");
-
-                    b.ToTable("HinhAnhSanPhams");
-                });
-
             modelBuilder.Entity("BanHang.Models.KhuVucHienThi", b =>
                 {
                     b.Property<int>("Id")
@@ -194,9 +175,6 @@ namespace BanHang.Migrations
                     b.Property<int>("DaBan")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DanhMucMaDanhMuc")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Gia")
                         .HasColumnType("decimal(18,2)");
 
@@ -221,9 +199,9 @@ namespace BanHang.Migrations
 
                     b.HasKey("MaSanPham");
 
-                    b.HasIndex("DanhMucMaDanhMuc");
-
                     b.HasIndex("KhuVucHienThiId");
+
+                    b.HasIndex("MaDanhMuc");
 
                     b.ToTable("SanPhams");
                 });
@@ -445,26 +423,17 @@ namespace BanHang.Migrations
                     b.Navigation("SanPham");
                 });
 
-            modelBuilder.Entity("BanHang.Models.HinhAnhSanPham", b =>
-                {
-                    b.HasOne("BanHang.Models.SanPham", "SanPham")
-                        .WithMany("HinhAnhSanPhams")
-                        .HasForeignKey("MaSanPham")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SanPham");
-                });
-
             modelBuilder.Entity("BanHang.Models.SanPham", b =>
                 {
-                    b.HasOne("BanHang.Models.DanhMuc", "DanhMuc")
-                        .WithMany("SanPhams")
-                        .HasForeignKey("DanhMucMaDanhMuc");
-
                     b.HasOne("BanHang.Models.KhuVucHienThi", "KhuVucHienThi")
                         .WithMany("SanPhams")
                         .HasForeignKey("KhuVucHienThiId");
+
+                    b.HasOne("BanHang.Models.DanhMuc", "DanhMuc")
+                        .WithMany("SanPhams")
+                        .HasForeignKey("MaDanhMuc")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("DanhMuc");
 
@@ -535,11 +504,6 @@ namespace BanHang.Migrations
             modelBuilder.Entity("BanHang.Models.KhuVucHienThi", b =>
                 {
                     b.Navigation("SanPhams");
-                });
-
-            modelBuilder.Entity("BanHang.Models.SanPham", b =>
-                {
-                    b.Navigation("HinhAnhSanPhams");
                 });
 #pragma warning restore 612, 618
         }

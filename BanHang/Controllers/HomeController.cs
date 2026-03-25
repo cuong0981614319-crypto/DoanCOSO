@@ -29,6 +29,15 @@ namespace BanHang.Controllers
                         .Where(sp => sp.MaDanhMuc == maDanhMuc.Value)
                         .ToList();
                 }
+
+                khuVucs = khuVucs
+                    .Where(kv => kv.SanPhams != null && kv.SanPhams.Any())
+                    .ToList();
+
+                var danhMuc = await _context.DanhMucs
+                    .FirstOrDefaultAsync(dm => dm.MaDanhMuc == maDanhMuc.Value);
+
+                ViewBag.TenDanhMucDangLoc = danhMuc?.TenDanhMuc;
             }
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;

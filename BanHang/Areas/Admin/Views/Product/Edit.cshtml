@@ -35,6 +35,21 @@
                     <input asp-for="Gia" type="number" step="0.01" class="form-control" />
                     <span asp-validation-for="Gia" class="text-danger"></span>
                 </div>
+                <div class="row">
+                    <<div class="mb-3">
+                        <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
+                        <select asp-for="MauSac" class="form-select">
+                            <option value="">-- Chọn màu sắc --</option>
+                            <option value="Đen">⬛ Đen</option>
+                            <option value="Trắng">⬜ Trắng</option>
+                            <option value="Xám">⬜ Xám</option>
+                            <option value="Nâu">🟫 Nâu</option>
+                            <option value="Be">🟨 Be</option>
+                            <option value="Xanh">🟦 Xanh</option>
+                            <option value="Đỏ">🟥 Đỏ</option>
+                        </select>
+                    </div>
+                </div>
 
                
 
@@ -63,9 +78,10 @@
                 }
 
                 <div class="mb-3">
-                    <label asp-for="ImageFile" class="form-label">Chọn ảnh mới</label>
-                    <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
-                    <span asp-validation-for="ImageFile" class="text-danger"></span>
+                    <label asp-for="ImageFiles" class="form-label fw-bold">Hình ảnh sản phẩm</label>
+                    <input asp-for="ImageFiles" type="file" class="form-control" accept="image/*" multiple />
+                    <small class="text-muted">Có thể chọn nhiều ảnh cùng lúc</small>
+                    <span asp-validation-for="ImageFiles" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">

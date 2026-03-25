@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http;
 
 namespace BanHang.Models
 {
@@ -7,30 +8,28 @@ namespace BanHang.Models
     {
         [Key]
         public int MaSanPham { get; set; }
-
-        [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
         public string TenSanPham { get; set; } = string.Empty;
-
         public decimal Gia { get; set; }
-
         public string? MoTa { get; set; }
+        public string? MauSac { get; set; }
 
+        public int MaDanhMuc { get; set; }
+        public DanhMuc? DanhMuc { get; set; }
+
+        public int? KhuVucHienThiId { get; set; }
+        public KhuVucHienThi? KhuVucHienThi { get; set; }
+
+        // ảnh đại diện
         public string? HinhAnh { get; set; }
-        public int DaBan { get; set; } = 0;
+
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
 
+        // upload nhiều ảnh
+        [NotMapped]
+        public List<IFormFile>? ImageFiles { get; set; }
 
-        // ================= DANH MỤC =================
-        public int MaDanhMuc { get; set; }
-
-        [ForeignKey("MaDanhMuc")]
-        public virtual DanhMuc? DanhMuc { get; set; }
-
-        // ================= KHU VỰC HIỂN THỊ =================
-        public int? KhuVucHienThiId { get; set; }
-
-        [ForeignKey("KhuVucHienThiId")] // ✅ SỬA Ở ĐÂY
-        public virtual KhuVucHienThi? KhuVucHienThi { get; set; }
+        public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; }
+        public int DaBan { get; internal set; }
     }
 }

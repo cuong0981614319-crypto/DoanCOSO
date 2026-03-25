@@ -35,24 +35,32 @@ namespace BanHang.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> AddToCart(int id, int quantity = 1)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart(int id, int quantity = 1, string? returnUrl = null)
         {
             if (quantity <= 0)
+            {
                 quantity = 1;
+            }
 
-            var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
+            var product = await _context.SanPhams
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
             if (product == null)
+            {
                 return NotFound();
-
-           
+            }
 
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
-            
-            
-                
-
+            if (item != null)
+            {
+                item.SoLuong += quantity;
+            }
+            else
+            {
                 cart.Add(new CartItem
                 {
                     MaSanPham = product.MaSanPham,
@@ -61,11 +69,17 @@ namespace BanHang.Controllers
                     SoLuong = quantity,
                     HinhAnh = product.HinhAnh
                 });
-            
+            }
 
             SaveCart(cart);
             TempData["success"] = "Đã thêm vào giỏ hàng!";
-            return RedirectToAction("Index", "Home");
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -86,9 +100,13 @@ namespace BanHang.Controllers
             }
 
             if (quantity <= 0)
+            {
                 quantity = 1;
+            }
 
-            var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
+            var product = await _context.SanPhams
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
             if (product == null)
             {
                 return Json(new
@@ -98,14 +116,15 @@ namespace BanHang.Controllers
                 });
             }
 
-            
-
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
-           
-          
-
+            if (item != null)
+            {
+                item.SoLuong += quantity;
+            }
+            else
+            {
                 cart.Add(new CartItem
                 {
                     MaSanPham = product.MaSanPham,
@@ -114,13 +133,14 @@ namespace BanHang.Controllers
                     SoLuong = quantity,
                     HinhAnh = product.HinhAnh
                 });
-            
+            }
 
             SaveCart(cart);
 
             return Json(new
             {
                 success = true,
+                message = "Đã thêm vào giỏ hàng!",
                 cartCount = cart.Sum(x => x.SoLuong),
                 cartTotal = cart.Sum(x => x.ThanhTien),
                 items = cart.Select(x => new
@@ -142,9 +162,13 @@ namespace BanHang.Controllers
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item == null)
+            {
                 return RedirectToAction(nameof(Index));
+            }
 
-            var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
+            var product = await _context.SanPhams
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
             if (product == null)
             {
                 cart.Remove(item);
@@ -157,15 +181,13 @@ namespace BanHang.Controllers
             {
                 cart.Remove(item);
             }
-            
-                
-                else
-                {
-                    item.SoLuong = quantity;
-                }
-            
+            else
+            {
+                item.SoLuong = quantity;
+            }
 
             SaveCart(cart);
+            TempData["success"] = "Đã cập nhật số lượng.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -176,9 +198,12 @@ namespace BanHang.Controllers
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item != null)
+            {
                 cart.Remove(item);
+                SaveCart(cart);
+                TempData["success"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
+            }
 
-            SaveCart(cart);
             return RedirectToAction(nameof(Index));
         }
 
@@ -232,8 +257,6 @@ namespace BanHang.Controllers
                     TempData["error"] = $"Sản phẩm \"{item.TenSanPham}\" không còn tồn tại.";
                     return RedirectToAction(nameof(Index));
                 }
-
-               
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -265,7 +288,7 @@ namespace BanHang.Controllers
                 var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
                 if (sp != null)
                 {
-                    sp.DaBan += item.SoLuong; // mua bao nhiêu cộng bấy nhiêu
+                    sp.DaBan += item.SoLuong;
                 }
             }
 

@@ -44,10 +44,17 @@
                             <td>@item.TenSanPham</td>
                             <td>@item.Gia.ToString("N0") đ</td>
                             <td>
-                                <form asp-action="UpdateQuantity" method="post" class="d-flex gap-2">
+                                <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@item.MaSanPham" />
-                                    <input type="number" name="quantity" value="@item.SoLuong" min="1" class="form-control" style="width:90px" />
-                                    <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+
+                                    <input type="number"
+                                           name="quantity"
+                                           value="@item.SoLuong"
+                                           min="1"
+                                           class="form-control"
+                                           style="width: 90px;"
+                                           onchange="this.form.submit()" />
                                 </form>
                             </td>
                             <td>@item.ThanhTien.ToString("N0") đ</td>

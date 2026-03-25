@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -42,22 +42,58 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPham p)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (p.ImageFile != null && p.ImageFile.Length > 0)
+                await LoadDropdowns(p);
+                return View(p);
+            }
+
+            try
+            {
+                var imagePaths = new List<string>();
+
+                if (p.ImageFiles != null && p.ImageFiles.Any())
                 {
-                    p.HinhAnh = await SaveImage(p.ImageFile);
+                    foreach (var file in p.ImageFiles)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var path = await SaveImage(file);
+                            imagePaths.Add(path);
+                        }
+                    }
+                }
+
+                // lấy ảnh đầu tiên làm ảnh đại diện
+                if (imagePaths.Any())
+                {
+                    p.HinhAnh = imagePaths.First();
                 }
 
                 _context.SanPhams.Add(p);
                 await _context.SaveChangesAsync();
 
+                if (imagePaths.Any())
+                {
+                    var dsAnh = imagePaths.Select(path => new HinhAnhSanPham
+                    {
+                        MaSanPham = p.MaSanPham,
+                        DuongDanAnh = path
+                    }).ToList();
+
+                    _context.HinhAnhSanPhams.AddRange(dsAnh);
+                    await _context.SaveChangesAsync();
+                }
+
                 TempData["success"] = "Thêm sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
-
-            await LoadDropdowns(p);
-            return View(p);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Có lỗi xảy ra khi thêm sản phẩm: " + ex.Message);
+                await LoadDropdowns(p);
+                return View(p);
+            }
         }
 
         // ===================== EDIT =====================
@@ -80,21 +116,44 @@ namespace BanHang.Areas.Admin.Controllers
                 return View(p);
             }
 
-            var existingProduct = await _context.SanPhams.FindAsync(p.MaSanPham);
-            if (existingProduct == null) return NotFound();
+            var existingProduct = await _context.SanPhams
+                .Include(x => x.HinhAnhSanPhams)
+                .FirstOrDefaultAsync(x => x.MaSanPham == p.MaSanPham);
+
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
 
             try
             {
                 existingProduct.TenSanPham = p.TenSanPham;
                 existingProduct.Gia = p.Gia;
                 existingProduct.MoTa = p.MoTa;
-               
+                existingProduct.MauSac = p.MauSac;
                 existingProduct.MaDanhMuc = p.MaDanhMuc;
                 existingProduct.KhuVucHienThiId = p.KhuVucHienThiId;
 
-                if (p.ImageFile != null && p.ImageFile.Length > 0)
+                if (p.ImageFiles != null && p.ImageFiles.Any())
                 {
-                    existingProduct.HinhAnh = await SaveImage(p.ImageFile);
+                    foreach (var file in p.ImageFiles)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var path = await SaveImage(file);
+
+                            _context.HinhAnhSanPhams.Add(new HinhAnhSanPham
+                            {
+                                MaSanPham = existingProduct.MaSanPham,
+                                DuongDanAnh = path
+                            });
+
+                            if (string.IsNullOrEmpty(existingProduct.HinhAnh))
+                            {
+                                existingProduct.HinhAnh = path;
+                            }
+                        }
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -104,7 +163,7 @@ namespace BanHang.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật sản phẩm: " + ex.Message);
                 await LoadDropdowns(p);
                 return View(p);
             }

@@ -6,7 +6,10 @@
     </a>
     <ul class="dropdown-menu">
         <li>
-            <a class="dropdown-item" asp-controller="Home" asp-action="Index">
+            <a class="dropdown-item"
+               asp-area=""
+               asp-controller="Home"
+               asp-action="Index">
                 TẤT CẢ SẢN PHẨM
             </a>
         </li>
@@ -15,9 +18,10 @@
         {
             <li>
                 <a class="dropdown-item"
-                       asp-controller="Home"
-                       asp-action="Index"
-                       asp-route-maDanhMuc="@item.MaDanhMuc">
+                   asp-area=""
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-maDanhMuc="@item.MaDanhMuc">
                     @item.TenDanhMuc
                 </a>
             </li>
