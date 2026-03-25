@@ -26,7 +26,7 @@
                             <th>Tên sản phẩm</th>
                             <th>Danh mục</th>
                             <th>Giá</th>
-                            <th>Số lượng</th>
+                            
                             <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -50,7 +50,7 @@
                                     <td>@item.TenSanPham</td>
                                     <td>@(item.DanhMuc?.TenDanhMuc ?? "-")</td>
                                     <td>@item.Gia.ToString("N0") VNĐ</td>
-                                    <td>@item.SoLuong</td>
+                                    
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a asp-action="Edit" asp-route-id="@item.MaSanPham" class="btn btn-sm btn-outline-warning">Sửa</a>

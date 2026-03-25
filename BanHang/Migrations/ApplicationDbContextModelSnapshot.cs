@@ -169,6 +169,9 @@ namespace BanHang.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaSanPham"));
 
+                    b.Property<int>("DaBan")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Gia")
                         .HasColumnType("decimal(18,2)");
 
@@ -183,9 +186,6 @@ namespace BanHang.Migrations
 
                     b.Property<string>("MoTa")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SoLuong")
-                        .HasColumnType("int");
 
                     b.Property<string>("TenSanPham")
                         .IsRequired()

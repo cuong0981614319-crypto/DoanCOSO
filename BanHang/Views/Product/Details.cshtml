@@ -28,15 +28,16 @@
                 @Model.Gia.ToString("N0") VNĐ
             </p>
 
-            <p class="mb-2">
-                <strong>Số lượng còn:</strong> @Model.SoLuong
-            </p>
+            
 
             <div class="mb-4">
                 <strong>Mô tả:</strong>
                 <div class="mt-2 text-muted">
                     @(string.IsNullOrWhiteSpace(Model.MoTa) ? "Chưa có mô tả sản phẩm." : Model.MoTa)
                 </div>
+            </div>
+            <div class="mb-3">
+                <span class="btn btn-sm btn-outline-success disabled">Đã bán @Model.DaBan</span>
             </div>
 
             <div class="d-flex gap-2 flex-wrap">

@@ -88,7 +88,7 @@ namespace BanHang.Areas.Admin.Controllers
                 existingProduct.TenSanPham = p.TenSanPham;
                 existingProduct.Gia = p.Gia;
                 existingProduct.MoTa = p.MoTa;
-                existingProduct.SoLuong = p.SoLuong;
+               
                 existingProduct.MaDanhMuc = p.MaDanhMuc;
                 existingProduct.KhuVucHienThiId = p.KhuVucHienThiId;
 
@@ -123,10 +123,8 @@ namespace BanHang.Areas.Admin.Controllers
 
                 TempData["success"] = "Xóa sản phẩm thành công!";
             }
-
             return RedirectToAction(nameof(Index));
         }
-
         // ===================== LOAD DROPDOWN =====================
         private async Task LoadDropdowns(SanPham? p = null)
         {

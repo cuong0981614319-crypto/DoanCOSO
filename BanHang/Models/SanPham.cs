@@ -16,11 +16,10 @@ namespace BanHang.Models
         public string? MoTa { get; set; }
 
         public string? HinhAnh { get; set; }
-
+        public int DaBan { get; set; } = 0;
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
 
-        public int SoLuong { get; set; }
 
         // ================= DANH MỤC =================
         public int MaDanhMuc { get; set; }

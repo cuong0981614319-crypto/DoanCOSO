@@ -59,9 +59,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
-
-// 7. Tạo Role và tài khoản Admin mặc định
-// 7. Tạo Role và tài khoản Admin mặc định
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -120,12 +117,8 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.MapRazorPages();
-
 app.Run();
-
-// ===== EmailSender giả =====
 public class EmailSender : IEmailSender
 {
     public Task SendEmailAsync(string email, string subject, string htmlMessage)

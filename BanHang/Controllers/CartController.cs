@@ -44,32 +44,14 @@ namespace BanHang.Controllers
             if (product == null)
                 return NotFound();
 
-            if (product.SoLuong <= 0)
-            {
-                TempData["error"] = "Sản phẩm đã hết hàng!";
-                return RedirectToAction("Index", "Home");
-            }
+           
 
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
-            if (item != null)
-            {
-                if (item.SoLuong + quantity > product.SoLuong)
-                {
-                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
-                    return RedirectToAction("Index", "Home");
-                }
-
-                item.SoLuong += quantity;
-            }
-            else
-            {
-                if (quantity > product.SoLuong)
-                {
-                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
-                    return RedirectToAction("Index", "Home");
-                }
+            
+            
+                
 
                 cart.Add(new CartItem
                 {
@@ -79,7 +61,7 @@ namespace BanHang.Controllers
                     SoLuong = quantity,
                     HinhAnh = product.HinhAnh
                 });
-            }
+            
 
             SaveCart(cart);
             TempData["success"] = "Đã thêm vào giỏ hàng!";
@@ -116,41 +98,13 @@ namespace BanHang.Controllers
                 });
             }
 
-            if (product.SoLuong <= 0)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Sản phẩm đã hết hàng."
-                });
-            }
+            
 
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
-            if (item != null)
-            {
-                if (item.SoLuong + quantity > product.SoLuong)
-                {
-                    return Json(new
-                    {
-                        success = false,
-                        message = $"Chỉ còn {product.SoLuong} sản phẩm trong kho."
-                    });
-                }
-
-                item.SoLuong += quantity;
-            }
-            else
-            {
-                if (quantity > product.SoLuong)
-                {
-                    return Json(new
-                    {
-                        success = false,
-                        message = $"Chỉ còn {product.SoLuong} sản phẩm trong kho."
-                    });
-                }
+           
+          
 
                 cart.Add(new CartItem
                 {
@@ -160,7 +114,7 @@ namespace BanHang.Controllers
                     SoLuong = quantity,
                     HinhAnh = product.HinhAnh
                 });
-            }
+            
 
             SaveCart(cart);
 
@@ -203,18 +157,13 @@ namespace BanHang.Controllers
             {
                 cart.Remove(item);
             }
-            else
-            {
-                if (quantity > product.SoLuong)
-                {
-                    item.SoLuong = product.SoLuong;
-                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
-                }
+            
+                
                 else
                 {
                     item.SoLuong = quantity;
                 }
-            }
+            
 
             SaveCart(cart);
             return RedirectToAction(nameof(Index));
@@ -284,11 +233,7 @@ namespace BanHang.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                if (sp.SoLuong < item.SoLuong)
-                {
-                    TempData["error"] = $"Sản phẩm \"{sp.TenSanPham}\" chỉ còn {sp.SoLuong} trong kho.";
-                    return RedirectToAction(nameof(Index));
-                }
+               
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -320,7 +265,7 @@ namespace BanHang.Controllers
                 var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
                 if (sp != null)
                 {
-                    sp.SoLuong -= item.SoLuong;
+                    sp.DaBan += item.SoLuong; // mua bao nhiêu cộng bấy nhiêu
                 }
             }
 
