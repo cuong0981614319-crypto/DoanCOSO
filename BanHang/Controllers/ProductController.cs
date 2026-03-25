@@ -1,9 +1,8 @@
 ﻿using BanHang.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebBanHang.Controllers
+namespace BanHang.Controllers
 {
     public class ProductController : Controller
     {
@@ -14,20 +13,34 @@ namespace WebBanHang.Controllers
             _context = context;
         }
 
-        // KHÁCH + ADMIN: Đều thấy danh sách
         public async Task<IActionResult> Index()
         {
-            var products = await _context.SanPhams.ToListAsync();
+            var products = await _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .ToListAsync();
+
             return View(products);
         }
 
-    
-        // KHÁCH: Nhấn nút mua
-        [Authorize] // Phải đăng nhập mới mua được
-        public IActionResult Buy(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            TempData["Message"] = "Đã thêm vào giỏ hàng thành công!";
-            return RedirectToAction("Index");
+            var sanPham = await _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
+            if (sanPham == null)
+            {
+                return NotFound();
+            }
+
+            var sanPhamCungLoai = await _context.SanPhams
+                .Where(x => x.MaDanhMuc == sanPham.MaDanhMuc && x.MaSanPham != sanPham.MaSanPham)
+                .Take(4)
+                .ToListAsync();
+
+            ViewBag.SanPhamCungLoai = sanPhamCungLoai;
+
+            return View("~/Views/Product/Details.cshtml", sanPham);
         }
     }
 }

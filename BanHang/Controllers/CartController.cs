@@ -1,7 +1,9 @@
 ﻿using BanHang.Extensions;
 using BanHang.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BanHang.Controllers
 {
@@ -26,23 +28,49 @@ namespace BanHang.Controllers
             HttpContext.Session.SetObjectAsJson(CartKey, cart);
         }
 
+        [Authorize]
         public IActionResult Index()
         {
             return View(GetCart());
         }
 
+        [Authorize]
         public async Task<IActionResult> AddToCart(int id, int quantity = 1)
         {
+            if (quantity <= 0)
+                quantity = 1;
+
             var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
-            if (product == null) return NotFound();
+            if (product == null)
+                return NotFound();
+
+            if (product.SoLuong <= 0)
+            {
+                TempData["error"] = "Sản phẩm đã hết hàng!";
+                return RedirectToAction("Index", "Home");
+            }
 
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item != null)
+            {
+                if (item.SoLuong + quantity > product.SoLuong)
+                {
+                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
+                    return RedirectToAction("Index", "Home");
+                }
+
                 item.SoLuong += quantity;
+            }
             else
             {
+                if (quantity > product.SoLuong)
+                {
+                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
+                    return RedirectToAction("Index", "Home");
+                }
+
                 cart.Add(new CartItem
                 {
                     MaSanPham = product.MaSanPham,
@@ -59,23 +87,140 @@ namespace BanHang.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateQuantity(int id, int quantity)
+        public async Task<IActionResult> AddToCartAjax(int id, int quantity = 1)
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Json(new
+                {
+                    success = false,
+                    redirectToLogin = true,
+                    loginUrl = Url.Page("/Account/Login", new
+                    {
+                        area = "Identity",
+                        returnUrl = Url.Action("Index", "Home")
+                    })
+                });
+            }
+
+            if (quantity <= 0)
+                quantity = 1;
+
+            var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
+            if (product == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Sản phẩm không tồn tại."
+                });
+            }
+
+            if (product.SoLuong <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Sản phẩm đã hết hàng."
+                });
+            }
+
             var cart = GetCart();
             var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item != null)
             {
-                if (quantity <= 0)
-                    cart.Remove(item);
+                if (item.SoLuong + quantity > product.SoLuong)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Chỉ còn {product.SoLuong} sản phẩm trong kho."
+                    });
+                }
+
+                item.SoLuong += quantity;
+            }
+            else
+            {
+                if (quantity > product.SoLuong)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Chỉ còn {product.SoLuong} sản phẩm trong kho."
+                    });
+                }
+
+                cart.Add(new CartItem
+                {
+                    MaSanPham = product.MaSanPham,
+                    TenSanPham = product.TenSanPham,
+                    Gia = product.Gia,
+                    SoLuong = quantity,
+                    HinhAnh = product.HinhAnh
+                });
+            }
+
+            SaveCart(cart);
+
+            return Json(new
+            {
+                success = true,
+                cartCount = cart.Sum(x => x.SoLuong),
+                cartTotal = cart.Sum(x => x.ThanhTien),
+                items = cart.Select(x => new
+                {
+                    tenSanPham = x.TenSanPham,
+                    soLuong = x.SoLuong,
+                    thanhTien = x.ThanhTien,
+                    hinhAnh = x.HinhAnh
+                }).ToList()
+            });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateQuantity(int id, int quantity)
+        {
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(x => x.MaSanPham == id);
+
+            if (item == null)
+                return RedirectToAction(nameof(Index));
+
+            var product = await _context.SanPhams.FirstOrDefaultAsync(x => x.MaSanPham == id);
+            if (product == null)
+            {
+                cart.Remove(item);
+                SaveCart(cart);
+                TempData["error"] = "Sản phẩm không còn tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (quantity <= 0)
+            {
+                cart.Remove(item);
+            }
+            else
+            {
+                if (quantity > product.SoLuong)
+                {
+                    item.SoLuong = product.SoLuong;
+                    TempData["error"] = $"Chỉ còn {product.SoLuong} sản phẩm trong kho.";
+                }
                 else
+                {
                     item.SoLuong = quantity;
+                }
             }
 
             SaveCart(cart);
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public IActionResult Remove(int id)
         {
             var cart = GetCart();
@@ -88,18 +233,20 @@ namespace BanHang.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public IActionResult ClearCart()
         {
             HttpContext.Session.Remove(CartKey);
+            TempData["success"] = "Đã xoá toàn bộ giỏ hàng.";
             return RedirectToAction(nameof(Index));
         }
 
-        // ================= CHECKOUT =================
-
+        [Authorize]
         [HttpGet]
         public IActionResult Checkout()
         {
             var cart = GetCart();
+
             if (!cart.Any())
             {
                 TempData["error"] = "Giỏ hàng trống!";
@@ -109,6 +256,7 @@ namespace BanHang.Controllers
             return View(new ThanhToan());
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(ThanhToan model)
@@ -126,24 +274,39 @@ namespace BanHang.Controllers
                 return View(model);
             }
 
-            // 🔥 TẠO ĐƠN HÀNG
+            foreach (var item in cart)
+            {
+                var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
+
+                if (sp == null)
+                {
+                    TempData["error"] = $"Sản phẩm \"{item.TenSanPham}\" không còn tồn tại.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (sp.SoLuong < item.SoLuong)
+                {
+                    TempData["error"] = $"Sản phẩm \"{sp.TenSanPham}\" chỉ còn {sp.SoLuong} trong kho.";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var donHang = new DonHang
             {
+                HoTen = model.HoTen,
+                SoDienThoai = model.SoDienThoai,
+                DiaChi = model.DiaChi,
                 NgayDat = DateTime.Now,
                 TongTien = cart.Sum(x => x.ThanhTien),
-                HoTenNguoiNhan = model.HoTen,
-                SoDienThoai = model.SoDienThoai,
-                DiaChiGiaoHang = model.DiaChi,
-                Email = model.Email,
-                GhiChu = model.GhiChu,
-                PhuongThucThanhToan = model.PhuongThucThanhToan,
-                TrangThai = "Chờ xử lý"
+                TrangThai = "Chờ xác nhận",
+                UserId = userId
             };
 
             _context.DonHangs.Add(donHang);
             await _context.SaveChangesAsync();
 
-            // 🔥 LƯU CHI TIẾT ĐƠN
             foreach (var item in cart)
             {
                 _context.ChiTietDonHangs.Add(new ChiTietDonHang
@@ -156,53 +319,62 @@ namespace BanHang.Controllers
 
                 var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
                 if (sp != null)
+                {
                     sp.SoLuong -= item.SoLuong;
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            // 🔥 GỬI MAIL (tạm console)
             await SendOrderEmail(donHang, cart);
 
             HttpContext.Session.Remove(CartKey);
 
-            return RedirectToAction("Success", new { id = donHang.MaDonHang });
+            return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
         }
 
-        // ================= SUCCESS =================
-
+        [Authorize]
         public IActionResult Success(int id)
         {
             ViewBag.MaDonHang = id;
             return View();
         }
 
-        // ================= DETAIL =================
-
+        [Authorize]
         public async Task<IActionResult> Detail(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var donHang = await _context.DonHangs
                 .Include(x => x.ChiTietDonHangs)
                 .ThenInclude(x => x.SanPham)
-                .FirstOrDefaultAsync(x => x.MaDonHang == id);
+                .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
+
+            if (donHang == null)
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("MyOrders", "DonHang");
+            }
 
             return View(donHang);
         }
 
-        // ================= EMAIL =================
-
-        private async Task SendOrderEmail(DonHang donHang, List<CartItem> cart)
+        private Task SendOrderEmail(DonHang donHang, List<CartItem> cart)
         {
             string body = $"Đơn hàng #{donHang.MaDonHang}\n";
-            body += $"Khách: {donHang.HoTenNguoiNhan}\n";
-            body += $"Thanh toán: {donHang.PhuongThucThanhToan}\n\n";
+            body += $"Khách: {donHang.HoTen}\n";
+            body += $"Số điện thoại: {donHang.SoDienThoai}\n";
+            body += $"Địa chỉ: {donHang.DiaChi}\n";
+            body += $"Tổng tiền: {donHang.TongTien:N0} VNĐ\n";
+            body += $"Trạng thái: {donHang.TrangThai}\n\n";
 
             foreach (var item in cart)
             {
-                body += $"- {item.TenSanPham} x {item.SoLuong}\n";
+                body += $"- {item.TenSanPham} x {item.SoLuong} = {item.ThanhTien:N0} VNĐ\n";
             }
 
-            Console.WriteLine(body); // test
+            Console.WriteLine(body);
+            return Task.CompletedTask;
         }
     }
 }

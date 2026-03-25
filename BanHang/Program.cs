@@ -28,7 +28,11 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 // 4. Bật MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
 // 5. Bật Session để làm giỏ hàng
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

@@ -47,11 +47,15 @@
                     <partial name="_LoginPartial" />
 
                     <div class="dropdown">
-                        <a href="#" class="text-dark text-decoration-none d-flex align-items-center position-relative"
-                               data-bs-toggle="dropdown" aria-expanded="false">
+                        <a asp-controller="Cart"
+                               asp-action="Index"
+                               class="text-dark text-decoration-none d-flex align-items-center position-relative"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
                             <div class="me-2 position-relative">
                                 <i class="bi bi-bag" style="font-size: 26px;"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                <span id="cart-badge"
+                                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                       style="font-size: 12px;">
                                     @cartCount
                                 </span>
@@ -63,39 +67,42 @@
                             <h6 class="fw-bold mb-3">GIỎ HÀNG</h6>
                             <hr />
 
-                            @if (cart.Any())
-                            {
-                                <div style="max-height: 250px; overflow-y: auto;">
-                                    @foreach (var item in cart)
-                                    {
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 60px; height: 60px;" class="me-2">
-                                                @if (!string.IsNullOrEmpty(item.HinhAnh))
-                                                {
-                                                    <img src="@item.HinhAnh" alt="@item.TenSanPham"
-                                                         style="width: 100%; height: 100%; object-fit: contain;" />
-                                                }
+                            <div id="cart-dropdown-items">
+                                @if (cart.Any())
+                                {
+                                    <div style="max-height: 250px; overflow-y: auto;">
+                                        @foreach (var item in cart)
+                                        {
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div style="width: 60px; height: 60px;" class="me-2">
+                                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                                    {
+                                                        <img src="@item.HinhAnh"
+                                                             alt="@item.TenSanPham"
+                                                             style="width: 100%; height: 100%; object-fit: contain;" />
+                                                    }
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-semibold">@item.TenSanPham</div>
+                                                    <div class="text-muted small">SL: @item.SoLuong</div>
+                                                </div>
+                                                <div class="text-danger fw-bold">
+                                                    @item.ThanhTien.ToString("N0")đ
+                                                </div>
                                             </div>
-                                            <div class="flex-grow-1">
-                                                <div class="fw-semibold">@item.TenSanPham</div>
-                                                <div class="text-muted small">SL: @item.SoLuong</div>
-                                            </div>
-                                            <div class="text-danger fw-bold">
-                                                @item.ThanhTien.ToString("N0")đ
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="py-3 text-center text-muted">Giỏ hàng trống</div>
-                            }
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="py-3 text-center text-muted">Giỏ hàng trống</div>
+                                }
+                            </div>
 
                             <hr />
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-semibold">TỔNG TIỀN:</span>
-                                <span class="fw-bold text-danger">@cartTotal.ToString("N0")đ</span>
+                                <span id="cart-total" class="fw-bold text-danger">@cartTotal.ToString("N0")đ</span>
                             </div>
 
                             <div class="d-flex gap-2">
@@ -121,6 +128,16 @@
                     <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Tin tức</a></li>
                     <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Về MOHO</a></li>
                     <li class="nav-item"><a class="nav-link text-dark py-3" href="#">Cửa hàng</a></li>
+                    @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item">
+                            <a asp-controller="DonHang"
+                                   asp-action="MyOrders"
+                                   class="nav-link text-dark py-3">
+                                Đơn hàng của tôi
+                            </a>
+                        </li>
+                    }
                 </ul>
             </div>
         </nav>

@@ -15,13 +15,12 @@ namespace BanHang.Controllers
 
         public async Task<IActionResult> Index(int? maDanhMuc)
         {
-            // Lấy khu vực + sản phẩm
             var khuVucs = await _context.KhuVucHienThis
                 .Include(k => k.SanPhams)
                     .ThenInclude(sp => sp.DanhMuc)
+                .OrderBy(k => k.ThuTu)
                 .ToListAsync();
 
-            // Nếu có lọc danh mục
             if (maDanhMuc.HasValue)
             {
                 foreach (var kv in khuVucs)
@@ -34,7 +33,7 @@ namespace BanHang.Controllers
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;
 
-            return View(khuVucs);
+            return View("~/Views/Home/Index.cshtml", khuVucs);
         }
     }
 }
