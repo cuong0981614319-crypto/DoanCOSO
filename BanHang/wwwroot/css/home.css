@@ -168,3 +168,14 @@
     inset: 0;
     background: rgba(0,0,0,0.3);
 }
+
+/*bonus*/
+
+.navbar-nav {
+    align-items: center;
+}
+
+    .navbar-nav .nav-link {
+        display: flex;
+        align-items: center;
+    }
