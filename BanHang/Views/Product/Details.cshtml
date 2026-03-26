@@ -9,15 +9,19 @@
         : new List<HinhAnhSanPham>();
 
     int quantity = ViewBag.Quantity != null ? (int)ViewBag.Quantity : 1;
+    var mainImage = string.IsNullOrEmpty(Model.HinhAnh)
+        ? "https://via.placeholder.com/500x400"
+        : Model.HinhAnh;
 }
+
 <link rel="stylesheet" href="~/css/productUser/Details.css" asp-append-version="true" />
 
-
-<div class="container mt-4">
+<div class="container mt-4 product-detail-page">
     <div class="row g-4">
         <div class="col-md-5">
-            <div class="border rounded p-3 bg-white shadow-sm">
-                <img src="@(string.IsNullOrEmpty(Model.HinhAnh) ? "https://via.placeholder.com/500x400" : Model.HinhAnh)"
+            <div class="border rounded p-3 bg-white shadow-sm main-image-box">
+                <img id="mainProductImage"
+                     src="@mainImage"
                      alt="@Model.TenSanPham"
                      class="img-fluid w-100"
                      style="height: 400px; object-fit: contain;" />
@@ -25,14 +29,14 @@
 
             @if (dsAnh.Any())
             {
-                <div class="row g-2 mt-3">
+                <div class="row g-2 mt-3 thumbnail-list">
                     @foreach (var img in dsAnh)
                     {
                         <div class="col-3">
                             <img src="@img.DuongDanAnh"
                                  alt="@Model.TenSanPham"
-                                 class="img-fluid border rounded"
-                                 style="height: 90px; width: 100%; object-fit: contain;" />
+                                 class="img-fluid border rounded product-thumb @(mainImage == img.DuongDanAnh ? "active-thumb" : "")"
+                                 style="height: 90px; width: 100%; object-fit: contain; cursor: pointer;" />
                         </div>
                     }
                 </div>
@@ -53,9 +57,36 @@
                 </p>
             }
 
-            <p class="text-danger fw-bold fs-3 mb-3">
-                @Model.Gia.ToString("N0") VNĐ
-            </p>
+            <div class="price-quantity-inline mb-3">
+                <div class="product-price-box-inline">
+                    <div class="text-danger fw-bold fs-3 product-price-text">
+                        @Model.Gia.ToString("N0") VNĐ
+                    </div>
+
+                    @if (!User.IsInRole("Admin") && User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <div class="quantity-inline-control">
+                            <form asp-controller="Product" asp-action="Details" method="get" class="quantity-inline-form">
+                                <input type="hidden" name="id" value="@Model.MaSanPham" />
+                                <input type="hidden" name="quantity" value="@(quantity > 1 ? quantity - 1 : 1)" />
+                                <button type="submit" class="quantity-inline-btn" title="Giảm số lượng">-</button>
+                            </form>
+
+                            <input type="text"
+                                   id="quantityInput"
+                                   value="@quantity"
+                                   class="quantity-inline-input"
+                                   readonly />
+
+                            <form asp-controller="Product" asp-action="Details" method="get" class="quantity-inline-form">
+                                <input type="hidden" name="id" value="@Model.MaSanPham" />
+                                <input type="hidden" name="quantity" value="@(quantity + 1)" />
+                                <button type="submit" class="quantity-inline-btn" title="Tăng số lượng">+</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
 
             <div class="mb-4">
                 <strong>Mô tả:</strong>
@@ -84,25 +115,6 @@
                 else if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <form asp-controller="Product" asp-action="Details" method="get" class="d-inline">
-                            <input type="hidden" name="id" value="@Model.MaSanPham" />
-                            <input type="hidden" name="quantity" value="@(quantity > 1 ? quantity - 1 : 1)" />
-                            <button type="submit" class="btn btn-outline-secondary">-</button>
-                        </form>
-
-                        <input type="text"
-                               id="quantityInput"
-                               value="@quantity"
-                               class="form-control text-center"
-                               style="width: 80px;"
-                               readonly />
-
-                        <form asp-controller="Product" asp-action="Details" method="get" class="d-inline">
-                            <input type="hidden" name="id" value="@Model.MaSanPham" />
-                            <input type="hidden" name="quantity" value="@(quantity + 1)" />
-                            <button type="submit" class="btn btn-outline-secondary">+</button>
-                        </form>
-
                         <button type="button"
                                 id="btnAddToCart"
                                 data-id="@Model.MaSanPham"
@@ -132,89 +144,138 @@
 
     <hr class="my-5" />
 
-    <div class="mb-4">
+    <div class="related-section mb-4">
         <h3 class="fw-bold">Sản phẩm cùng loại</h3>
     </div>
 
-    <div class="row">
-        @if (sanPhamCungLoai.Any())
-        {
-            @foreach (var item in sanPhamCungLoai)
-            {
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <a asp-controller="Product"
-                           asp-action="Details"
-                           asp-route-id="@item.MaSanPham"
-                           class="text-decoration-none">
-                            <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
-                                 class="card-img-top p-2"
-                                 alt="@item.TenSanPham"
-                                 style="height: 180px; object-fit: contain;" />
-                        </a>
+    @if (sanPhamCungLoai.Any())
+    {
+        <div class="product-slider-wrapper related-slider-wrapper">
+            <button class="slider-btn prev" type="button" onclick="scrollRelatedProducts(-1)">‹</button>
 
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-truncate">
-                                <a asp-controller="Product"
-                                   asp-action="Details"
-                                   asp-route-id="@item.MaSanPham"
-                                   class="text-decoration-none text-dark">
-                                    @item.TenSanPham
-                                </a>
-                            </h5>
+            <div class="product-slider related-product-slider" id="relatedProductSlider">
+                @foreach (var item in sanPhamCungLoai)
+                {
+                    <div class="product-item">
+                        <div class="card h-100 shadow-sm border-0">
+                            <a asp-controller="Product"
+                               asp-action="Details"
+                               asp-route-id="@item.MaSanPham"
+                               class="text-decoration-none">
+                                <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
+                                     class="card-img-top p-2"
+                                     alt="@item.TenSanPham" />
+                            </a>
 
-                            <p class="card-text text-danger fw-bold fs-5">
-                                @item.Gia.ToString("N0") VNĐ
-                            </p>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">
+                                    <a asp-controller="Product"
+                                       asp-action="Details"
+                                       asp-route-id="@item.MaSanPham"
+                                       class="text-decoration-none text-dark">
+                                        @item.TenSanPham
+                                    </a>
+                                </h5>
 
-                            <div class="mt-auto d-grid gap-2">
-                                <a asp-controller="Product"
-                                   asp-action="Details"
-                                   asp-route-id="@item.MaSanPham"
-                                   class="btn btn-outline-primary">
-                                    Xem chi tiết
-                                </a>
+                                <p class="card-text text-danger fw-bold fs-5">
+                                    @item.Gia.ToString("N0") VNĐ
+                                </p>
 
-                                @if (!User.IsInRole("Admin"))
-                                {
-                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                <div class="mt-auto d-grid gap-2">
+                                    <a asp-controller="Product"
+                                       asp-action="Details"
+                                       asp-route-id="@item.MaSanPham"
+                                       class="btn btn-outline-primary">
+                                        Xem chi tiết
+                                    </a>
+
+                                    @if (!User.IsInRole("Admin"))
                                     {
-                                        <button type="button"
-                                                class="btn btn-dark btn-add-related-to-cart"
-                                                data-id="@item.MaSanPham">
-                                            Thêm vào giỏ
-                                        </button>
+                                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-dark btn-add-related-to-cart"
+                                                    data-id="@item.MaSanPham">
+                                                Thêm vào giỏ
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a asp-area="Identity"
+                                               asp-page="/Account/Login"
+                                               asp-route-returnUrl="@Context.Request.Path"
+                                               class="btn btn-outline-dark">
+                                                Thêm vào giỏ
+                                            </a>
+                                        }
                                     }
-                                    else
-                                    {
-                                        <a asp-area="Identity"
-                                           asp-page="/Account/Login"
-                                           asp-route-returnUrl="@Context.Request.Path"
-                                           class="btn btn-outline-dark">
-                                            Thêm vào giỏ
-                                        </a>
-                                    }
-                                }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <p class="text-muted">Không có sản phẩm cùng loại.</p>
+                }
             </div>
-        }
-    </div>
+
+            <button class="slider-btn next" type="button" onclick="scrollRelatedProducts(1)">›</button>
+        </div>
+    }
+    else
+    {
+        <div class="col-12">
+            <p class="text-muted">Không có sản phẩm cùng loại.</p>
+        </div>
+    }
 </div>
 
 <div id="cart-toast" class="cart-toast">Đã thêm vào giỏ hàng!</div>
 
+<style>
+    .product-thumb {
+        transition: all 0.2s ease;
+    }
+
+        .product-thumb:hover {
+            transform: scale(1.03);
+            border-color: #dc3545 !important;
+        }
+
+    .active-thumb {
+        border: 2px solid #dc3545 !important;
+    }
+</style>
+
 @section Scripts {
     <script>
+        function scrollRelatedProducts(direction) {
+            const slider = document.getElementById("relatedProductSlider");
+            if (!slider) return;
+
+            const item = slider.querySelector(".product-item");
+            if (!item) return;
+
+            const itemWidth = item.offsetWidth;
+            const gap = 18;
+            const scrollAmount = itemWidth + gap;
+
+            slider.scrollBy({
+                left: direction * scrollAmount,
+                behavior: "smooth"
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
+            const mainImage = document.getElementById("mainProductImage");
+            const thumbs = document.querySelectorAll(".product-thumb");
+
+            thumbs.forEach(img => {
+                img.addEventListener("click", function () {
+                    mainImage.src = this.src;
+
+                    thumbs.forEach(t => t.classList.remove("active-thumb"));
+                    this.classList.add("active-thumb");
+                });
+            });
+
             function showCartToast(message, isError = false) {
                 const toast = document.getElementById("cart-toast");
                 if (!toast) return;

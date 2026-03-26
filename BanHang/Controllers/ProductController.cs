@@ -13,6 +13,7 @@ namespace BanHang.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index(
             int? khuVucId,
             int? maDanhMuc,
@@ -26,7 +27,6 @@ namespace BanHang.Controllers
                 .Include(x => x.DanhMuc)
                 .Include(x => x.KhuVucHienThi);
 
-            // Lọc theo khu vực hiển thị
             if (khuVucId.HasValue)
             {
                 query = query.Where(x => x.KhuVucHienThiId == khuVucId.Value);
@@ -41,20 +41,17 @@ namespace BanHang.Controllers
                 ViewBag.TenKhuVuc = "Tất cả sản phẩm";
             }
 
-            // Lọc theo danh mục
             if (maDanhMuc.HasValue)
             {
                 query = query.Where(x => x.MaDanhMuc == maDanhMuc.Value);
             }
 
-            // Lọc theo màu sắc
             if (!string.IsNullOrWhiteSpace(mauSac))
             {
                 var mauSacLower = mauSac.Trim().ToLower();
                 query = query.Where(x => x.MauSac != null && x.MauSac.ToLower() == mauSacLower);
             }
 
-            // Lọc theo mức giá
             if (!string.IsNullOrWhiteSpace(mucGia))
             {
                 switch (mucGia)
@@ -77,19 +74,14 @@ namespace BanHang.Controllers
                 }
             }
 
-            // Tổng số sản phẩm sau khi lọc
             var totalItems = await query.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
             if (page < 1)
-            {
                 page = 1;
-            }
 
             if (totalPages > 0 && page > totalPages)
-            {
                 page = totalPages;
-            }
 
             var products = await query
                 .OrderBy(x => x.MaSanPham)
@@ -97,23 +89,19 @@ namespace BanHang.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Danh sách danh mục cho bộ lọc
             ViewBag.DanhMucs = await _context.DanhMucs.ToListAsync();
 
-            // Danh sách màu sắc cho bộ lọc
             ViewBag.MauSacs = await _context.SanPhams
                 .Where(x => !string.IsNullOrEmpty(x.MauSac))
                 .Select(x => x.MauSac)
                 .Distinct()
                 .ToListAsync();
 
-            // Giữ lại giá trị lọc
             ViewBag.KhuVucId = khuVucId;
             ViewBag.MaDanhMuc = maDanhMuc;
             ViewBag.MucGia = mucGia;
             ViewBag.MauSac = mauSac;
 
-            // Phân trang
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.PageSize = pageSize;
@@ -122,6 +110,7 @@ namespace BanHang.Controllers
             return View(products);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id, int quantity = 1)
         {
             if (quantity < 1)
@@ -141,14 +130,58 @@ namespace BanHang.Controllers
 
             var sanPhamCungLoai = await _context.SanPhams
                 .Where(x => x.MaDanhMuc == sanPham.MaDanhMuc && x.MaSanPham != sanPham.MaSanPham)
-                .Take(4)
+                .Take(8)
                 .ToListAsync();
 
             ViewBag.SanPhamCungLoai = sanPhamCungLoai;
             ViewBag.Quantity = quantity;
-           
 
             return View("~/Views/Product/Details.cshtml", sanPham);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string? keyword, int page = 1)
+        {
+            const int pageSize = 16;
+
+            IQueryable<SanPham> query = _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .Include(x => x.KhuVucHienThi);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+
+                query = query.Where(x =>
+                    x.TenSanPham.Contains(keyword) ||
+                    (x.MoTa != null && x.MoTa.Contains(keyword)) ||
+                    (x.MauSac != null && x.MauSac.Contains(keyword)) ||
+                    (x.DanhMuc != null && x.DanhMuc.TenDanhMuc.Contains(keyword))
+                );
+            }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            if (page < 1)
+                page = 1;
+
+            if (totalPages > 0 && page > totalPages)
+                page = totalPages;
+
+            var products = await query
+                .OrderByDescending(x => x.MaSanPham)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+
+            return View(products);
         }
     }
 }

@@ -15,29 +15,26 @@
                   method="post"
                   enctype="multipart/form-data">
 
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
                 <input type="hidden" asp-for="MaSanPham" />
-                <input type="hidden" asp-for="HinhAnh" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="mb-3">
-                    <label asp-for="KhuVucHienThiId" class="form-label">Khu vực hiển thị</label>
-                    <select asp-for="KhuVucHienThiId"
-                            class="form-select"
-                            asp-items="ViewBag.KhuVucHienThiId">
+                    <label asp-for="KhuVucHienThiId" class="form-label fw-bold">Khu vực hiển thị</label>
+                    <select asp-for="KhuVucHienThiId" class="form-select" asp-items="ViewBag.KhuVucHienThiId">
                         <option value="">-- Chọn khu vực --</option>
                     </select>
                     <span asp-validation-for="KhuVucHienThiId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="TenSanPham" class="form-label">Tên sản phẩm</label>
+                    <label asp-for="TenSanPham" class="form-label fw-bold">Tên sản phẩm</label>
                     <input asp-for="TenSanPham" class="form-control" />
                     <span asp-validation-for="TenSanPham" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Gia" class="form-label">Giá bán</label>
+                    <label asp-for="Gia" class="form-label fw-bold">Giá</label>
                     <input asp-for="Gia" type="number" step="0.01" class="form-control" />
                     <span asp-validation-for="Gia" class="text-danger"></span>
                 </div>
@@ -58,51 +55,75 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="MaDanhMuc" class="form-label">Danh mục</label>
-                    <select asp-for="MaDanhMuc"
-                            asp-items="ViewBag.MaDanhMuc"
-                            class="form-select">
+                    <label asp-for="MaDanhMuc" class="form-label fw-bold">Danh mục</label>
+                    <select asp-for="MaDanhMuc" class="form-select" asp-items="ViewBag.MaDanhMuc">
                         <option value="">-- Chọn danh mục --</option>
                     </select>
                     <span asp-validation-for="MaDanhMuc" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="MoTa" class="form-label">Mô tả</label>
+                    <label asp-for="MoTa" class="form-label fw-bold">Mô tả</label>
                     <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="MoTa" class="text-danger"></span>
                 </div>
 
-                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                @if (Model.HinhAnhSanPhams != null && Model.HinhAnhSanPhams.Any())
                 {
                     <div class="mb-3">
-                        <label class="form-label">Ảnh hiện tại</label><br />
-                        <img src="@Model.HinhAnh"
-                             alt="@Model.TenSanPham"
-                             style="max-width: 180px; max-height: 180px; object-fit: contain;"
-                             class="border rounded p-2" />
+                        <label class="form-label fw-bold">Ảnh hiện tại</label>
+
+                        <div class="row">
+                            @foreach (var img in Model.HinhAnhSanPhams)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="border p-2 rounded h-100 bg-white">
+                                        <img src="@img.DuongDanAnh"
+                                             class="img-fluid"
+                                             style="width:100%; height:150px; object-fit:contain;" />
+
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input"
+                                                   type="radio"
+                                                   name="SelectedThumbnail"
+                                                   value="@img.DuongDanAnh"
+                                                   @(Model.HinhAnh == img.DuongDanAnh ? "checked" : "") />
+                                            <label class="form-check-label">Ảnh đại diện</label>
+                                        </div>
+
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   name="DeletedImageIds"
+                                                   value="@img.Id" />
+                                            <label class="form-check-label text-danger">Xóa ảnh</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
                     </div>
                 }
 
                 <div class="mb-3">
-                    <label asp-for="ImageFiles" class="form-label fw-bold">Hình ảnh sản phẩm</label>
+                    <label asp-for="ImageFiles" class="form-label fw-bold">Thêm ảnh mới</label>
                     <input asp-for="ImageFiles"
                            type="file"
                            class="form-control"
                            accept="image/*"
-                           multiple />
-                    <small class="text-muted">Có thể chọn nhiều ảnh cùng lúc</small>
+                           multiple
+                           id="newImageInput" />
                     <span asp-validation-for="ImageFiles" class="text-danger"></span>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Xem trước ảnh mới</label>
+                    <div id="newPreviewContainer" class="row g-3"></div>
+                </div>
+
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">Cập nhật thay đổi</button>
-                    <a asp-area="Admin"
-                           asp-controller="Product"
-                           asp-action="Index"
-                           class="btn btn-secondary">
-                        Quay lại danh sách
-                    </a>
+                    <button type="submit" class="btn btn-success">Cập nhật</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
                 </div>
             </form>
         </div>
@@ -111,4 +132,41 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const newImageInput = document.getElementById('newImageInput');
+        const newPreviewContainer = document.getElementById('newPreviewContainer');
+
+        if (newImageInput) {
+            newImageInput.addEventListener('change', function () {
+                newPreviewContainer.innerHTML = '';
+
+                const files = this.files;
+                if (!files || files.length === 0) return;
+
+                Array.from(files).forEach((file) => {
+                    if (!file.type.startsWith('image/')) return;
+
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-3 col-6';
+
+                        col.innerHTML = `
+                            <div class="border rounded p-2 h-100 text-center bg-white">
+                                <img src="${e.target.result}"
+                                     class="img-fluid"
+                                     style="width:100%; height:150px; object-fit:contain;" />
+                            </div>
+                        `;
+
+                        newPreviewContainer.appendChild(col);
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            });
+        }
+    </script>
 }

@@ -19,35 +19,30 @@ namespace BanHang.Areas.Admin.Controllers
             _env = env;
         }
 
-        // ===================== DANH SÁCH =====================
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var products = await _context.SanPhams
-                .Include(x => x.DanhMuc)          // 🔥 load danh mục
-                .Include(x => x.KhuVucHienThi)    // 🔥 load khu vực
+            var sanPhams = await _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .Include(x => x.KhuVucHienThi)
+                .OrderByDescending(x => x.MaSanPham)
                 .ToListAsync();
 
-            return View(products);
+            return View(sanPhams);
         }
 
-        // ===================== CREATE =====================
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             await LoadDropdowns();
-            return View();
+            return View(new SanPham());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPham p)
         {
-            // 🔥 validate bắt buộc chọn
-            if (p.MaDanhMuc == null)
-                ModelState.AddModelError("MaDanhMuc", "Vui lòng chọn danh mục");
-
-            if (p.KhuVucHienThiId == null)
-                ModelState.AddModelError("KhuVucHienThiId", "Vui lòng chọn khu vực hiển thị");
+            ValidateProductInput(p);
 
             if (!ModelState.IsValid)
             {
@@ -57,14 +52,39 @@ namespace BanHang.Areas.Admin.Controllers
 
             try
             {
-                // upload ảnh
+                var sanPham = new SanPham
+                {
+                    TenSanPham = p.TenSanPham,
+                    Gia = p.Gia,
+                    MoTa = p.MoTa,
+                    MauSac = p.MauSac,
+                    MaDanhMuc = p.MaDanhMuc,
+                    KhuVucHienThiId = p.KhuVucHienThiId,
+                    HinhAnhSanPhams = new List<HinhAnhSanPham>()
+                };
+
                 if (p.ImageFiles != null && p.ImageFiles.Any(f => f.Length > 0))
                 {
-                    var file = p.ImageFiles.First();
-                    p.HinhAnh = await SaveImage(file);
+                    bool isFirstImage = true;
+
+                    foreach (var file in p.ImageFiles.Where(f => f.Length > 0))
+                    {
+                        var imagePath = await SaveImage(file);
+
+                        if (isFirstImage)
+                        {
+                            sanPham.HinhAnh = imagePath;
+                            isFirstImage = false;
+                        }
+
+                        sanPham.HinhAnhSanPhams.Add(new HinhAnhSanPham
+                        {
+                            DuongDanAnh = imagePath
+                        });
+                    }
                 }
 
-                _context.SanPhams.Add(p);
+                _context.SanPhams.Add(sanPham);
                 await _context.SaveChangesAsync();
 
                 TempData["success"] = "Thêm sản phẩm thành công!";
@@ -72,17 +92,18 @@ namespace BanHang.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Lỗi: " + ex.Message);
+                ModelState.AddModelError("", "Lỗi khi thêm sản phẩm: " + ex.Message);
                 await LoadDropdowns(p);
                 return View(p);
             }
         }
 
-        // ===================== EDIT =====================
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var p = await _context.SanPhams.FindAsync(id);
+            var p = await _context.SanPhams
+                .Include(x => x.HinhAnhSanPhams)
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
 
             if (p == null)
                 return NotFound();
@@ -98,106 +119,230 @@ namespace BanHang.Areas.Admin.Controllers
             if (id != p.MaSanPham)
                 return NotFound();
 
-            // 🔥 validate
-            if (p.MaDanhMuc == null)
-                ModelState.AddModelError("MaDanhMuc", "Vui lòng chọn danh mục");
-
-            if (p.KhuVucHienThiId == null)
-                ModelState.AddModelError("KhuVucHienThiId", "Vui lòng chọn khu vực hiển thị");
+            ValidateProductInput(p);
 
             if (!ModelState.IsValid)
             {
-                await LoadDropdowns(p);
-                return View(p);
+                var invalidModel = await _context.SanPhams
+                    .Include(x => x.HinhAnhSanPhams)
+                    .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
+                if (invalidModel != null)
+                {
+                    invalidModel.TenSanPham = p.TenSanPham;
+                    invalidModel.Gia = p.Gia;
+                    invalidModel.MoTa = p.MoTa;
+                    invalidModel.MauSac = p.MauSac;
+                    invalidModel.MaDanhMuc = p.MaDanhMuc;
+                    invalidModel.KhuVucHienThiId = p.KhuVucHienThiId;
+                    invalidModel.SelectedThumbnail = p.SelectedThumbnail;
+                }
+
+                await LoadDropdowns(invalidModel ?? p);
+                return View(invalidModel ?? p);
             }
 
-            var existing = await _context.SanPhams.FindAsync(id);
+            var existing = await _context.SanPhams
+                .Include(x => x.HinhAnhSanPhams)
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
             if (existing == null)
                 return NotFound();
 
             try
             {
-                // update dữ liệu
                 existing.TenSanPham = p.TenSanPham;
                 existing.Gia = p.Gia;
                 existing.MoTa = p.MoTa;
                 existing.MauSac = p.MauSac;
-
-                // 🔥 QUAN TRỌNG
                 existing.MaDanhMuc = p.MaDanhMuc;
                 existing.KhuVucHienThiId = p.KhuVucHienThiId;
 
-                // update ảnh nếu có
+                if (p.DeletedImageIds != null && p.DeletedImageIds.Any())
+                {
+                    var imagesToDelete = existing.HinhAnhSanPhams!
+                        .Where(x => p.DeletedImageIds.Contains(x.Id))
+                        .ToList();
+
+                    foreach (var img in imagesToDelete)
+                    {
+                        DeleteImageFile(img.DuongDanAnh);
+                        _context.HinhAnhSanPhams.Remove(img);
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
                 if (p.ImageFiles != null && p.ImageFiles.Any(f => f.Length > 0))
                 {
-                    var file = p.ImageFiles.First();
-                    existing.HinhAnh = await SaveImage(file);
+                    foreach (var file in p.ImageFiles.Where(f => f.Length > 0))
+                    {
+                        var imagePath = await SaveImage(file);
+
+                        _context.HinhAnhSanPhams.Add(new HinhAnhSanPham
+                        {
+                            MaSanPham = existing.MaSanPham,
+                            DuongDanAnh = imagePath
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
+                existing = await _context.SanPhams
+                    .Include(x => x.HinhAnhSanPhams)
+                    .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
+                if (existing == null)
+                    return NotFound();
+
+                if (!string.IsNullOrWhiteSpace(p.SelectedThumbnail))
+                {
+                    bool selectedExists = existing.HinhAnhSanPhams!
+                        .Any(x => x.DuongDanAnh == p.SelectedThumbnail);
+
+                    existing.HinhAnh = selectedExists
+                        ? p.SelectedThumbnail
+                        : existing.HinhAnhSanPhams.FirstOrDefault()?.DuongDanAnh;
+                }
+                else
+                {
+                    bool thumbnailStillExists = !string.IsNullOrWhiteSpace(existing.HinhAnh)
+                        && existing.HinhAnhSanPhams!.Any(x => x.DuongDanAnh == existing.HinhAnh);
+
+                    if (!thumbnailStillExists)
+                    {
+                        existing.HinhAnh = existing.HinhAnhSanPhams.FirstOrDefault()?.DuongDanAnh;
+                    }
                 }
 
                 await _context.SaveChangesAsync();
 
-                TempData["success"] = "Cập nhật thành công!";
+                TempData["success"] = "Cập nhật sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Lỗi: " + ex.Message);
-                await LoadDropdowns(p);
-                return View(p);
+                ModelState.AddModelError("", "Lỗi khi cập nhật sản phẩm: " + ex.Message);
+
+                var model = await _context.SanPhams
+                    .Include(x => x.HinhAnhSanPhams)
+                    .FirstOrDefaultAsync(x => x.MaSanPham == id);
+
+                await LoadDropdowns(model ?? p);
+                return View(model ?? p);
             }
         }
 
-        // ===================== DELETE =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var p = await _context.SanPhams.FindAsync(id);
+            var p = await _context.SanPhams
+                .Include(x => x.HinhAnhSanPhams)
+                .FirstOrDefaultAsync(x => x.MaSanPham == id);
 
-            if (p != null)
+            if (p == null)
+                return RedirectToAction(nameof(Index));
+
+            try
             {
+                if (p.HinhAnhSanPhams != null && p.HinhAnhSanPhams.Any())
+                {
+                    foreach (var img in p.HinhAnhSanPhams)
+                    {
+                        DeleteImageFile(img.DuongDanAnh);
+                    }
+
+                    _context.HinhAnhSanPhams.RemoveRange(p.HinhAnhSanPhams);
+                }
+
+                if (!string.IsNullOrWhiteSpace(p.HinhAnh))
+                {
+                    DeleteImageFile(p.HinhAnh);
+                }
+
                 _context.SanPhams.Remove(p);
                 await _context.SaveChangesAsync();
+
+                TempData["success"] = "Xóa sản phẩm thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Xóa thất bại: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // ===================== LOAD DROPDOWN =====================
+        private void ValidateProductInput(SanPham p)
+        {
+            if (p.MaDanhMuc == null || p.MaDanhMuc <= 0)
+                ModelState.AddModelError("MaDanhMuc", "Vui lòng chọn danh mục");
+
+            if (p.KhuVucHienThiId == null || p.KhuVucHienThiId <= 0)
+                ModelState.AddModelError("KhuVucHienThiId", "Vui lòng chọn khu vực hiển thị");
+
+            if (string.IsNullOrWhiteSpace(p.TenSanPham))
+                ModelState.AddModelError("TenSanPham", "Vui lòng nhập tên sản phẩm");
+
+            if (p.Gia <= 0)
+                ModelState.AddModelError("Gia", "Giá sản phẩm phải lớn hơn 0");
+        }
+
         private async Task LoadDropdowns(SanPham? p = null)
         {
             ViewBag.MaDanhMuc = new SelectList(
-                await _context.DanhMucs.ToListAsync(),
+                await _context.DanhMucs
+                    .OrderBy(x => x.TenDanhMuc)
+                    .ToListAsync(),
                 "MaDanhMuc",
                 "TenDanhMuc",
                 p?.MaDanhMuc
             );
 
             ViewBag.KhuVucHienThiId = new SelectList(
-                await _context.KhuVucHienThis.ToListAsync(),
+                await _context.KhuVucHienThis
+                    .OrderBy(x => x.Ten)
+                    .ToListAsync(),
                 "Id",
                 "Ten",
                 p?.KhuVucHienThiId
             );
         }
 
-        // ===================== SAVE IMAGE =====================
         private async Task<string> SaveImage(IFormFile file)
         {
-            var folder = Path.Combine(_env.WebRootPath, "images/products");
+            var folder = Path.Combine(_env.WebRootPath, "images", "products");
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
             var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            var path = Path.Combine(folder, fileName);
+            var fullPath = Path.Combine(folder, fileName);
 
-            using (var stream = new FileStream(path, FileMode.Create))
+            using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
             return "/images/products/" + fileName;
+        }
+
+        private void DeleteImageFile(string? imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath))
+                return;
+
+            var relativePath = imagePath.TrimStart('/')
+                .Replace("/", Path.DirectorySeparatorChar.ToString());
+
+            var fullPath = Path.Combine(_env.WebRootPath, relativePath);
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
         }
     }
 }

@@ -16,6 +16,11 @@
         <div class="alert alert-success">@TempData["success"]</div>
     }
 
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -56,16 +61,7 @@
                                     <td class="text-start">@item.TenSanPham</td>
 
                                     <td>
-                                        @if (item.DanhMuc != null)
-                                        {
-                                            <span class="badge bg-info text-dark">
-                                                @item.DanhMuc.TenDanhMuc
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Chưa có danh mục</span>
-                                        }
+                                        @(item.DanhMuc?.TenDanhMuc ?? "Chưa có danh mục")
                                     </td>
 
                                     <td>
@@ -88,8 +84,8 @@
                                     <td>
                                         <div class="d-flex justify-content-center gap-2">
                                             <a asp-action="Edit"
-                                                   asp-route-id="@item.MaSanPham"
-                                                   class="btn btn-sm btn-outline-warning">
+                                               asp-route-id="@item.MaSanPham"
+                                               class="btn btn-sm btn-outline-warning">
                                                 Sửa
                                             </a>
 
@@ -97,6 +93,7 @@
                                                   asp-route-id="@item.MaSanPham"
                                                   method="post"
                                                   onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+                                                @Html.AntiForgeryToken()
                                                 <button type="submit"
                                                         class="btn btn-sm btn-outline-danger">
                                                     Xóa

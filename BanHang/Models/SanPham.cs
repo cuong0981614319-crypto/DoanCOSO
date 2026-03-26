@@ -15,9 +15,13 @@ namespace BanHang.Models
         public string? MauSac { get; set; }
 
         public int? MaDanhMuc { get; set; }
+
+        [ForeignKey(nameof(MaDanhMuc))]
         public DanhMuc? DanhMuc { get; set; }
 
         public int? KhuVucHienThiId { get; set; }
+
+        [ForeignKey(nameof(KhuVucHienThiId))]
         public KhuVucHienThi? KhuVucHienThi { get; set; }
 
         public string? HinhAnh { get; set; }
@@ -28,7 +32,13 @@ namespace BanHang.Models
         [NotMapped]
         public List<IFormFile>? ImageFiles { get; set; }
 
-        public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; }
+        [NotMapped]
+        public List<int>? DeletedImageIds { get; set; }
+
+        [NotMapped]
+        public string? SelectedThumbnail { get; set; }
+
+        public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; } = new();
 
         public int DaBan { get; internal set; }
     }
