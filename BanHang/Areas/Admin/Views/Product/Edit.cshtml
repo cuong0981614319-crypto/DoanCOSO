@@ -10,18 +10,24 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <form asp-action="Edit"
+                  asp-route-id="@Model.MaSanPham"
+                  method="post"
+                  enctype="multipart/form-data">
+
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                 <input type="hidden" asp-for="MaSanPham" />
                 <input type="hidden" asp-for="HinhAnh" />
-                <input type="hidden" asp-for="KhuVucHienThi" />
-                <div class="form-group">
-                    <label>Khu vực hiển thị</label>
-                    <select asp-for="KhuVucHienThiId" class="form-control"
+
+                <div class="mb-3">
+                    <label asp-for="KhuVucHienThiId" class="form-label">Khu vực hiển thị</label>
+                    <select asp-for="KhuVucHienThiId"
+                            class="form-select"
                             asp-items="ViewBag.KhuVucHienThiId">
                         <option value="">-- Chọn khu vực --</option>
                     </select>
+                    <span asp-validation-for="KhuVucHienThiId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
@@ -35,27 +41,27 @@
                     <input asp-for="Gia" type="number" step="0.01" class="form-control" />
                     <span asp-validation-for="Gia" class="text-danger"></span>
                 </div>
-                <div class="row">
-                    <<div class="mb-3">
-                        <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
-                        <select asp-for="MauSac" class="form-select">
-                            <option value="">-- Chọn màu sắc --</option>
-                            <option value="Đen">⬛ Đen</option>
-                            <option value="Trắng">⬜ Trắng</option>
-                            <option value="Xám">⬜ Xám</option>
-                            <option value="Nâu">🟫 Nâu</option>
-                            <option value="Be">🟨 Be</option>
-                            <option value="Xanh">🟦 Xanh</option>
-                            <option value="Đỏ">🟥 Đỏ</option>
-                        </select>
-                    </div>
-                </div>
 
-               
+                <div class="mb-3">
+                    <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
+                    <select asp-for="MauSac" class="form-select">
+                        <option value="">-- Chọn màu sắc --</option>
+                        <option value="Đen">Đen</option>
+                        <option value="Trắng">Trắng</option>
+                        <option value="Xám">Xám</option>
+                        <option value="Nâu">Nâu</option>
+                        <option value="Be">Be</option>
+                        <option value="Xanh">Xanh</option>
+                        <option value="Đỏ">Đỏ</option>
+                    </select>
+                    <span asp-validation-for="MauSac" class="text-danger"></span>
+                </div>
 
                 <div class="mb-3">
                     <label asp-for="MaDanhMuc" class="form-label">Danh mục</label>
-                    <select asp-for="MaDanhMuc" asp-items="ViewBag.MaDanhMuc" class="form-select">
+                    <select asp-for="MaDanhMuc"
+                            asp-items="ViewBag.MaDanhMuc"
+                            class="form-select">
                         <option value="">-- Chọn danh mục --</option>
                     </select>
                     <span asp-validation-for="MaDanhMuc" class="text-danger"></span>
@@ -71,7 +77,8 @@
                 {
                     <div class="mb-3">
                         <label class="form-label">Ảnh hiện tại</label><br />
-                        <img src="@Model.HinhAnh" alt="@Model.TenSanPham"
+                        <img src="@Model.HinhAnh"
+                             alt="@Model.TenSanPham"
                              style="max-width: 180px; max-height: 180px; object-fit: contain;"
                              class="border rounded p-2" />
                     </div>
@@ -79,15 +86,22 @@
 
                 <div class="mb-3">
                     <label asp-for="ImageFiles" class="form-label fw-bold">Hình ảnh sản phẩm</label>
-                    <input asp-for="ImageFiles" type="file" class="form-control" accept="image/*" multiple />
+                    <input asp-for="ImageFiles"
+                           type="file"
+                           class="form-control"
+                           accept="image/*"
+                           multiple />
                     <small class="text-muted">Có thể chọn nhiều ảnh cùng lúc</small>
                     <span asp-validation-for="ImageFiles" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-success">Cập nhật thay đổi</button>
-                    <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-secondary">
-                        Quay lại Home
+                    <a asp-area="Admin"
+                           asp-controller="Product"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                        Quay lại danh sách
                     </a>
                 </div>
             </form>

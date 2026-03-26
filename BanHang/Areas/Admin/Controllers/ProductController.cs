@@ -1,4 +1,4 @@
-    using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +23,8 @@ namespace BanHang.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var products = await _context.SanPhams
-                .Include(p => p.DanhMuc)
-                .Include(p => p.KhuVucHienThi)
+                .Include(x => x.DanhMuc)          // 🔥 load danh mục
+                .Include(x => x.KhuVucHienThi)    // 🔥 load khu vực
                 .ToListAsync();
 
             return View(products);
@@ -42,6 +42,13 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPham p)
         {
+            // 🔥 validate bắt buộc chọn
+            if (p.MaDanhMuc == null)
+                ModelState.AddModelError("MaDanhMuc", "Vui lòng chọn danh mục");
+
+            if (p.KhuVucHienThiId == null)
+                ModelState.AddModelError("KhuVucHienThiId", "Vui lòng chọn khu vực hiển thị");
+
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(p);
@@ -50,57 +57,35 @@ namespace BanHang.Areas.Admin.Controllers
 
             try
             {
-                var imagePaths = new List<string>();
-
-                if (p.ImageFiles != null && p.ImageFiles.Any())
+                // upload ảnh
+                if (p.ImageFiles != null && p.ImageFiles.Any(f => f.Length > 0))
                 {
-                    foreach (var file in p.ImageFiles)
-                    {
-                        if (file != null && file.Length > 0)
-                        {
-                            var path = await SaveImage(file);
-                            imagePaths.Add(path);
-                        }
-                    }
-                }
-
-                // lấy ảnh đầu tiên làm ảnh đại diện
-                if (imagePaths.Any())
-                {
-                    p.HinhAnh = imagePaths.First();
+                    var file = p.ImageFiles.First();
+                    p.HinhAnh = await SaveImage(file);
                 }
 
                 _context.SanPhams.Add(p);
                 await _context.SaveChangesAsync();
-
-                if (imagePaths.Any())
-                {
-                    var dsAnh = imagePaths.Select(path => new HinhAnhSanPham
-                    {
-                        MaSanPham = p.MaSanPham,
-                        DuongDanAnh = path
-                    }).ToList();
-
-                    _context.HinhAnhSanPhams.AddRange(dsAnh);
-                    await _context.SaveChangesAsync();
-                }
 
                 TempData["success"] = "Thêm sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Có lỗi xảy ra khi thêm sản phẩm: " + ex.Message);
+                ModelState.AddModelError("", "Lỗi: " + ex.Message);
                 await LoadDropdowns(p);
                 return View(p);
             }
         }
 
         // ===================== EDIT =====================
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var p = await _context.SanPhams.FindAsync(id);
-            if (p == null) return NotFound();
+
+            if (p == null)
+                return NotFound();
 
             await LoadDropdowns(p);
             return View(p);
@@ -108,62 +93,55 @@ namespace BanHang.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SanPham p)
+        public async Task<IActionResult> Edit(int id, SanPham p)
         {
+            if (id != p.MaSanPham)
+                return NotFound();
+
+            // 🔥 validate
+            if (p.MaDanhMuc == null)
+                ModelState.AddModelError("MaDanhMuc", "Vui lòng chọn danh mục");
+
+            if (p.KhuVucHienThiId == null)
+                ModelState.AddModelError("KhuVucHienThiId", "Vui lòng chọn khu vực hiển thị");
+
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(p);
                 return View(p);
             }
 
-            var existingProduct = await _context.SanPhams
-                .Include(x => x.HinhAnhSanPhams)
-                .FirstOrDefaultAsync(x => x.MaSanPham == p.MaSanPham);
-
-            if (existingProduct == null)
-            {
+            var existing = await _context.SanPhams.FindAsync(id);
+            if (existing == null)
                 return NotFound();
-            }
 
             try
             {
-                existingProduct.TenSanPham = p.TenSanPham;
-                existingProduct.Gia = p.Gia;
-                existingProduct.MoTa = p.MoTa;
-                existingProduct.MauSac = p.MauSac;
-                existingProduct.MaDanhMuc = p.MaDanhMuc;
-                existingProduct.KhuVucHienThiId = p.KhuVucHienThiId;
+                // update dữ liệu
+                existing.TenSanPham = p.TenSanPham;
+                existing.Gia = p.Gia;
+                existing.MoTa = p.MoTa;
+                existing.MauSac = p.MauSac;
 
-                if (p.ImageFiles != null && p.ImageFiles.Any())
+                // 🔥 QUAN TRỌNG
+                existing.MaDanhMuc = p.MaDanhMuc;
+                existing.KhuVucHienThiId = p.KhuVucHienThiId;
+
+                // update ảnh nếu có
+                if (p.ImageFiles != null && p.ImageFiles.Any(f => f.Length > 0))
                 {
-                    foreach (var file in p.ImageFiles)
-                    {
-                        if (file != null && file.Length > 0)
-                        {
-                            var path = await SaveImage(file);
-
-                            _context.HinhAnhSanPhams.Add(new HinhAnhSanPham
-                            {
-                                MaSanPham = existingProduct.MaSanPham,
-                                DuongDanAnh = path
-                            });
-
-                            if (string.IsNullOrEmpty(existingProduct.HinhAnh))
-                            {
-                                existingProduct.HinhAnh = path;
-                            }
-                        }
-                    }
+                    var file = p.ImageFiles.First();
+                    existing.HinhAnh = await SaveImage(file);
                 }
 
                 await _context.SaveChangesAsync();
 
-                TempData["success"] = "Cập nhật sản phẩm thành công!";
+                TempData["success"] = "Cập nhật thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật sản phẩm: " + ex.Message);
+                ModelState.AddModelError("", "Lỗi: " + ex.Message);
                 await LoadDropdowns(p);
                 return View(p);
             }
@@ -175,47 +153,51 @@ namespace BanHang.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var p = await _context.SanPhams.FindAsync(id);
+
             if (p != null)
             {
                 _context.SanPhams.Remove(p);
                 await _context.SaveChangesAsync();
-
-                TempData["success"] = "Xóa sản phẩm thành công!";
             }
+
             return RedirectToAction(nameof(Index));
         }
+
         // ===================== LOAD DROPDOWN =====================
         private async Task LoadDropdowns(SanPham? p = null)
         {
-            var categories = await _context.DanhMucs.ToListAsync();
-            var khuVucs = await _context.KhuVucHienThis.ToListAsync();
+            ViewBag.MaDanhMuc = new SelectList(
+                await _context.DanhMucs.ToListAsync(),
+                "MaDanhMuc",
+                "TenDanhMuc",
+                p?.MaDanhMuc
+            );
 
-            ViewBag.MaDanhMuc = new SelectList(categories, "MaDanhMuc", "TenDanhMuc", p?.MaDanhMuc);
-            ViewBag.KhuVucHienThiId = new SelectList(khuVucs, "Id", "Ten", p?.KhuVucHienThiId);
+            ViewBag.KhuVucHienThiId = new SelectList(
+                await _context.KhuVucHienThis.ToListAsync(),
+                "Id",
+                "Ten",
+                p?.KhuVucHienThiId
+            );
         }
 
         // ===================== SAVE IMAGE =====================
-        private async Task<string> SaveImage(IFormFile imageFile)
+        private async Task<string> SaveImage(IFormFile file)
         {
-            var uploads = Path.Combine(_env.WebRootPath, "images/products");
+            var folder = Path.Combine(_env.WebRootPath, "images/products");
 
-            if (!Directory.Exists(uploads))
-                Directory.CreateDirectory(uploads);
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
 
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-            var filePath = Path.Combine(uploads, fileName);
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var path = Path.Combine(folder, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            using (var stream = new FileStream(path, FileMode.Create))
             {
-                await imageFile.CopyToAsync(stream);
+                await file.CopyToAsync(stream);
             }
 
             return "/images/products/" + fileName;
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.SanPhams.Any(e => e.MaSanPham == id);
         }
     }
 }

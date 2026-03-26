@@ -1,7 +1,4 @@
 @model BanHang.Models.SanPham
-@using Microsoft.EntityFrameworkCore
-@using BanHang.Models
-@inject ApplicationDbContext _context
 
 @{
     ViewData["Title"] = "Thêm sản phẩm mới";
@@ -19,58 +16,51 @@
                     <form asp-action="Create" method="post" enctype="multipart/form-data">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <input type="hidden" asp-for="KhuVucHienThi" />
-
-                        <div class="form-group">
-                            <label>Khu vực hiển thị</label>
-                            <select asp-for="KhuVucHienThiId" class="form-control"
+                        <div class="mb-3">
+                            <label asp-for="KhuVucHienThiId" class="form-label fw-bold">Khu vực hiển thị</label>
+                            <select asp-for="KhuVucHienThiId"
+                                    class="form-select"
                                     asp-items="ViewBag.KhuVucHienThiId">
                                 <option value="">-- Chọn khu vực --</option>
                             </select>
+                            <span asp-validation-for="KhuVucHienThiId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="TenSanPham" class="form-label fw-bold">Tên sản phẩm</label>
-                            <input asp-for="TenSanPham" class="form-control" placeholder="Nhập tên sản phẩm..." />
+                            <input asp-for="TenSanPham"
+                                   class="form-control"
+                                   placeholder="Nhập tên sản phẩm..." />
                             <span asp-validation-for="TenSanPham" class="text-danger"></span>
                         </div>
 
-                        <div class="row">
-                            <div class=" mb-3">
-                                <label asp-for="Gia" class="form-label fw-bold">Giá bán (VNĐ)</label>
-                                <input asp-for="Gia" type="number" class="form-control" />
-                                <span asp-validation-for="Gia" class="text-danger"></span>
-
-                            </div>                           
+                        <div class="mb-3">
+                            <label asp-for="Gia" class="form-label fw-bold">Giá bán (VNĐ)</label>
+                            <input asp-for="Gia" type="number" class="form-control" />
+                            <span asp-validation-for="Gia" class="text-danger"></span>
                         </div>
+
                         <div class="mb-3">
                             <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
                             <select asp-for="MauSac" class="form-select">
                                 <option value="">-- Chọn màu sắc --</option>
-                                <option value="Đen">⬛ Đen</option>
-                                <option value="Trắng">⬜ Trắng</option>
-                                <option value="Xám">⬜ Xám</option>
-                                <option value="Nâu">🟫 Nâu</option>
-                                <option value="Be">🟨 Be</option>
-                                <option value="Xanh">🟦 Xanh</option>
-                                <option value="Đỏ">🟥 Đỏ</option>
+                                <option value="Đen">Đen</option>
+                                <option value="Trắng">Trắng</option>
+                                <option value="Xám">Xám</option>
+                                <option value="Nâu">Nâu</option>
+                                <option value="Be">Be</option>
+                                <option value="Xanh">Xanh</option>
+                                <option value="Đỏ">Đỏ</option>
                             </select>
+                            <span asp-validation-for="MauSac" class="text-danger"></span>
                         </div>
 
-
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Danh mục sản phẩm</label>
-                            <select asp-for="MaDanhMuc" class="form-select">
+                            <label asp-for="MaDanhMuc" class="form-label fw-bold">Danh mục sản phẩm</label>
+                            <select asp-for="MaDanhMuc"
+                                    asp-items="ViewBag.MaDanhMuc"
+                                    class="form-select">
                                 <option value="">-- Chọn một danh mục --</option>
-
-                                @{
-                                    var danhMucs = await _context.DanhMucs.ToListAsync();
-                                }
-
-                                @foreach (var item in danhMucs)
-                                {
-                                    <option value="@item.MaDanhMuc">@item.TenDanhMuc</option>
-                                }
                             </select>
                             <span asp-validation-for="MaDanhMuc" class="text-danger"></span>
                         </div>
@@ -83,7 +73,11 @@
 
                         <div class="mb-3">
                             <label asp-for="ImageFiles" class="form-label fw-bold">Hình ảnh sản phẩm</label>
-                            <input asp-for="ImageFiles" type="file" class="form-control" accept="image/*" multiple />
+                            <input asp-for="ImageFiles"
+                                   type="file"
+                                   class="form-control"
+                                   accept="image/*"
+                                   multiple />
                             <small class="text-muted">Có thể chọn nhiều ảnh cùng lúc</small>
                             <span asp-validation-for="ImageFiles" class="text-danger"></span>
                         </div>
@@ -91,10 +85,13 @@
                         <hr />
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-save"></i> Lưu sản phẩm
+                                Lưu sản phẩm
                             </button>
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary px-4">
-                                Quay lại Home
+                            <a asp-area="Admin"
+                                   asp-controller="Product"
+                                   asp-action="Index"
+                                   class="btn btn-outline-secondary px-4">
+                                Quay lại danh sách
                             </a>
                         </div>
                     </form>
@@ -105,7 +102,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }
