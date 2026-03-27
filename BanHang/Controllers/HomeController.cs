@@ -64,5 +64,6 @@ namespace BanHang.Controllers
 
             return View("~/Views/Home/Index.cshtml", khuVucs);
         }
+
     }
 }

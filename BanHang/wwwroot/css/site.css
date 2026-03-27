@@ -526,3 +526,179 @@ footer {
         text-align: center;
     }
 }
+
+.fanpage-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+    .fanpage-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+.fanpage-logo {
+    width: 90px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.fanpage-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.fanpage-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 6px;
+}
+
+.fanpage-link {
+    display: inline-block;
+    color: #1877f2;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+    .fanpage-link:hover {
+        color: #0d65d9;
+        text-decoration: underline;
+    }
+/* ===== FLOATING CONTACT ===== */
+.floating-contact {
+    position: fixed;
+    right: 18px;
+    bottom: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ===== BUTTON ===== */
+.floating-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+    /* hover */
+    .floating-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
+
+    /* ===== ICON / TEXT ===== */
+    .floating-btn span,
+    .floating-btn img {
+        width: 28px;
+        height: 28px;
+        display: inline-block;
+        object-fit: contain;
+        text-align: center;
+        line-height: 28px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+/* ===== COLORS ===== */
+.phone {
+    background: #4CAF50;
+}
+
+.zalo {
+    background: #0a7cff;
+}
+
+.messenger {
+    background: #1e90ff;
+}
+
+    /* ===== CHỈ RUNG ICON BÊN TRONG ===== */
+    .phone span,
+    .phone img,
+    .zalo span,
+    .zalo img,
+    .messenger span,
+    .messenger img {
+        animation: icon-shake 1.2s infinite;
+        transform-origin: center;
+    }
+
+/* ===== RUNG SO LE (ĐẸP HƠN) ===== */
+.phone span {
+    animation-delay: 0s;
+}
+
+.zalo span {
+    animation-delay: 0.2s;
+}
+
+.messenger span {
+    animation-delay: 0.4s;
+}
+
+/* ===== KEYFRAME ===== */
+@keyframes icon-shake {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    10% {
+        transform: rotate(18deg);
+    }
+
+    20% {
+        transform: rotate(-15deg);
+    }
+
+    30% {
+        transform: rotate(12deg);
+    }
+
+    40% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(6deg);
+    }
+
+    60%,100% {
+        transform: rotate(0deg);
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .floating-btn {
+        width: 52px;
+        height: 52px;
+    }
+
+        .floating-btn span,
+        .floating-btn img {
+            width: 24px;
+            height: 24px;
+            font-size: 13px;
+        }
+}
+
+

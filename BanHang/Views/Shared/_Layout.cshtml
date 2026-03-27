@@ -142,18 +142,36 @@
                     @await Component.InvokeAsync("Menu")
 
                     <li class="nav-item">
-                        <a class="nav-link text-dark py-3" href="#">Thiết kế - Thi công</a>
+                        <a class="nav-link text-dark py-3"
+                           asp-controller="CongCu"
+                           asp-action="Thietke">
+                            Thiết kế - Thi công
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-dark py-3" href="#">Khuyến mãi</a>
+                        <a class="nav-link text-dark py-3"
+                           asp-controller="CongCu"
+                           asp-action="Khuyenmai">
+                            Khuyến mãi
+                        </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link text-dark py-3" href="#">Tin tức</a>
+                        <a class="nav-link text-dark py-3"
+                           asp-controller="CongCu"
+                           asp-action="Tintuc">
+                            Tin tức
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-dark py-3"
+                           asp-controller="CongCu"
+                           asp-action="Cuahang">
+                            Cửa hàng
+                        </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-3" href="#">Cửa hàng</a>
-                    </li>
 
                     @if (User.IsInRole("Admin"))
                     {
@@ -246,22 +264,58 @@
 
                 <div class="col-md-3">
                     <h5 class="fw-bold">THÔNG TIN LIÊN HỆ</h5>
-                    <p>📍 162 HT17, P. Hiệp Thành, Q12, TP.HCM</p>
-                    <p>📞 0971 114 140</p>
-                    <p>✉ hunganh@gmail.com</p>
+                    <p>📍 Thôn 1, Xã Bàu Cạn, Tỉnh Gia Lai</p>
+                    <p>📞 096 8850604</p>
+                    <p>✉ myhanh71298@gmail.com</p>
                 </div>
 
                 <div class="col-md-3">
-                    <h5 class="fw-bold">FANPAGE</h5>
-                    <img src="/images/1.png" style="width:120px;" />
+                    <h5 class="fw-bold mb-3 text-uppercase">Fanpage</h5>
+
+                    <div class="fanpage-box">
+                        <img src="/img/anh1.png" alt="Hưng Hạnh" class="fanpage-logo" />
+
+                        <div class="fanpage-content">
+                            <div class="fanpage-name">Nội Thất Hưng Hạnh</div>
+                            <a href="https://www.facebook.com/profile.php?id=100054928830629"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="fanpage-link">
+                                Xem fanpage
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="text-center mt-4 pb-3">
-                <span class="mx-2">Facebook</span>
-                <span class="mx-2">Youtube</span>
-                <span class="mx-2">Instagram</span>
-                <span class="mx-2">TikTok</span>
+                <a href="https://www.facebook.com/share/18b6hrEarR/?mibextid=wwXIfr"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="mx-2 text-decoration-none">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+
+                <a href="https://youtube.com"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="mx-2 text-decoration-none">
+                    <i class="bi bi-youtube"></i> Youtube
+                </a>
+
+                <a href="https://instagram.com"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="mx-2 text-decoration-none">
+                    <i class="bi bi-instagram"></i> Instagram
+                </a>
+
+                <a href="https://www.tiktok.com/@@haihung160797"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="mx-2 text-decoration-none">
+                    <i class="bi bi-tiktok"></i> TikTok
+                </a>
             </div>
         </div>
 
@@ -275,5 +329,30 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+    <div class="floating-contact">
+        <a href="tel:0968850604" class="floating-btn phone" title="Gọi ngay">
+            <span>
+                <img src="/img/phone-call.png"
+                     alt="Hung Hanh Logo"
+                     class="logo-img" />
+            </span>
+        </a>
+
+        <a href="https://cdn.hstatic.net/files/200000065946/file/stick_zalo.png" target="_blank" class="floating-btn zalo" title="Chat Zalo">
+            <span>
+                <img src="/img/Simpleicons-Team-Simple-Zalo.512.png"
+                     alt="Hung Hanh Logo"
+                     class="logo-img" />
+            </span>
+        </a>
+
+        <a href="https://m.me/yourpage" target="_blank" class="floating-btn messenger" title="Messenger">
+            <span>
+                <img src="/img/messenger.png"
+                     alt="Hung Hanh Logo"
+                     class="logo-img" />
+            </span>
+        </a>
+    </div>
 </body>
 </html>
