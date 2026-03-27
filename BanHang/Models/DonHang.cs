@@ -22,6 +22,10 @@ namespace BanHang.Models
 
         public string TrangThai { get; set; } = "Chờ xác nhận";
         public string? UserId { get; set; }
+        public string? PhuongThucThanhToan { get; set; }
+        public string? MaChuyenKhoan { get; set; }
+        public bool DaThanhToan { get; set; } = false;
+        public DateTime? NgayThanhToan { get; set; }
 
         public virtual ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
     }

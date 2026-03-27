@@ -1,0 +1,50 @@
+﻿@model BanHang.Models.DonHang
+
+@{
+    ViewData["Title"] = "Chuyển khoản ngân hàng";
+}
+
+<div class="container mt-4 bank-transfer-page">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 p-4">
+                <h2 class="fw-bold mb-3">Thanh toán chuyển khoản ngân hàng</h2>
+
+                <div class="alert alert-warning">
+                    Vui lòng chuyển khoản đúng nội dung để hệ thống ghi nhận đơn hàng.
+                </div>
+
+                <div class="mb-3">
+                    <p><strong>Ngân hàng:</strong> Vietcombank (VCB)</p>
+                    <p><strong>Số tài khoản:</strong> 1023022502</p>
+                    <p><strong>Chủ tài khoản:</strong> NGUYEN HAI HAU</p>
+                    <p>
+                        <strong>Số tiền:</strong>
+                        <span class="text-danger fw-bold">
+                            @Model.TongTien.ToString("N0") VNĐ
+                        </span>
+                    </p>
+                    <p>
+                        <strong>Nội dung chuyển khoản:</strong>
+                        <span class="badge bg-dark fs-6">@Model.MaChuyenKhoan</span>
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <img src="https://img.vietqr.io/image/VCB-123456789-compact2.png?amount=@Model.TongTien&addInfo=@Model.MaChuyenKhoan&accountName=NGUYEN%20VAN%20A"
+                         alt="QR chuyển khoản"
+                         style="max-width:250px;" />
+                </div>
+
+                <form asp-action="ConfirmBankTransfer" asp-controller="Cart" method="post">
+                    <input type="hidden" name="id" value="@Model.MaDonHang" />
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit" class="btn btn-success w-100">
+                        Tôi đã chuyển khoản
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -15,7 +15,42 @@
             Về trang chủ
         </a>
     </div>
+    @{
+    var current = ViewBag.CurrentStatus as string;
+}
 
+<div class="mb-3">
+    <a asp-action="Index" class="btn @(string.IsNullOrEmpty(current) ? "btn-dark" : "btn-outline-dark")">
+        Tất cả
+    </a>
+        <a asp-action="Index" asp-route-status="Chờ xác nhận"
+               class="btn @(current == "Chờ xác nhận" ? "btn-success" : "btn-outline-success")">
+            Hoàn thành
+        </a>
+        <a asp-action="Index" asp-route-status="Chờ thanh toán"
+               class="btn @(current == "Chờ thanh toán" ? "btn-success" : "btn-outline-success")">
+            Hoàn thành
+        </a>
+    <a asp-action="Index" asp-route-status="Chờ xác nhận"
+       class="btn @(current == "Chờ xác nhận" ? "btn-warning" : "btn-outline-warning")">
+        Chờ xác nhận
+    </a>
+
+    <a asp-action="Index" asp-route-status="Đang giao"
+       class="btn @(current == "Đang giao" ? "btn-info" : "btn-outline-info")">
+        Đang giao
+    </a>
+
+    <a asp-action="Index" asp-route-status="Hoàn thành"
+       class="btn @(current == "Hoàn thành" ? "btn-success" : "btn-outline-success")">
+        Hoàn thành
+    </a>
+
+    <a asp-action="Index" asp-route-status="Đã hủy"
+       class="btn @(current == "Đã hủy" ? "btn-danger" : "btn-outline-danger")">
+        Đã hủy
+    </a>
+</div>
     @if (TempData["success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">

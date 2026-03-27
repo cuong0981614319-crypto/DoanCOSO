@@ -4,59 +4,112 @@
     ViewData["Title"] = "Đơn hàng của tôi";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Đơn hàng của tôi</h2>
+<div class="container mt-4 my-orders-page">
+    <h2 class="fw-bold mb-4">Đơn hàng của tôi</h2>
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0 align-middle">
+                <table class="table align-middle mb-0">
                     <thead class="table-dark">
                         <tr>
                             <th>Mã đơn</th>
                             <th>Ngày đặt</th>
                             <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
                             <th>Trạng thái</th>
-                            <th class="text-center">Chi tiết</th>
+                            <th class="text-center">Hành động</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @if (Model != null && Model.Any())
                         {
                             foreach (var item in Model)
                             {
                                 <tr>
-                                    <td>#@item.MaDonHang</td>
+                                    <td><strong>#@item.MaDonHang</strong></td>
+
                                     <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="text-danger fw-bold">@item.TongTien.ToString("N0") VNĐ</td>
+
+                                    <td class="text-danger fw-bold">
+                                        @item.TongTien.ToString("N0") VNĐ
+                                    </td>
+
+                                    <!-- THANH TOÁN -->
                                     <td>
-                                        @if (item.TrangThai == "Chờ xác nhận")
+                                        @if (item.DaThanhToan)
                                         {
-                                            <span class="badge bg-warning text-dark">@item.TrangThai</span>
-                                        }
-                                        else if (item.TrangThai == "Đã xác nhận")
-                                        {
-                                            <span class="badge bg-primary">@item.TrangThai</span>
-                                        }
-                                        else if (item.TrangThai == "Đang giao")
-                                        {
-                                            <span class="badge bg-info text-dark">@item.TrangThai</span>
-                                        }
-                                        else if (item.TrangThai == "Hoàn thành")
-                                        {
-                                            <span class="badge bg-success">@item.TrangThai</span>
+                                            <span class="badge bg-success">Đã thanh toán</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">@item.TrangThai</span>
+                                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
                                         }
                                     </td>
+
+                                    <!-- TRẠNG THÁI -->
+                                    <td>
+                                        @switch (item.TrangThai)
+                                        {
+                                            case "Chờ xác nhận":
+                                                <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                                break;
+
+                                            case "Chờ thanh toán":
+                                                <span class="badge bg-secondary">Chờ thanh toán</span>
+                                                break;
+
+                                            case "Đã xác nhận":
+                                                <span class="badge bg-primary">Đã xác nhận</span>
+                                                break;
+
+                                            case "Đang giao":
+                                                <span class="badge bg-info text-dark">Đang giao</span>
+                                                break;
+
+                                            case "Hoàn thành":
+                                                <span class="badge bg-success">Hoàn thành</span>
+                                                break;
+
+                                            case "Đã hủy":
+                                                <span class="badge bg-danger">Đã hủy</span>
+                                                break;
+
+                                            default:
+                                                <span class="badge bg-secondary">@item.TrangThai</span>
+                                                break;
+                                        }
+                                    </td>
+
+                                    <!-- ACTION -->
                                     <td class="text-center">
-                                        <a asp-action="Details"
+                                        <!-- XEM -->
+                                        <a asp-controller="Cart"
+                                               asp-action="Detail"
                                                asp-route-id="@item.MaDonHang"
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm btn-outline-dark me-2">
                                             Xem
                                         </a>
+
+                                        <!-- HỦY -->
+                                        @if ((item.TrangThai == "Chờ xác nhận" || item.TrangThai == "Chờ thanh toán")
+                                                  && !item.DaThanhToan)
+                                        {
+                                            <form asp-controller="DonHang"
+                                                  asp-action="CancelOrder"
+                                                  asp-route-id="@item.MaDonHang"
+                                                  method="post"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Bạn có chắc muốn hủy đơn này không?');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Hủy
+                                                </button>
+                                            </form>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -64,7 +117,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     Bạn chưa có đơn hàng nào.
                                 </td>
                             </tr>

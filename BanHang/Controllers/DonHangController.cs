@@ -44,5 +44,44 @@ namespace BanHang.Controllers
 
             return View(donHang);
         }
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
+
+            if (donHang == null)
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("MyOrders", "DonHang");
+            }
+
+            // ❌ Không cho hủy nếu đã xử lý
+            if (donHang.TrangThai != "Chờ xác nhận" && donHang.TrangThai != "Chờ thanh toán")
+            {
+                TempData["error"] = "Đơn hàng không thể hủy.";
+                return RedirectToAction("MyOrders", "DonHang");
+            }
+
+            // ❌ Không cho hủy nếu đã thanh toán
+            if (donHang.DaThanhToan)
+            {
+                TempData["error"] = "Đơn đã thanh toán, không thể hủy.";
+                return RedirectToAction("MyOrders", "DonHang");
+            }
+
+            // ✅ ĐỔI TRẠNG THÁI
+            donHang.TrangThai = "Đã hủy";
+
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = "Hủy đơn thành công!";
+            return RedirectToAction("MyOrders", "DonHang");
+        }
     }
 }

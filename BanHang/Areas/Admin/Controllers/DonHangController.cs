@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BanHang.Areas.Admin.Controllers
 {
@@ -17,11 +18,20 @@ namespace BanHang.Areas.Admin.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string status)
         {
-            var donHangs = await _context.DonHangs
+            var query = _context.DonHangs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(x => x.TrangThai == status);
+            }
+
+            var donHangs = await query
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
+
+            ViewBag.CurrentStatus = status;
 
             return View(donHangs);
         }
@@ -93,5 +103,6 @@ namespace BanHang.Areas.Admin.Controllers
             TempData["success"] = "Xóa đơn hàng thành công!";
             return RedirectToAction(nameof(Index));
         }
+        
     }
 }
