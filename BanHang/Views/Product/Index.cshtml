@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<BanHang.Models.SanPham>
 
 @{
-    ViewData["Title"] = ViewBag.TenKhuVuc;
+    
     var danhMucs = ViewBag.DanhMucs as List<BanHang.Models.DanhMuc>;
     var mauSacs = ViewBag.MauSacs as List<string>;
     int currentPage = ViewBag.CurrentPage ?? 1;

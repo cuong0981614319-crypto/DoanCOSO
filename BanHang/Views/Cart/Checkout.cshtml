@@ -1,7 +1,6 @@
 ﻿@model BanHang.Models.ThanhToan
 
 @{
-    ViewData["Title"] = "Thanh toán";
 
     var gioHang = ViewBag.GioHang as IEnumerable<dynamic>;
     decimal tongTien = ViewBag.TongTien != null ? Convert.ToDecimal(ViewBag.TongTien) : 0;
