@@ -28,11 +28,13 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 // 4. Bật MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
+
 // 5. Bật Session để làm giỏ hàng
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -59,53 +61,54 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
+
+// Tự động chạy migration trước khi tạo role/user
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    await context.Database.MigrateAsync();
+
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    await Task.Run(async () =>
+    string[] roles = { "Admin", "User" };
+
+    foreach (var role in roles)
     {
-        string[] roles = { "Admin", "User" };
-
-        foreach (var role in roles)
+        if (!await roleManager.RoleExistsAsync(role))
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole(role));
-            }
+            await roleManager.CreateAsync(new IdentityRole(role));
         }
+    }
 
-        var adminEmail = "admin@gmail.com";
-        var admin = await userManager.FindByEmailAsync(adminEmail);
+    var adminEmail = "admin@gmail.com";
+    var admin = await userManager.FindByEmailAsync(adminEmail);
 
-        if (admin == null)
+    if (admin == null)
+    {
+        admin = new IdentityUser
         {
-            admin = new IdentityUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                EmailConfirmed = true
-            };
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
 
-            var result = await userManager.CreateAsync(admin, "123456");
+        var result = await userManager.CreateAsync(admin, "123456");
 
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
-        }
-        else
+        if (result.Succeeded)
         {
-            if (!await userManager.IsInRoleAsync(admin, "Admin"))
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
+            await userManager.AddToRoleAsync(admin, "Admin");
         }
-
-    });
+    }
+    else
+    {
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
 }
 
 // 8. Route cho Area Admin
@@ -117,8 +120,10 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 app.Run();
+
 public class EmailSender : IEmailSender
 {
     public Task SendEmailAsync(string email, string subject, string htmlMessage)
