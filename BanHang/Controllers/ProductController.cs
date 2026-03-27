@@ -140,48 +140,23 @@ namespace BanHang.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Search(string? keyword, int page = 1)
+        public IActionResult Search(string keyword)
         {
-            const int pageSize = 16;
-
-            IQueryable<SanPham> query = _context.SanPhams
-                .Include(x => x.DanhMuc)
-                .Include(x => x.KhuVucHienThi);
+            var products = new List<SanPham>();
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 keyword = keyword.Trim();
 
-                query = query.Where(x =>
-                    x.TenSanPham.Contains(keyword) ||
-                    (x.MoTa != null && x.MoTa.Contains(keyword)) ||
-                    (x.MauSac != null && x.MauSac.Contains(keyword)) ||
-                    (x.DanhMuc != null && x.DanhMuc.TenDanhMuc.Contains(keyword))
-                );
+                products = _context.SanPhams
+                    .Where(x => x.TenSanPham != null && x.TenSanPham.Contains(keyword))
+                    .OrderBy(x => x.TenSanPham)
+                    .ToList();
             }
 
-            var totalItems = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            if (page < 1)
-                page = 1;
-
-            if (totalPages > 0 && page > totalPages)
-                page = totalPages;
-
-            var products = await query
-                .OrderByDescending(x => x.MaSanPham)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
             ViewBag.Keyword = keyword;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalItems = totalItems;
-            ViewBag.PageSize = pageSize;
-
             return View(products);
         }
+
     }
 }

@@ -1,9 +1,11 @@
 ﻿using BanHang.Extensions;
 using BanHang.Models;
+using BanHang.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace BanHang.Controllers
 {
@@ -12,9 +14,12 @@ namespace BanHang.Controllers
         private readonly ApplicationDbContext _context;
         private const string CartKey = "CART";
 
-        public CartController(ApplicationDbContext context)
+        private readonly MoMoService _moMoService;
+
+        public CartController(ApplicationDbContext context, MoMoService moMoService)
         {
             _context = context;
+            _moMoService = moMoService;
         }
 
         private List<CartItem> GetCart()
@@ -239,7 +244,7 @@ namespace BanHang.Controllers
         {
             var cart = GetCart();
 
-            if (!cart.Any())
+            if (cart == null || !cart.Any())
             {
                 TempData["error"] = "Giỏ hàng trống!";
                 return RedirectToAction(nameof(Index));
@@ -254,11 +259,10 @@ namespace BanHang.Controllers
 
             foreach (var item in cart)
             {
-                var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
-
-                if (sp == null)
+                var sanPham = await _context.SanPhams.FindAsync(item.MaSanPham);
+                if (sanPham == null)
                 {
-                    TempData["error"] = $"Sản phẩm \"{item.TenSanPham}\" không còn tồn tại.";
+                    TempData["error"] = $"Sản phẩm \"{item.TenSanPham}\" không tồn tại.";
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -269,12 +273,10 @@ namespace BanHang.Controllers
             {
                 HoTen = model.HoTen,
                 SoDienThoai = model.SoDienThoai,
-               
                 DiaChi = model.DiaChi,
-               
                 NgayDat = DateTime.Now,
                 TongTien = cart.Sum(x => x.ThanhTien),
-                TrangThai = "Chờ xác nhận",
+                TrangThai = model.PhuongThucThanhToan == "MOMO" ? "Chờ thanh toán" : "Chờ xác nhận",
                 UserId = userId
             };
 
@@ -290,21 +292,52 @@ namespace BanHang.Controllers
                     SoLuong = item.SoLuong,
                     DonGia = item.Gia
                 });
-
-                var sp = await _context.SanPhams.FindAsync(item.MaSanPham);
-                if (sp != null)
-                {
-                    sp.DaBan += item.SoLuong;
-                }
             }
 
             await _context.SaveChangesAsync();
 
-            await SendOrderEmail(donHang, cart);
+            if (model.PhuongThucThanhToan == "MOMO")
+            {
+                var payUrl = await _moMoService.CreatePaymentAsync(
+                    donHang.MaDonHang.ToString(),
+                    (long)donHang.TongTien,
+                    $"Thanh toán đơn hàng #{donHang.MaDonHang}"
+                );
 
-            HttpContext.Session.Remove(CartKey);
+                if (string.IsNullOrWhiteSpace(payUrl))
+                {
+                    donHang.TrangThai = "Khởi tạo thanh toán thất bại";
+                    await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
+                    TempData["error"] = "Không tạo được liên kết thanh toán MoMo.";
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                return Redirect(payUrl);
+            }
+
+            if (model.PhuongThucThanhToan == "COD" || model.PhuongThucThanhToan == "Bank")
+            {
+                foreach (var item in cart)
+                {
+                    var sanPham = await _context.SanPhams.FindAsync(item.MaSanPham);
+                    if (sanPham != null)
+                    {
+                        sanPham.DaBan += item.SoLuong;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                await SendOrderEmail(donHang, cart);
+
+                HttpContext.Session.Remove(CartKey);
+
+                return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
+            }
+
+            TempData["error"] = "Phương thức thanh toán không hợp lệ.";
+            return RedirectToAction(nameof(Checkout));
         }
 
         [Authorize]
@@ -349,6 +382,142 @@ namespace BanHang.Controllers
 
             Console.WriteLine(body);
             return Task.CompletedTask;
+        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> MomoReturn()
+        {
+            if (!_moMoService.VerifyReturnUrlSignature(Request.Query))
+            {
+                TempData["error"] = "Chữ ký thanh toán không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var resultCode = Request.Query["resultCode"].ToString();
+            var orderId = Request.Query["orderId"].ToString();
+
+            if (!int.TryParse(orderId, out int maDonHang))
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
+
+            if (donHang == null)
+            {
+                TempData["error"] = "Đơn hàng không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (resultCode == "0")
+            {
+                if (donHang.TrangThai != "Đã thanh toán")
+                {
+                    donHang.TrangThai = "Đã thanh toán";
+
+                    foreach (var chiTiet in donHang.ChiTietDonHangs)
+                    {
+                        var sanPham = await _context.SanPhams.FindAsync(chiTiet.MaSanPham);
+                        if (sanPham != null)
+                        {
+                            sanPham.DaBan += chiTiet.SoLuong;
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    var cart = GetCart();
+                    await SendOrderEmail(donHang, cart);
+                    HttpContext.Session.Remove(CartKey);
+                }
+
+                return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
+            }
+
+            donHang.TrangThai = "Thanh toán thất bại";
+            await _context.SaveChangesAsync();
+
+            TempData["error"] = "Thanh toán MoMo thất bại hoặc bị huỷ.";
+            return RedirectToAction(nameof(Checkout));
+        }
+        [HttpPost]
+        public async Task<IActionResult> MomoIpn()
+        {
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return BadRequest(new { message = "Empty body" });
+            }
+
+            var momoIpn = JsonSerializer.Deserialize<MoMoIpnRequest>(body, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (momoIpn == null)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+
+            if (!_moMoService.VerifyIpnSignature(momoIpn))
+            {
+                return BadRequest(new { message = "Invalid signature" });
+            }
+
+            if (!int.TryParse(momoIpn.OrderId, out int maDonHang))
+            {
+                return BadRequest(new { message = "Invalid orderId" });
+            }
+
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
+
+            if (donHang == null)
+            {
+                return NotFound(new { message = "Order not found" });
+            }
+
+            if (momoIpn.ResultCode == 0)
+            {
+                if (donHang.TrangThai != "Đã thanh toán")
+                {
+                    donHang.TrangThai = "Đã thanh toán";
+
+                    foreach (var chiTiet in donHang.ChiTietDonHangs)
+                    {
+                        var sanPham = await _context.SanPhams.FindAsync(chiTiet.MaSanPham);
+                        if (sanPham != null)
+                        {
+                            sanPham.DaBan += chiTiet.SoLuong;
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                if (donHang.TrangThai != "Đã thanh toán")
+                {
+                    donHang.TrangThai = "Thanh toán thất bại";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return Ok(new
+            {
+                partnerCode = momoIpn.PartnerCode,
+                requestId = momoIpn.RequestId,
+                orderId = momoIpn.OrderId,
+                resultCode = 0,
+                message = "Confirm Success"
+            });
         }
     }
 }

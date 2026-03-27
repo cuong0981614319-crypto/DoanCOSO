@@ -64,6 +64,32 @@ namespace BanHang.Controllers
 
             return View("~/Views/Home/Index.cshtml", khuVucs);
         }
+        [HttpGet]
+        public IActionResult SearchSuggestions(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return Json(new List<object>());
+            }
+
+            keyword = keyword.Trim();
+
+            var products = _context.SanPhams
+                .Where(x => x.TenSanPham != null && x.TenSanPham.Contains(keyword))
+                .OrderBy(x => x.TenSanPham)
+                .Take(8)
+                .Select(x => new
+                {
+                    id = x.MaSanPham,
+                    name = x.TenSanPham,
+                    price = x.Gia,
+                    image = x.HinhAnh,
+                    url = Url.Action("Details", "Product", new { id = x.MaSanPham })
+                })
+                .ToList();
+
+            return Json(products);
+        }
 
     }
 }

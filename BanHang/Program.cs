@@ -1,4 +1,5 @@
 using BanHang.Models;
+using BanHang.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,13 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
+//momo
 
+builder.Services.Configure<MoMoOption>(builder.Configuration.GetSection("MoMo"));
+builder.Services.AddScoped<MoMoService>();
+
+
+builder.Services.AddHttpClient();
 // 3. Đăng ký Email giả để không lỗi khi đăng ký
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

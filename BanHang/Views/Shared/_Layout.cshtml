@@ -35,24 +35,19 @@
                     </a>
                 </div>
 
-                <div class="col-md-5">
-                    <form asp-controller="Home" asp-action="Index" method="get" class="d-flex">
-                        <input type="text"
-                               name="keyword"
-                               class="form-control"
-                               placeholder="Tìm kiếm sản phẩm..."
-                               value="@ViewBag.Keyword" />
+                <form method="get" action="/Product/Search" class="search-box">
+                    <input type="text"
+                           id="searchInput"
+                           name="keyword"
+                           placeholder="Tìm kiếm sản phẩm..."
+                           autocomplete="off" />
 
-                        @if (ViewBag.MaDanhMucDangChon != null)
-                        {
-                            <input type="hidden" name="maDanhMuc" value="@ViewBag.MaDanhMucDangChon" />
-                        }
+                    <button type="submit" id="searchBtn">
+                        <i class="fa fa-search"></i>
+                    </button>
 
-                        <button type="submit" class="btn btn-dark">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </form>
-                </div>
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </form>
 
                 <div class="col-md-4 d-flex justify-content-end align-items-center gap-3">
                     <partial name="_LoginPartial" />
@@ -354,5 +349,71 @@
             </span>
         </a>
     </div>
+    <script>
+            const searchInput = document.getElementById("searchInput");
+            const suggestionsBox = document.getElementById("searchSuggestions");
+
+            let debounceTimer;
+
+            searchInput.addEventListener("input", function () {
+                const keyword = this.value.trim();
+
+                clearTimeout(debounceTimer);
+
+                if (keyword.length === 0) {
+                    suggestionsBox.style.display = "none";
+                    suggestionsBox.innerHTML = "";
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`/Home/SearchSuggestions?keyword=${encodeURIComponent(keyword)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data || data.length === 0) {
+                                suggestionsBox.innerHTML = `<div class="search-empty">Không tìm thấy sản phẩm</div>`;
+                                suggestionsBox.style.display = "block";
+                                return;
+                            }
+
+                            let html = "";
+
+                                        data.forEach(item => {
+                html += `
+                    <a href="/Product/Details/${item.id}" class="search-item">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="search-item-info">
+                            <div class="search-item-name">${item.name}</div>
+                            <div class="search-item-price">
+                                ${Number(item.price).toLocaleString('vi-VN')}đ
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+
+                            suggestionsBox.innerHTML = html;
+                            suggestionsBox.style.display = "block";
+                        })
+                        .catch(error => {
+                            console.error(error);
+                            suggestionsBox.style.display = "none";
+                        });
+                }, 300);
+            });
+
+            document.addEventListener("click", function (e) {
+                if (!document.querySelector(".search-box").contains(e.target)) {
+                    suggestionsBox.style.display = "none";
+                }
+            });
+
+            searchInput.addEventListener("focus", function () {
+                if (suggestionsBox.innerHTML.trim() !== "") {
+                    suggestionsBox.style.display = "block";
+                }
+            });
+    </script>
 </body>
+
 </html>
