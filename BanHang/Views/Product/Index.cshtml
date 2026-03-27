@@ -10,13 +10,10 @@
 <link rel="stylesheet" href="~/css/productUser/index.css" asp-append-version="true" />
 
 
-<div class="container mt-4">
+<div class="container mt-4 product-index-moho">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">@ViewBag.TenKhuVuc</h2>
-
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-            Quay lại
-        </a>
+     
     </div>
 
     <div class="card shadow-sm border-0 mb-4">
@@ -190,23 +187,7 @@
                                     </form>
                                 </div>
                             }
-                            else if (User.Identity != null && User.Identity.IsAuthenticated)
-                            {
-                                <button type="button"
-                                        class="btn btn-dark btn-add-to-cart mt-auto"
-                                        data-id="@item.MaSanPham">
-                                    Thêm vào giỏ
-                                </button>
-                            }
-                            else
-                            {
-                                <a asp-area="Identity"
-                                   asp-page="/Account/Login"
-                                   asp-route-returnUrl="@Context.Request.Path"
-                                   class="btn btn-outline-dark mt-auto">
-                                    Thêm vào giỏ
-                                </a>
-                            }
+                          
                         </div>
                     </div>
                 </div>

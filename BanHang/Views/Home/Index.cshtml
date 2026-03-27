@@ -140,23 +140,7 @@
                                             </form>
                                         </div>
                                     }
-                                    else if (User.Identity != null && User.Identity.IsAuthenticated)
-                                    {
-                                        <button type="button"
-                                                class="btn btn-dark btn-add-to-cart"
-                                                data-id="@item.MaSanPham">
-                                            Thêm vào giỏ
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <a asp-area="Identity"
-                                           asp-page="/Account/Login"
-                                           asp-route-returnUrl="@Context.Request.Path"
-                                           class="btn btn-outline-dark">
-                                            Thêm vào giỏ
-                                        </a>
-                                    }
+                                   
                                 </div>
                             </div>
                         </div>

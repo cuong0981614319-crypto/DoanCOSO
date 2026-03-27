@@ -12,7 +12,7 @@
     var mainImage = string.IsNullOrEmpty(Model.HinhAnh)
         ? "https://via.placeholder.com/500x400"
         : Model.HinhAnh;
-}
+} 
 
 <link rel="stylesheet" href="~/css/productUser/Details.css" asp-append-version="true" />
 
@@ -133,11 +133,24 @@
                     </a>
                 }
 
-                <a asp-controller="Home"
-                   asp-action="Index"
-                   class="btn btn-outline-secondary">
-                    Quay lại
-                </a>
+                @if (!User.IsInRole("Admin") && User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <button type="button"
+                            id="btnBuyNow"
+                            data-id="@Model.MaSanPham"
+                            class="btn btn-buy-now">
+                        Mua ngay
+                    </button>
+                }
+                else if (!User.IsInRole("Admin"))
+                {
+                    <a asp-area="Identity"
+                           asp-page="/Account/Login"
+                           asp-route-returnUrl="@Context.Request.Path"
+                           class="btn btn-buy-now">
+                        Mua ngay
+                    </a>
+                }
             </div>
         </div>
     </div>
@@ -181,13 +194,7 @@
                                     @item.Gia.ToString("N0") VNĐ
                                 </p>
 
-                                <div class="mt-auto d-grid gap-2">
-                                    <a asp-controller="Product"
-                                       asp-action="Details"
-                                       asp-route-id="@item.MaSanPham"
-                                       class="btn btn-outline-primary">
-                                        Xem chi tiết
-                                    </a>
+                                
 
                                     @if (!User.IsInRole("Admin"))
                                     {
@@ -212,7 +219,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                   
                 }
             </div>
 
@@ -229,151 +236,149 @@
 
 <div id="cart-toast" class="cart-toast">Đã thêm vào giỏ hàng!</div>
 
-<style>
-    .product-thumb {
-        transition: all 0.2s ease;
+
+
+<script>
+    function scrollRelatedProducts(direction) {
+        const slider = document.getElementById("relatedProductSlider");
+        if (!slider) return;
+
+        const item = slider.querySelector(".product-item");
+        if (!item) return;
+
+        const itemWidth = item.offsetWidth;
+        const gap = 18;
+        const scrollAmount = itemWidth + gap;
+
+        slider.scrollBy({
+            left: direction * scrollAmount,
+            behavior: "smooth"
+        });
     }
 
-        .product-thumb:hover {
-            transform: scale(1.03);
-            border-color: #dc3545 !important;
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        const mainImage = document.getElementById("mainProductImage");
+        const thumbs = document.querySelectorAll(".product-thumb");
 
-    .active-thumb {
-        border: 2px solid #dc3545 !important;
-    }
-</style>
-
-@section Scripts {
-    <script>
-        function scrollRelatedProducts(direction) {
-            const slider = document.getElementById("relatedProductSlider");
-            if (!slider) return;
-
-            const item = slider.querySelector(".product-item");
-            if (!item) return;
-
-            const itemWidth = item.offsetWidth;
-            const gap = 18;
-            const scrollAmount = itemWidth + gap;
-
-            slider.scrollBy({
-                left: direction * scrollAmount,
-                behavior: "smooth"
+        thumbs.forEach(img => {
+            img.addEventListener("click", function () {
+                mainImage.src = this.src;
+                thumbs.forEach(t => t.classList.remove("active-thumb"));
+                this.classList.add("active-thumb");
             });
+        });
+
+        function showCartToast(message, isError = false) {
+            const toast = document.getElementById("cart-toast");
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.style.background = isError ? "#dc3545" : "#198754";
+            toast.classList.add("show");
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2000);
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const mainImage = document.getElementById("mainProductImage");
-            const thumbs = document.querySelectorAll(".product-thumb");
-
-            thumbs.forEach(img => {
-                img.addEventListener("click", function () {
-                    mainImage.src = this.src;
-
-                    thumbs.forEach(t => t.classList.remove("active-thumb"));
-                    this.classList.add("active-thumb");
+        async function addToCart(productId, quantity, redirectToCheckout = false) {
+            try {
+                const response = await fetch("/Cart/AddToCartAjax", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: `id=${productId}&quantity=${quantity}`
                 });
-            });
 
-            function showCartToast(message, isError = false) {
-                const toast = document.getElementById("cart-toast");
-                if (!toast) return;
+                const result = await response.json();
 
-                toast.textContent = message;
-                toast.style.background = isError ? "#dc3545" : "#198754";
-                toast.classList.add("show");
+                if (result.redirectToLogin) {
+                    window.location.href = result.loginUrl;
+                    return;
+                }
 
-                setTimeout(() => {
-                    toast.classList.remove("show");
-                }, 2000);
-            }
-
-            async function addToCart(productId, quantity) {
-                try {
-                    const response = await fetch("/Cart/AddToCartAjax", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                            "X-Requested-With": "XMLHttpRequest"
-                        },
-                        body: `id=${productId}&quantity=${quantity}`
-                    });
-
-                    const result = await response.json();
-
-                    if (result.redirectToLogin) {
-                        window.location.href = result.loginUrl;
+                if (result.success) {
+                    if (redirectToCheckout) {
+                        window.location.href = "/Cart/Checkout";
                         return;
                     }
 
-                    if (result.success) {
-                        showCartToast(result.message || "Đã thêm vào giỏ hàng!");
+                    showCartToast(result.message || "Đã thêm vào giỏ hàng!");
 
-                        const badge = document.getElementById("cart-badge");
-                        if (badge) {
-                            badge.textContent = result.cartCount;
-                        }
-
-                        const total = document.getElementById("cart-total");
-                        if (total) {
-                            total.textContent = Number(result.cartTotal).toLocaleString("vi-VN") + "đ";
-                        }
-
-                        const itemsContainer = document.getElementById("cart-dropdown-items");
-                        if (itemsContainer && result.items) {
-                            if (result.items.length > 0) {
-                                let html = `<div style="max-height: 250px; overflow-y: auto;">`;
-
-                                result.items.forEach(item => {
-                                    html += `
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 60px; height: 60px;" class="me-2">
-                                                ${item.hinhAnh ? `<img src="${item.hinhAnh}" alt="${item.tenSanPham}" style="width:100%; height:100%; object-fit:contain;" />` : ``}
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <div class="fw-semibold">${item.tenSanPham}</div>
-                                                <div class="text-muted small">SL: ${item.soLuong}</div>
-                                            </div>
-                                            <div class="text-danger fw-bold">
-                                                ${Number(item.thanhTien).toLocaleString("vi-VN")}đ
-                                            </div>
-                                        </div>
-                                    `;
-                                });
-
-                                html += `</div>`;
-                                itemsContainer.innerHTML = html;
-                            } else {
-                                itemsContainer.innerHTML = `<div class="py-3 text-center text-muted">Giỏ hàng trống</div>`;
-                            }
-                        }
-                    } else {
-                        showCartToast(result.message || "Không thể thêm vào giỏ hàng!", true);
+                    const badge = document.getElementById("cart-badge");
+                    if (badge) {
+                        badge.textContent = result.cartCount;
                     }
-                } catch (error) {
-                    console.error("AddToCartAjax error:", error);
-                    showCartToast("Có lỗi xảy ra khi thêm vào giỏ hàng!", true);
+
+                    const total = document.getElementById("cart-total");
+                    if (total) {
+                        total.textContent = Number(result.cartTotal).toLocaleString("vi-VN") + "đ";
+                    }
+
+                    const itemsContainer = document.getElementById("cart-dropdown-items");
+                    if (itemsContainer && result.items) {
+                        if (result.items.length > 0) {
+                            let html = `<div style="max-height: 250px; overflow-y: auto;">`;
+
+                            result.items.forEach(item => {
+                                html += `
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="width: 60px; height: 60px;" class="me-2">
+                                            ${item.hinhAnh ? `<img src="${item.hinhAnh}" alt="${item.tenSanPham}" style="width:100%; height:100%; object-fit:contain;" />` : ``}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold">${item.tenSanPham}</div>
+                                            <div class="text-muted small">SL: ${item.soLuong}</div>
+                                        </div>
+                                        <div class="text-danger fw-bold">
+                                            ${Number(item.thanhTien).toLocaleString("vi-VN")}đ
+                                        </div>
+                                    </div>
+                                `;
+                            });
+
+                            html += `</div>`;
+                            itemsContainer.innerHTML = html;
+                        } else {
+                            itemsContainer.innerHTML = `<div class="py-3 text-center text-muted">Giỏ hàng trống</div>`;
+                        }
+                    }
+                } else {
+                    showCartToast(result.message || "Không thể thêm vào giỏ hàng!", true);
                 }
+            } catch (error) {
+                console.error("AddToCartAjax error:", error);
+                showCartToast("Có lỗi xảy ra khi thêm vào giỏ hàng!", true);
             }
+        }
 
-            const btnAddToCart = document.getElementById("btnAddToCart");
-            const quantityInput = document.getElementById("quantityInput");
+        const btnAddToCart = document.getElementById("btnAddToCart");
+        const btnBuyNow = document.getElementById("btnBuyNow");
+        const quantityInput = document.getElementById("quantityInput");
 
-            if (btnAddToCart) {
-                btnAddToCart.addEventListener("click", function () {
-                    const productId = this.dataset.id;
-                    const quantity = quantityInput ? quantityInput.value : 1;
-                    addToCart(productId, quantity);
-                });
-            }
+        if (btnAddToCart) {
+            btnAddToCart.addEventListener("click", function () {
+                const productId = this.dataset.id;
+                const quantity = quantityInput ? quantityInput.value : 1;
+                addToCart(productId, quantity, false);
+            });
+        }
 
-            document.querySelectorAll(".btn-add-related-to-cart").forEach(button => {
-                button.addEventListener("click", function () {
-                    const productId = this.dataset.id;
-                    addToCart(productId, 1);
-                });
+        if (btnBuyNow) {
+            btnBuyNow.addEventListener("click", function () {
+                const productId = this.dataset.id;
+                const quantity = quantityInput ? quantityInput.value : 1;
+                addToCart(productId, quantity, true);
+            });
+        }
+
+        document.querySelectorAll(".btn-add-related-to-cart").forEach(button => {
+            button.addEventListener("click", function () {
+                const productId = this.dataset.id;
+                addToCart(productId, 1, false);
             });
         });
-    </script>
-}
+    });
+</script>

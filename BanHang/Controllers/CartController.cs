@@ -227,9 +227,11 @@ namespace BanHang.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            ViewBag.GioHang = cart;
+            ViewBag.TongTien = cart.Sum(x => x.ThanhTien);
+
             return View(new ThanhToan());
         }
-
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -245,6 +247,8 @@ namespace BanHang.Controllers
 
             if (!ModelState.IsValid)
             {
+                ViewBag.GioHang = cart;
+                ViewBag.TongTien = cart.Sum(x => x.ThanhTien);
                 return View(model);
             }
 
@@ -265,7 +269,9 @@ namespace BanHang.Controllers
             {
                 HoTen = model.HoTen,
                 SoDienThoai = model.SoDienThoai,
+               
                 DiaChi = model.DiaChi,
+               
                 NgayDat = DateTime.Now,
                 TongTien = cart.Sum(x => x.ThanhTien),
                 TrangThai = "Chờ xác nhận",

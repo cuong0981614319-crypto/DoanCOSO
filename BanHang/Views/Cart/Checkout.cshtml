@@ -2,60 +2,164 @@
 
 @{
     ViewData["Title"] = "Thanh toán";
+
+    var gioHang = ViewBag.GioHang as IEnumerable<dynamic>;
+    decimal tongTien = ViewBag.TongTien != null ? Convert.ToDecimal(ViewBag.TongTien) : 0;
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Thông tin thanh toán</h2>
+<div class="container mt-4 checkout-page">
+    <h2 class="mb-4">Thanh toán</h2>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form asp-action="Checkout" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row g-4">
+        <!-- BÊN TRÁI: THÔNG TIN KHÁCH HÀNG -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h4 class="mb-4">Thông tin nhận hàng</h4>
 
-                <div class="mb-3">
-                    <label asp-for="HoTen" class="form-label"></label>
-                    <input asp-for="HoTen" class="form-control" />
-                    <span asp-validation-for="HoTen" class="text-danger"></span>
-                </div>
+                    <form asp-action="Checkout" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <div class="mb-3">
-                    <label asp-for="SoDienThoai" class="form-label"></label>
-                    <input asp-for="SoDienThoai" class="form-control" />
-                    <span asp-validation-for="SoDienThoai" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="DiaChi" class="form-label"></label>
-                    <textarea asp-for="DiaChi" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="DiaChi" class="text-danger"></span>
-                </div>
+                        <div class="mb-3">
+                            <label asp-for="HoTen" class="form-label"></label>
+                            <input asp-for="HoTen" class="form-control" />
+                            <span asp-validation-for="HoTen" class="text-danger"></span>
+                        </div>
 
-                <div class="mb-3">
-                    <label asp-for="GhiChu" class="form-label"></label>
-                    <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SoDienThoai" class="form-label"></label>
+                                <input asp-for="SoDienThoai" class="form-control" />
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DiaChi" class="form-label"></label>
+                            <textarea asp-for="DiaChi" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="DiaChi" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GhiChu" class="form-label"></label>
+                            <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="PhuongThucThanhToan" class="form-label">Phương thức thanh toán</label>
+                            <select asp-for="PhuongThucThanhToan" class="form-select">
+                                <option value="">-- Chọn phương thức --</option>
+                                <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                                <option value="Bank">Chuyển khoản</option>
+                            </select>
+                            <span asp-validation-for="PhuongThucThanhToan" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-success px-4">Đặt hàng</button>
+                            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary">
+                                Quay lại giỏ hàng
+                            </a>
+                        </div>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="PhuongThucThanhToan" class="form-label">Phương thức thanh toán</label>
-                    <select asp-for="PhuongThucThanhToan" class="form-select">
-                        <option value="">-- Chọn phương thức --</option>
-                        <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                        <option value="Bank">Chuyển khoản</option>
-                    </select>
-                    <span asp-validation-for="PhuongThucThanhToan" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- BÊN PHẢI: SẢN PHẨM ĐÃ ĐẶT -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h4 class="mb-4">Đơn hàng của bạn</h4>
+
+                    @if (gioHang != null && gioHang.Any())
+                    {
+                        <div class="checkout-products">
+                            @foreach (var item in gioHang)
+                            {
+                                <div class="checkout-product-item d-flex align-items-center mb-3 pb-3 border-bottom">
+                                    <div class="product-image me-3">
+                                        <img src="@(item.HinhAnh ?? "/images/no-image.png")"
+                                             alt="@(item.TenSanPham ?? "Sản phẩm")"
+                                             class="img-fluid rounded" />
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">@(item.TenSanPham)</div>
+                                        <div class="text-muted small">Số lượng: @(item.SoLuong)</div>
+                                    </div>
+
+                                    <div class="text-end fw-bold text-danger">
+                                        @String.Format("{0:N0}đ", item.ThanhTien)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="pt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính</span>
+                                <span>@String.Format("{0:N0}đ", tongTien)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Phí vận chuyển</span>
+                                <span>Liên hệ</span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between fw-bold fs-5 text-danger">
+                                <span>Tổng cộng</span>
+                                <span>@String.Format("{0:N0}đ", tongTien)</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Chưa có sản phẩm nào trong đơn hàng.</div>
+                    }
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">Đặt hàng</button>
-                    <a asp-action="Index" class="btn btn-secondary">Quay lại giỏ hàng</a>
-                </div>
-               
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .checkout-page {
+        max-width: 1280px;
+    }
+
+        .checkout-page .card {
+            border-radius: 12px;
+        }
+
+        .checkout-page .form-control,
+        .checkout-page .form-select {
+            min-height: 46px;
+        }
+
+        .checkout-page textarea.form-control {
+            min-height: unset;
+        }
+
+    .checkout-product-item .product-image {
+        width: 72px;
+        height: 72px;
+        flex: 0 0 72px;
+        overflow: hidden;
+        background: #f8f8f8;
+    }
+
+        .checkout-product-item .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+</style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
