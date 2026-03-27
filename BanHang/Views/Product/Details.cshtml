@@ -62,6 +62,7 @@
                     <div class="text-danger fw-bold fs-3 product-price-text">
                         @Model.Gia.ToString("N0") VNĐ
                     </div>
+                   
 
                     @if (!User.IsInRole("Admin") && User.Identity != null && User.Identity.IsAuthenticated)
                     {
@@ -190,36 +191,39 @@
                                     </a>
                                 </h5>
 
-                                <p class="card-text text-danger fw-bold fs-5">
-                                    @item.Gia.ToString("N0") VNĐ
-                                </p>
+                                <div class="product-meta">
+                                    <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                        @item.Gia.ToString("N0") VNĐ
+                                    </p>
 
-                                
-
-                                    @if (!User.IsInRole("Admin"))
-                                    {
-                                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                                        {
-                                            <button type="button"
-                                                    class="btn btn-dark btn-add-related-to-cart"
-                                                    data-id="@item.MaSanPham">
-                                                Thêm vào giỏ
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <a asp-area="Identity"
-                                               asp-page="/Account/Login"
-                                               asp-route-returnUrl="@Context.Request.Path"
-                                               class="btn btn-outline-dark">
-                                                Thêm vào giỏ
-                                            </a>
-                                        }
-                                    }
+                                    <span class="sold-text">
+                                        Đã bán @item.DaBan
+                                    </span>
                                 </div>
+
+                                @if (!User.IsInRole("Admin"))
+                                {
+                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-dark btn-add-related-to-cart"
+                                                data-id="@item.MaSanPham">
+                                            Thêm vào giỏ
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a asp-area="Identity"
+                                           asp-page="/Account/Login"
+                                           asp-route-returnUrl="@Context.Request.Path"
+                                           class="btn btn-outline-dark">
+                                            Thêm vào giỏ
+                                        </a>
+                                    }
+                                }
                             </div>
                         </div>
-                   
+                    </div>
                 }
             </div>
 

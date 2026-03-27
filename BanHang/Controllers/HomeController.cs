@@ -13,7 +13,7 @@ namespace BanHang.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? maDanhMuc)
+        public async Task<IActionResult> Index(int? maDanhMuc, string? keyword)
         {
             var khuVucs = await _context.KhuVucHienThis
                 .Include(k => k.SanPhams)
@@ -21,19 +21,38 @@ namespace BanHang.Controllers
                 .OrderBy(k => k.ThuTu)
                 .ToListAsync();
 
-            if (maDanhMuc.HasValue)
+            if (maDanhMuc.HasValue || !string.IsNullOrWhiteSpace(keyword))
             {
+                var tuKhoa = keyword?.Trim().ToLower();
+
                 foreach (var kv in khuVucs)
                 {
-                    kv.SanPhams = kv.SanPhams?
-                        .Where(sp => sp.MaDanhMuc == maDanhMuc.Value)
-                        .ToList();
+                    if (kv.SanPhams == null) continue;
+
+                    var sanPhams = kv.SanPhams.AsEnumerable();
+
+                    if (maDanhMuc.HasValue)
+                    {
+                        sanPhams = sanPhams.Where(sp => sp.MaDanhMuc == maDanhMuc.Value);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(tuKhoa))
+                    {
+                        sanPhams = sanPhams.Where(sp =>
+                            !string.IsNullOrEmpty(sp.TenSanPham) &&
+                            sp.TenSanPham.ToLower().Contains(tuKhoa));
+                    }
+
+                    kv.SanPhams = sanPhams.ToList();
                 }
 
                 khuVucs = khuVucs
                     .Where(kv => kv.SanPhams != null && kv.SanPhams.Any())
                     .ToList();
+            }
 
+            if (maDanhMuc.HasValue)
+            {
                 var danhMuc = await _context.DanhMucs
                     .FirstOrDefaultAsync(dm => dm.MaDanhMuc == maDanhMuc.Value);
 
@@ -41,9 +60,9 @@ namespace BanHang.Controllers
             }
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;
+            ViewBag.Keyword = keyword;
 
             return View("~/Views/Home/Index.cshtml", khuVucs);
         }
-
     }
 }

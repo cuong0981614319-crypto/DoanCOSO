@@ -26,19 +26,29 @@
             <div class="row align-items-center">
                 <div class="col-md-3">
                     <a asp-area=""
-                           asp-controller="Home"
-                           asp-action="Index"
-                           class="text-decoration-none">
+                       asp-controller="Home"
+                       asp-action="Index"
+                       class="text-decoration-none">
                         <img src="/img/anh1.png"
                              alt="Hung Hanh Logo"
-                             style="height: 80px; width: auto; object-fit: contain;" />
+                             class="logo-img" />
                     </a>
                 </div>
 
                 <div class="col-md-5">
-                    <form asp-controller="Product" asp-action="Search" method="get" class="d-flex">
-                        <input type="text" name="keyword" value="@Context.Request.Query["keyword"]" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
-                        <button type="submit" class="btn btn-dark ms-2">
+                    <form asp-controller="Home" asp-action="Index" method="get" class="d-flex">
+                        <input type="text"
+                               name="keyword"
+                               class="form-control"
+                               placeholder="Tìm kiếm sản phẩm..."
+                               value="@ViewBag.Keyword" />
+
+                        @if (ViewBag.MaDanhMucDangChon != null)
+                        {
+                            <input type="hidden" name="maDanhMuc" value="@ViewBag.MaDanhMucDangChon" />
+                        }
+
+                        <button type="submit" class="btn btn-dark">
                             <i class="bi bi-search"></i>
                         </button>
                     </form>
@@ -47,15 +57,14 @@
                 <div class="col-md-4 d-flex justify-content-end align-items-center gap-3">
                     <partial name="_LoginPartial" />
 
-                  
                     <div class="dropdown">
                         <a asp-controller="Cart"
-                               asp-action="Index"
-                               class="text-dark text-decoration-none d-flex align-items-center position-relative"
-                               id="cartDropdown"
-                               role="button"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
+                           asp-action="Index"
+                           class="text-dark text-decoration-none d-flex align-items-center position-relative"
+                           id="cartDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
                             <div class="me-2 position-relative">
                                 <i class="bi bi-bag" style="font-size: 26px;"></i>
                                 <span id="cart-badge"
@@ -64,17 +73,17 @@
                                     @cartCount
                                 </span>
                             </div>
-                            <span class="fw-bold" style="font-size: 24px;">Giỏ hàng</span>
+                            <span class="fw-bold">Giỏ hàng</span>
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 mt-3" style="width: 360px;" aria-labelledby="cartDropdown">
+                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 mt-3" aria-labelledby="cartDropdown">
                             <h6 class="fw-bold mb-3">GIỎ HÀNG</h6>
                             <hr />
 
                             <div id="cart-dropdown-items">
                                 @if (cart.Any())
                                 {
-                                    <div style="max-height: 250px; overflow-y: auto;">
+                                    <div style="max-height: 400px; overflow-y: auto;">
                                         @foreach (var item in cart)
                                         {
                                             <div class="d-flex align-items-center mb-3">
@@ -111,13 +120,13 @@
 
                             <div class="d-flex gap-2">
                                 <a asp-controller="Cart"
-                                       asp-action="Index"
-                                       class="btn btn-outline-dark flex-grow-1 btn-sm fw-bold py-2">
+                                   asp-action="Index"
+                                   class="btn btn-outline-dark flex-grow-1 btn-sm fw-bold py-2">
                                     XEM GIỎ HÀNG
                                 </a>
                                 <a asp-controller="Cart"
-                                       asp-action="Checkout"
-                                       class="btn btn-dark flex-grow-1 btn-sm fw-bold py-2">
+                                   asp-action="Checkout"
+                                   class="btn btn-dark flex-grow-1 btn-sm fw-bold py-2">
                                     THANH TOÁN
                                 </a>
                             </div>
@@ -152,44 +161,44 @@
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-dark py-3"
-                                   href="#"
-                                   id="adminDropdown"
-                                   role="button"
-                                   data-bs-toggle="dropdown"
-                                   aria-expanded="false">
+                               href="#"
+                               id="adminDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
                                 <i class="bi bi-gear me-1"></i> Quản lý
                             </a>
 
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="adminDropdown">
                                 <li>
                                     <a class="dropdown-item"
-                                           asp-area="Admin"
-                                           asp-controller="Product"
-                                           asp-action="Index">
+                                       asp-area="Admin"
+                                       asp-controller="Product"
+                                       asp-action="Index">
                                         📦 Sản phẩm
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item"
-                                           asp-area="Admin"
-                                           asp-controller="DanhMuc"
-                                           asp-action="Index">
+                                       asp-area="Admin"
+                                       asp-controller="DanhMuc"
+                                       asp-action="Index">
                                         📂 Danh mục
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item"
-                                           asp-area="Admin"
-                                           asp-controller="KhuVuc"
-                                           asp-action="Index">
+                                       asp-area="Admin"
+                                       asp-controller="KhuVuc"
+                                       asp-action="Index">
                                         📍 Khu vực
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item"
-                                           asp-area="Admin"
-                                           asp-controller="DonHang"
-                                           asp-action="Index">
+                                       asp-area="Admin"
+                                       asp-controller="DonHang"
+                                       asp-action="Index">
                                         🧾 Đơn hàng
                                     </a>
                                 </li>
@@ -201,8 +210,8 @@
                     {
                         <li class="nav-item">
                             <a asp-controller="DonHang"
-                                   asp-action="MyOrders"
-                                   class="nav-link text-dark py-3">
+                               asp-action="MyOrders"
+                               class="nav-link text-dark py-3">
                                 Đơn hàng của tôi
                             </a>
                         </li>

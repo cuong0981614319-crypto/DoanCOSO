@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #f7f4ef;
     --surface: #ffffff;
     --surface-2: #f3efe8;
@@ -59,62 +59,97 @@ header {
 }
 
     header .container.py-3 {
-        padding-top: 1.2rem !important;
-        padding-bottom: 1.2rem !important;
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
     }
 
-    header img {
-        max-height: 72px !important;
-        width: auto;
-        object-fit: contain;
+    header .row {
+        display: flex;
+        align-items: center;
     }
 
-    header .input-group {
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        overflow: hidden;
-        background: #fff;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.03);
+    header .col-md-3,
+    header .col-md-5,
+    header .col-md-4 {
+        display: flex;
+        align-items: center;
     }
 
-    header .form-control {
-        border: 0 !important;
-        box-shadow: none !important;
-        height: 50px;
-        padding: 0 18px;
-        font-size: 14px;
-        background: transparent;
+    header .col-md-3 {
+        justify-content: flex-start;
     }
 
-        header .form-control::placeholder {
-            color: #a2998d;
-        }
-
-    header .input-group .btn,
-    header .search-group .btn-dark,
-    header .btn-dark[type="submit"] {
-        border: 0 !important;
-        border-radius: 0 !important;
-        min-width: 56px;
-        background: var(--text) !important;
-        color: #fff !important;
+    header .col-md-5 {
+        justify-content: center;
     }
 
-        header .input-group .btn:hover,
-        header .search-group .btn-dark:hover,
-        header .btn-dark[type="submit"]:hover {
-            background: var(--accent-dark) !important;
-        }
+    header .col-md-4 {
+        justify-content: flex-end;
+    }
+
+.logo-img {
+    height: 54px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+header form.d-flex {
+    width: 100%;
+    max-width: 460px;
+    align-items: center;
+    gap: 0;
+}
+
+header .form-control {
+    border: 0 !important;
+    box-shadow: none !important;
+    height: 44px;
+    padding: 0 18px;
+    font-size: 14px;
+    background: transparent;
+    border-radius: 999px 0 0 999px !important;
+}
+
+    header .form-control::placeholder {
+        color: #a2998d;
+    }
+
+header form.d-flex .form-control {
+    border: 1px solid var(--line) !important;
+    border-right: 0 !important;
+    background: #fff;
+}
+
+header form.d-flex .btn,
+header .search-group .btn-dark,
+header .btn-dark[type="submit"] {
+    height: 44px;
+    min-width: 50px;
+    border: 1px solid var(--text) !important;
+    border-left: 0 !important;
+    border-radius: 0 999px 999px 0 !important;
+    background: var(--text) !important;
+    color: #fff !important;
+    padding: 0 14px !important;
+}
+
+    header form.d-flex .btn:hover,
+    header .search-group .btn-dark:hover,
+    header .btn-dark[type="submit"]:hover {
+        background: var(--accent-dark) !important;
+        border-color: var(--accent-dark) !important;
+    }
 
 /* User/cart area */
 .navbar-nav.align-items-center {
-    gap: 8px;
+    gap: 4px;
 }
 
 #loginDropdown,
 #userMenu,
 #cartDropdown {
-    padding: 10px 12px !important;
+    padding: 8px 10px !important;
     border-radius: 14px;
     transition: all 0.25s ease;
 }
@@ -125,27 +160,44 @@ header {
         background: var(--surface-2);
     }
 
-.user-info span:first-child {
-    color: var(--muted) !important;
-    font-size: 13px !important;
+.user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
 }
 
-.user-info span:last-child {
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.3px;
-}
+    .user-info span:first-child {
+        color: var(--muted) !important;
+        font-size: 12px !important;
+    }
+
+    .user-info span:last-child {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.3px;
+    }
 
 .bi-person,
 .bi-bag {
-    font-size: 22px !important;
+    font-size: 20px !important;
     line-height: 1;
 }
+
+#cartDropdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    #cartDropdown span.fw-bold {
+        font-size: 16px !important;
+        line-height: 1.2;
+    }
 
 #cart-badge,
 .badge.rounded-pill,
 .badge-count {
-    background: var(--accent) !important;
+    background: #f47c3c !important;
     border: 2px solid #fff;
     color: #fff !important;
     font-size: 10px !important;
@@ -220,6 +272,7 @@ header {
     padding: 10px !important;
     margin-top: 14px !important;
     min-width: 240px;
+    width: 340px !important;
 }
 
     .dropdown-menu::before {
@@ -426,6 +479,17 @@ footer {
             padding-bottom: 1rem !important;
         }
 
+        header .col-md-3,
+        header .col-md-5,
+        header .col-md-4 {
+            justify-content: center !important;
+            margin-bottom: 10px;
+        }
+
+        header form.d-flex {
+            max-width: 100%;
+        }
+
     .navbar-nav {
         gap: 0 !important;
     }
@@ -434,12 +498,9 @@ footer {
             padding: 12px 0 !important;
         }
 
-    header .input-group {
-        margin: 12px 0;
-    }
-
     .dropdown-menu {
         min-width: 100%;
+        width: 100% !important;
     }
 
         .dropdown-menu::before {
@@ -448,8 +509,8 @@ footer {
 }
 
 @media (max-width: 767.98px) {
-    header img {
-        max-height: 56px !important;
+    .logo-img {
+        height: 48px;
     }
 
     .user-info span:first-child,
