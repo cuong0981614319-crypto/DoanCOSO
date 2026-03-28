@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BanHang.Models;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 
 namespace BanHang.Areas.Admin.Controllers
 {
@@ -12,11 +14,13 @@ namespace BanHang.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly Cloudinary _cloudinary;
 
-        public ProductController(ApplicationDbContext context, IWebHostEnvironment env)
+        public ProductController(ApplicationDbContext context, IWebHostEnvironment env, Cloudinary cloudinary)
         {
             _context = context;
             _env = env;
+            _cloudinary = cloudinary;
         }
 
         [HttpGet]
@@ -313,36 +317,27 @@ namespace BanHang.Areas.Admin.Controllers
 
         private async Task<string> SaveImage(IFormFile file)
         {
-            var folder = Path.Combine(_env.WebRootPath, "images", "products");
+            await using var stream = file.OpenReadStream();
 
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            var fullPath = Path.Combine(folder, fileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
+            var uploadParams = new ImageUploadParams
             {
-                await file.CopyToAsync(stream);
+                File = new FileDescription(file.FileName, stream),
+                Folder = "products"
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.Error != null)
+            {
+                throw new Exception("Upload ảnh lên Cloudinary thất bại: " + uploadResult.Error.Message);
             }
 
-            return "/images/products/" + fileName;
+            return uploadResult.SecureUrl.ToString();
         }
 
         private void DeleteImageFile(string? imagePath)
         {
-            if (string.IsNullOrWhiteSpace(imagePath))
-                return;
-
-            var relativePath = imagePath.TrimStart('/')
-                .Replace("/", Path.DirectorySeparatorChar.ToString());
-
-            var fullPath = Path.Combine(_env.WebRootPath, relativePath);
-
-            if (System.IO.File.Exists(fullPath))
-            {
-                System.IO.File.Delete(fullPath);
-            }
+            // Tạm thời không xóa ảnh trên Cloudinary để tránh lỗi.
         }
     }
 }

@@ -1,3 +1,4 @@
+using CloudinaryDotNet;
 using BanHang.Models;
 using BanHang.Services;
 using Microsoft.AspNetCore.Identity;
@@ -50,7 +51,23 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
 
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var config = builder.Configuration
+        .GetSection("CloudinarySettings")
+        .Get<CloudinarySettings>();
+
+    var account = new Account(
+        config!.CloudName,
+        config.ApiKey,
+        config.ApiSecret
+    );
+
+    return new Cloudinary(account);
+});
 var app = builder.Build();
 
 // 6. Middleware
