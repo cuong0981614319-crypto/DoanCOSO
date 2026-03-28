@@ -25,11 +25,11 @@
     </a>
         <a asp-action="Index" asp-route-status="Chờ xác nhận"
                class="btn @(current == "Chờ xác nhận" ? "btn-success" : "btn-outline-success")">
-            Hoàn thành
+            Chờ xác nhận
         </a>
         <a asp-action="Index" asp-route-status="Chờ thanh toán"
                class="btn @(current == "Chờ thanh toán" ? "btn-success" : "btn-outline-success")">
-            Hoàn thành
+            Chờ thanh toán
         </a>
     <a asp-action="Index" asp-route-status="Chờ xác nhận"
        class="btn @(current == "Chờ xác nhận" ? "btn-warning" : "btn-outline-warning")">
