@@ -13,9 +13,13 @@ namespace BanHang.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly MoMoService _moMoService;
-        private const string CartKey = "CART";
         private readonly VNPayService _vnPayService;
-        public CartController(ApplicationDbContext context, MoMoService moMoService, VNPayService vnPayService)
+        private const string CartKey = "CART";
+
+        public CartController(
+            ApplicationDbContext context,
+            MoMoService moMoService,
+            VNPayService vnPayService)
         {
             _context = context;
             _moMoService = moMoService;
@@ -199,8 +203,7 @@ namespace BanHang.Controllers
         [Authorize]
         public IActionResult Remove(int id)
         {
-            var cart = GetCart();
-            var item = cart.FirstOrDefault(x => x.MaSanPham == id);
+            var cart = GetCart(); var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item != null)
             {
@@ -278,10 +281,10 @@ namespace BanHang.Controllers
                 NgayDat = DateTime.Now,
                 TongTien = cart.Sum(x => x.ThanhTien),
                 TrangThai = (model.PhuongThucThanhToan == "MOMO"
-             || model.PhuongThucThanhToan == "Bank"
-             || model.PhuongThucThanhToan == "VNPAY")
-                                ? "Chờ thanh toán"
-                                : "Chờ xác nhận",
+                             || model.PhuongThucThanhToan == "Bank"
+                             || model.PhuongThucThanhToan == "VNPAY")
+                    ? "Chờ thanh toán"
+                    : "Chờ xác nhận",
                 UserId = userId,
                 PhuongThucThanhToan = model.PhuongThucThanhToan,
                 DaThanhToan = false
@@ -291,9 +294,7 @@ namespace BanHang.Controllers
             await _context.SaveChangesAsync();
 
             donHang.MaChuyenKhoan = $"DH{donHang.MaDonHang}";
-            await _context.SaveChangesAsync();
-
-            foreach (var item in cart)
+            await _context.SaveChangesAsync(); foreach (var item in cart)
             {
                 _context.ChiTietDonHangs.Add(new ChiTietDonHang
                 {
@@ -326,6 +327,18 @@ namespace BanHang.Controllers
                 return Redirect(payUrl);
             }
 
+            if (model.PhuongThucThanhToan == "VNPAY")
+            {
+                var paymentUrl = _vnPayService.CreatePaymentUrl(
+                    HttpContext,
+                    donHang.MaDonHang,
+                    donHang.TongTien,
+                    $"Thanh toan don hang {donHang.MaDonHang}"
+                );
+
+                return Redirect(paymentUrl);
+            }
+
             if (model.PhuongThucThanhToan == "Bank")
             {
                 return RedirectToAction(nameof(BankTransfer), new { id = donHang.MaDonHang });
@@ -351,17 +364,6 @@ namespace BanHang.Controllers
 
                 return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
             }
-            if (model.PhuongThucThanhToan == "VNPAY")
-            {
-                var paymentUrl = _vnPayService.CreatePaymentUrl(
-                    HttpContext,
-                    donHang.MaDonHang,
-                    donHang.TongTien,
-                    $"Thanh toan don hang {donHang.MaDonHang}"
-                );
-
-                return Redirect(paymentUrl);
-            }
 
             TempData["error"] = "Phương thức thanh toán không hợp lệ.";
             return RedirectToAction(nameof(Checkout));
@@ -381,8 +383,7 @@ namespace BanHang.Controllers
 
             var donHang = await _context.DonHangs
                 .Include(x => x.ChiTietDonHangs)
-                .ThenInclude(x => x.SanPham)
-                .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
+                .ThenInclude(x => x.SanPham).FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
 
             if (donHang == null)
             {
@@ -445,6 +446,8 @@ namespace BanHang.Controllers
                 if (donHang.TrangThai != "Đã thanh toán")
                 {
                     donHang.TrangThai = "Đã thanh toán";
+                    donHang.DaThanhToan = true;
+                    donHang.NgayThanhToan = DateTime.Now;
 
                     foreach (var chiTiet in donHang.ChiTietDonHangs)
                     {
@@ -461,7 +464,6 @@ namespace BanHang.Controllers
                     await SendOrderEmail(donHang, cart);
                     HttpContext.Session.Remove(CartKey);
                 }
-
                 return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
             }
 
@@ -517,6 +519,8 @@ namespace BanHang.Controllers
                 if (donHang.TrangThai != "Đã thanh toán")
                 {
                     donHang.TrangThai = "Đã thanh toán";
+                    donHang.DaThanhToan = true;
+                    donHang.NgayThanhToan = DateTime.Now;
 
                     foreach (var chiTiet in donHang.ChiTietDonHangs)
                     {
@@ -547,6 +551,112 @@ namespace BanHang.Controllers
                 resultCode = 0,
                 message = "Confirm Success"
             });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> VnpayReturn()
+        {
+            if (!_vnPayService.ValidateSignature(Request.Query, out var responseData))
+            {
+                TempData["error"] = "Chữ ký không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var orderId = responseData["vnp_TxnRef"];
+            var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
+            var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
+
+            if (!int.TryParse(orderId, out int maDonHang))
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var donHang = await _context.DonHangs.FindAsync(maDonHang);
+            if (donHang == null)
+            {
+                TempData["error"] = "Đơn hàng không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (responseCode == "00" && transactionStatus == "00")
+            {
+                TempData["success"] = "Thanh toán thành công.";
+            }
+            else
+            {
+                TempData["error"] = $"Thanh toán thất bại. Mã lỗi: {responseCode}";
+            }
+
+            return RedirectToAction(nameof(Success), new { id = maDonHang });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VnpayIpn()
+        {
+            if (!_vnPayService.ValidateSignature(Request.Query, out var responseData))
+            {
+                return Json(new { RspCode = "97", Message = "Invalid signature" });
+            }
+
+            var orderId = responseData.GetValueOrDefault("vnp_TxnRef", "");
+            var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
+            var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
+            var amountRaw = responseData.GetValueOrDefault("vnp_Amount", "0");
+
+            if (!int.TryParse(orderId, out int maDonHang))
+            {
+                return Json(new { RspCode = "01", Message = "Order not found" });
+            }
+
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
+
+            if (donHang == null)
+            {
+                return Json(new { RspCode = "01", Message = "Order not found" });
+            }
+
+            if (!long.TryParse(amountRaw, out long vnpAmount))
+            {
+                return Json(new { RspCode = "04", Message = "Invalid amount" });
+            }
+
+            if ((long)(donHang.TongTien * 100) != vnpAmount)
+            {
+                return Json(new { RspCode = "04", Message = "Invalid amount" });
+            }
+
+            if (donHang.DaThanhToan)
+            {
+                return Json(new { RspCode = "02", Message = "Order already confirmed" });
+            }
+            if (responseCode == "00" && transactionStatus == "00")
+            {
+                donHang.DaThanhToan = true;
+                donHang.NgayThanhToan = DateTime.Now;
+                donHang.TrangThai = "Đã thanh toán";
+
+                foreach (var ct in donHang.ChiTietDonHangs)
+                {
+                    var sp = await _context.SanPhams.FindAsync(ct.MaSanPham);
+                    if (sp != null)
+                    {
+                        sp.DaBan += ct.SoLuong;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { RspCode = "00", Message = "Confirm Success" });
+            }
+
+            donHang.TrangThai = "Thanh toán thất bại";
+            await _context.SaveChangesAsync();
+
+            return Json(new { RspCode = "00", Message = "Confirm Success" });
         }
 
         [Authorize]
