@@ -27,7 +27,8 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 
 builder.Services.Configure<MoMoOption>(builder.Configuration.GetSection("MoMo"));
 builder.Services.AddScoped<MoMoService>();
-
+builder.Services.Configure<VNPayOptions>(builder.Configuration.GetSection("VNPay"));
+builder.Services.AddScoped<VNPayService>();
 
 builder.Services.AddHttpClient();
 // 3. Đăng ký Email giả để không lỗi khi đăng ký

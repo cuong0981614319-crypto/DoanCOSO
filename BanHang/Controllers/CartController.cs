@@ -14,11 +14,12 @@ namespace BanHang.Controllers
         private readonly ApplicationDbContext _context;
         private readonly MoMoService _moMoService;
         private const string CartKey = "CART";
-
-        public CartController(ApplicationDbContext context, MoMoService moMoService)
+        private readonly VNPayService _vnPayService;
+        public CartController(ApplicationDbContext context, MoMoService moMoService, VNPayService vnPayService)
         {
             _context = context;
             _moMoService = moMoService;
+            _vnPayService = vnPayService;
         }
 
         private List<CartItem> GetCart()
@@ -276,9 +277,11 @@ namespace BanHang.Controllers
                 DiaChi = model.DiaChi,
                 NgayDat = DateTime.Now,
                 TongTien = cart.Sum(x => x.ThanhTien),
-                TrangThai = (model.PhuongThucThanhToan == "MOMO" || model.PhuongThucThanhToan == "Bank")
-                    ? "Chờ thanh toán"
-                    : "Chờ xác nhận",
+                TrangThai = (model.PhuongThucThanhToan == "MOMO"
+             || model.PhuongThucThanhToan == "Bank"
+             || model.PhuongThucThanhToan == "VNPAY")
+                                ? "Chờ thanh toán"
+                                : "Chờ xác nhận",
                 UserId = userId,
                 PhuongThucThanhToan = model.PhuongThucThanhToan,
                 DaThanhToan = false
@@ -347,6 +350,17 @@ namespace BanHang.Controllers
                 HttpContext.Session.Remove(CartKey);
 
                 return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
+            }
+            if (model.PhuongThucThanhToan == "VNPAY")
+            {
+                var paymentUrl = _vnPayService.CreatePaymentUrl(
+                    HttpContext,
+                    donHang.MaDonHang,
+                    donHang.TongTien,
+                    $"Thanh toan don hang {donHang.MaDonHang}"
+                );
+
+                return Redirect(paymentUrl);
             }
 
             TempData["error"] = "Phương thức thanh toán không hợp lệ.";
