@@ -23,9 +23,9 @@
     <a asp-action="Index" class="btn @(string.IsNullOrEmpty(current) ? "btn-dark" : "btn-outline-dark")">
         Tất cả
     </a>
-        <a asp-action="Index" asp-route-status="Chờ xác nhận"
-               class="btn @(current == "Chờ xác nhận" ? "btn-success" : "btn-outline-success")">
-            Chờ xác nhận
+        <a asp-action="Index" asp-route-status="Đã Thanh Toán"
+           class="btn @(current == "Đã Thanh Toán" ? "btn-success" : "btn-outline-success")">
+            Đã Thanh Toán
         </a>
         <a asp-action="Index" asp-route-status="Chờ thanh toán"
                class="btn @(current == "Chờ thanh toán" ? "btn-success" : "btn-outline-success")">
@@ -79,6 +79,7 @@
                             <th>Địa chỉ</th>
                             <th>Ngày đặt</th>
                             <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
                             <th>Trạng thái</th>
                             <th class="text-center">Thao tác</th>
                         </tr>
@@ -95,6 +96,16 @@
                                     <td>@item.DiaChi</td>
                                     <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td class="text-danger fw-bold">@item.TongTien.ToString("N0") VNĐ</td>
+                                    <td>
+                                        @if (item.DaThanhToan)
+                                        {
+                                            <span class="badge bg-success">Đã thanh toán</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                        }
+                                    </td>
                                     <td>@item.TrangThai</td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">

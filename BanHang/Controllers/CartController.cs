@@ -279,12 +279,12 @@ namespace BanHang.Controllers
                 HoTen = model.HoTen,
                 SoDienThoai = model.SoDienThoai,
                 DiaChi = model.DiaChi,
-                NgayDat = DateTime.Now,
+                NgayDat = DateTime.UtcNow.AddHours(7),
                 TongTien = cart.Sum(x => x.ThanhTien),
                 TrangThai = (model.PhuongThucThanhToan == "MOMO"
                              || model.PhuongThucThanhToan == "Bank"
                              || model.PhuongThucThanhToan == "VNPAY")
-                    ? "Đã thanh toán"
+                    ? "Chờ Thanh Toán"
                     : "Chờ xác nhận",
                 UserId = userId,
                 PhuongThucThanhToan = model.PhuongThucThanhToan,
@@ -451,7 +451,7 @@ namespace BanHang.Controllers
                 {
                     donHang.TrangThai = "Đã thanh toán";
                     donHang.DaThanhToan = true;
-                    donHang.NgayThanhToan = DateTime.Now;
+                    donHang.NgayThanhToan = DateTime.UtcNow.AddHours(7);
 
                     foreach (var chiTiet in donHang.ChiTietDonHangs)
                     {
@@ -525,7 +525,7 @@ namespace BanHang.Controllers
                 {
                     donHang.TrangThai = "Đã thanh toán";
                     donHang.DaThanhToan = true;
-                    donHang.NgayThanhToan = DateTime.Now;
+                    donHang.NgayThanhToan = DateTime.UtcNow.AddHours(7);
 
                     foreach (var chiTiet in donHang.ChiTietDonHangs)
                     {
@@ -593,7 +593,7 @@ namespace BanHang.Controllers
                 if (!donHang.DaThanhToan)
                 {
                     donHang.DaThanhToan = true;
-                    donHang.NgayThanhToan = DateTime.Now;
+                    donHang.NgayThanhToan = DateTime.UtcNow.AddHours(7);
                     donHang.TrangThai = "Đã thanh toán";
 
                     foreach (var ct in donHang.ChiTietDonHangs)
@@ -668,7 +668,7 @@ namespace BanHang.Controllers
             if (responseCode == "00" && transactionStatus == "00")
             {
                 donHang.DaThanhToan = true;
-                donHang.NgayThanhToan = DateTime.Now;
+                donHang.NgayThanhToan = DateTime.UtcNow.AddHours(7);
                 donHang.TrangThai = "Đã thanh toán";
 
                 foreach (var ct in donHang.ChiTietDonHangs)
@@ -721,7 +721,7 @@ namespace BanHang.Controllers
             if (!donHang.DaThanhToan)
             {
                 donHang.DaThanhToan = true;
-                donHang.NgayThanhToan = DateTime.Now;
+                donHang.NgayThanhToan = DateTime.UtcNow.AddHours(7);
                 donHang.TrangThai = "Đã thanh toán";
 
                 foreach (var ct in await _context.ChiTietDonHangs.Where(x => x.MaDonHang == id).ToListAsync())

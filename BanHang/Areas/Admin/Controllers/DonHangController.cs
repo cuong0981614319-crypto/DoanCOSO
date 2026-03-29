@@ -24,7 +24,18 @@ namespace BanHang.Areas.Admin.Controllers
 
             if (!string.IsNullOrEmpty(status))
             {
-                query = query.Where(x => x.TrangThai == status);
+                if (status == "Đã Thanh Toán")
+                {
+                    query = query.Where(x => x.DaThanhToan == true);
+                }
+                else if (status == "Chờ thanh toán")
+                {
+                    query = query.Where(x => x.DaThanhToan == false);
+                }
+                else
+                {
+                    query = query.Where(x => x.TrangThai == status);
+                }
             }
 
             var donHangs = await query
