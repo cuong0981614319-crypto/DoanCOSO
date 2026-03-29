@@ -203,7 +203,8 @@ namespace BanHang.Controllers
         [Authorize]
         public IActionResult Remove(int id)
         {
-            var cart = GetCart(); var item = cart.FirstOrDefault(x => x.MaSanPham == id);
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(x => x.MaSanPham == id);
 
             if (item != null)
             {
@@ -283,7 +284,7 @@ namespace BanHang.Controllers
                 TrangThai = (model.PhuongThucThanhToan == "MOMO"
                              || model.PhuongThucThanhToan == "Bank"
                              || model.PhuongThucThanhToan == "VNPAY")
-                    ? "Chờ thanh toán"
+                    ? "Đã thanh toán"
                     : "Chờ xác nhận",
                 UserId = userId,
                 PhuongThucThanhToan = model.PhuongThucThanhToan,
@@ -294,7 +295,9 @@ namespace BanHang.Controllers
             await _context.SaveChangesAsync();
 
             donHang.MaChuyenKhoan = $"DH{donHang.MaDonHang}";
-            await _context.SaveChangesAsync(); foreach (var item in cart)
+            await _context.SaveChangesAsync();
+
+            foreach (var item in cart)
             {
                 _context.ChiTietDonHangs.Add(new ChiTietDonHang
                 {
@@ -383,7 +386,8 @@ namespace BanHang.Controllers
 
             var donHang = await _context.DonHangs
                 .Include(x => x.ChiTietDonHangs)
-                .ThenInclude(x => x.SanPham).FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
+                .ThenInclude(x => x.SanPham)
+                .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
 
             if (donHang == null)
             {
@@ -391,7 +395,7 @@ namespace BanHang.Controllers
                 return RedirectToAction("MyOrders", "DonHang");
             }
 
-            return View(donHang);
+            return View("~/Views/DonHang/Details.cshtml", donHang);
         }
 
         private Task SendOrderEmail(DonHang donHang, List<CartItem> cart)
@@ -464,6 +468,7 @@ namespace BanHang.Controllers
                     await SendOrderEmail(donHang, cart);
                     HttpContext.Session.Remove(CartKey);
                 }
+
                 return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
             }
 
@@ -560,37 +565,62 @@ namespace BanHang.Controllers
             if (!_vnPayService.ValidateSignature(Request.Query, out var responseData))
             {
                 TempData["error"] = "Chữ ký không hợp lệ.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("MyOrders", "DonHang");
             }
 
-            var txnRef = responseData["vnp_TxnRef"];
-            var orderId = txnRef.Split('_')[0];
+            var orderId = responseData["vnp_TxnRef"];
             var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
             var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
 
             if (!int.TryParse(orderId, out int maDonHang))
             {
                 TempData["error"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("MyOrders", "DonHang");
             }
 
-            var donHang = await _context.DonHangs.FindAsync(maDonHang);
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
+
             if (donHang == null)
             {
                 TempData["error"] = "Đơn hàng không tồn tại.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("MyOrders", "DonHang");
             }
 
             if (responseCode == "00" && transactionStatus == "00")
             {
+                if (!donHang.DaThanhToan)
+                {
+                    donHang.DaThanhToan = true;
+                    donHang.NgayThanhToan = DateTime.Now;
+                    donHang.TrangThai = "Đã thanh toán";
+
+                    foreach (var ct in donHang.ChiTietDonHangs)
+                    {
+                        var sp = await _context.SanPhams.FindAsync(ct.MaSanPham);
+                        if (sp != null)
+                        {
+                            sp.DaBan += ct.SoLuong;
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    var cart = GetCart();
+                    await SendOrderEmail(donHang, cart);
+                    HttpContext.Session.Remove(CartKey);
+                }
+
                 TempData["success"] = "Thanh toán thành công.";
-            }
-            else
-            {
-                TempData["error"] = $"Thanh toán thất bại. Mã lỗi: {responseCode}";
+                return RedirectToAction("MyOrders", "DonHang");
             }
 
-            return RedirectToAction(nameof(Success), new { id = maDonHang });
+            donHang.TrangThai = "Thanh toán thất bại";
+            await _context.SaveChangesAsync();
+
+            TempData["error"] = $"Thanh toán thất bại. Mã lỗi: {responseCode}";
+            return RedirectToAction("MyOrders", "DonHang");
         }
 
         [HttpGet]
@@ -601,8 +631,7 @@ namespace BanHang.Controllers
                 return Json(new { RspCode = "97", Message = "Invalid signature" });
             }
 
-            var txnRef = responseData.GetValueOrDefault("vnp_TxnRef", "");
-            var orderId = txnRef.Split('_')[0];
+            var orderId = responseData.GetValueOrDefault("vnp_TxnRef", "");
             var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
             var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
             var amountRaw = responseData.GetValueOrDefault("vnp_Amount", "0");
@@ -635,6 +664,7 @@ namespace BanHang.Controllers
             {
                 return Json(new { RspCode = "02", Message = "Order already confirmed" });
             }
+
             if (responseCode == "00" && transactionStatus == "00")
             {
                 donHang.DaThanhToan = true;
