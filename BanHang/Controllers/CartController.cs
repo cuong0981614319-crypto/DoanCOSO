@@ -563,7 +563,8 @@ namespace BanHang.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var orderId = responseData["vnp_TxnRef"];
+            var txnRef = responseData["vnp_TxnRef"];
+            var orderId = txnRef.Split('_')[0];
             var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
             var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
 
@@ -600,7 +601,8 @@ namespace BanHang.Controllers
                 return Json(new { RspCode = "97", Message = "Invalid signature" });
             }
 
-            var orderId = responseData.GetValueOrDefault("vnp_TxnRef", "");
+            var txnRef = responseData.GetValueOrDefault("vnp_TxnRef", "");
+            var orderId = txnRef.Split('_')[0];
             var responseCode = responseData.GetValueOrDefault("vnp_ResponseCode", "");
             var transactionStatus = responseData.GetValueOrDefault("vnp_TransactionStatus", "");
             var amountRaw = responseData.GetValueOrDefault("vnp_Amount", "0");

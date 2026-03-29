@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -20,11 +21,18 @@ namespace BanHang.Services
         {
             var vnPayData = new SortedList<string, string>(new VnPayCompare());
 
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "SE Asia Standard Time"
+                    : "Asia/Ho_Chi_Minh");
+
+            var vnNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+
             vnPayData.Add("vnp_Version", "2.1.0");
             vnPayData.Add("vnp_Command", "pay");
             vnPayData.Add("vnp_TmnCode", _options.TmnCode);
             vnPayData.Add("vnp_Amount", ((long)(amount * 100)).ToString());
-            vnPayData.Add("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+            vnPayData.Add("vnp_CreateDate", vnNow.ToString("yyyyMMddHHmmss"));
             vnPayData.Add("vnp_CurrCode", "VND");
             vnPayData.Add("vnp_IpAddr", GetIpAddress(context));
             vnPayData.Add("vnp_Locale", "vn");
@@ -32,7 +40,7 @@ namespace BanHang.Services
             vnPayData.Add("vnp_OrderType", "other");
             vnPayData.Add("vnp_ReturnUrl", _options.ReturnUrl);
             vnPayData.Add("vnp_TxnRef", orderId.ToString());
-            vnPayData.Add("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+            vnPayData.Add("vnp_ExpireDate", vnNow.AddMinutes(15).ToString("yyyyMMddHHmmss"));
 
             var queryBuilder = new StringBuilder();
             var hashBuilder = new StringBuilder();
@@ -69,7 +77,8 @@ namespace BanHang.Services
             {
                 if (!string.IsNullOrEmpty(key) &&
                     key.StartsWith("vnp_") &&
-                    key != "vnp_SecureHash" && key != "vnp_SecureHashType")
+                    key != "vnp_SecureHash" &&
+                    key != "vnp_SecureHashType")
                 {
                     responseData.Add(key, query[key].ToString());
                 }
@@ -103,6 +112,7 @@ namespace BanHang.Services
 
             using var hmac = new HMACSHA512(keyBytes);
             var hashBytes = hmac.ComputeHash(inputBytes);
+
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
 
