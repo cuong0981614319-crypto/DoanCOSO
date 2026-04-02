@@ -1,6 +1,7 @@
-using CloudinaryDotNet;
 using BanHang.Models;
 using BanHang.Services;
+using BanHang.Services.Interfaces;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,11 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // 4. Bật MVC + Razor Pages
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddRazorPages();
 
 builder.Services.ConfigureApplicationCookie(options =>
