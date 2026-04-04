@@ -24,33 +24,39 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
-//momo
 
-builder.Services.Configure<MoMoOption>(builder.Configuration.GetSection("MoMo"));
+// 3. Cấu hình MoMo + VNPay
+builder.Services.Configure<MoMoOption>(
+    builder.Configuration.GetSection("MoMo"));
 builder.Services.AddScoped<MoMoService>();
-builder.Services.Configure<VNPayOptions>(builder.Configuration.GetSection("VNPay"));
+
+builder.Services.Configure<VNPayOptions>(
+    builder.Configuration.GetSection("VNPay"));
 builder.Services.AddScoped<VNPayService>();
 
 builder.Services.AddHttpClient();
-// 3. Đăng ký Email giả để không lỗi khi đăng ký
+
+// 4. Email sender giả
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-// 4. Bật MVC + Razor Pages
+// 5. MVC + Razor Pages + Services
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
-builder.Services.AddRazorPages();
 
+// 6. Cookie đăng nhập
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
-// 5. Bật Session để làm giỏ hàng
+// 7. Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -58,6 +64,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// 8. Cloudinary
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
@@ -75,9 +83,10 @@ builder.Services.AddSingleton(serviceProvider =>
 
     return new Cloudinary(account);
 });
+
 var app = builder.Build();
 
-// 6. Middleware
+// 9. Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -89,11 +98,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseSession();
 
-// Tự động chạy migration trước khi tạo role/user
+// 10. Tự động migrate + tạo role/user admin
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -142,12 +151,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 8. Route cho Area Admin
+// 11. Route cho Area Admin
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// 9. Route mặc định
+// 12. Route mặc định
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
