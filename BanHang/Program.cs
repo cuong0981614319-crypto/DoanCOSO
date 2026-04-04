@@ -31,6 +31,9 @@ builder.Services.AddAuthentication()
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+        // 🔥 FIX QUAN TRỌNG
+        options.CallbackPath = "/signin-google";
     });
 // 3. Cấu hình MoMo + VNPay
 builder.Services.Configure<MoMoOption>(
