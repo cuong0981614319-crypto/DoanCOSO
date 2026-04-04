@@ -89,7 +89,15 @@ namespace BanHang.Controllers
                 success = true,
                 message = "Đã thêm vào giỏ hàng!",
                 cartCount = cart.Sum(x => x.SoLuong),
-                cartTotal = cart.Sum(x => x.ThanhTien)
+                cartTotal = cart.Sum(x => x.ThanhTien),
+
+                items = cart.Select(x => new
+                {
+                    hinhAnh = x.HinhAnh,
+                    tenSanPham = x.TenSanPham,
+                    soLuong = x.SoLuong,
+                    thanhTien = x.ThanhTien
+                })
             });
         }
 
