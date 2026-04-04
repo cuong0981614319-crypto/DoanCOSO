@@ -12,17 +12,20 @@ namespace BanHang.Controllers
         private readonly IOrderService _orderService;
         private readonly MoMoService _moMoService;
         private readonly VNPayService _vnPayService;
+        private readonly ApplicationDbContext _context;
 
         public CartController(
             ICartService cartService,
             IOrderService orderService,
             MoMoService moMoService,
-            VNPayService vnPayService)
+            VNPayService vnPayService,
+            ApplicationDbContext context)
         {
             _cartService = cartService;
             _orderService = orderService;
             _moMoService = moMoService;
             _vnPayService = vnPayService;
+            _context = context;
         }
 
         [Authorize]
@@ -37,7 +40,8 @@ namespace BanHang.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart(int id, int quantity = 1, string? returnUrl = null)
         {
-            if (quantity <= 0) quantity = 1;
+            if (quantity <= 0)
+                quantity = 1;
 
             var success = await _cartService.AddToCart(HttpContext.Session, id, quantity);
 
@@ -64,7 +68,8 @@ namespace BanHang.Controllers
                 });
             }
 
-            if (quantity <= 0) quantity = 1;
+            if (quantity <= 0)
+                quantity = 1;
 
             var success = await _cartService.AddToCart(HttpContext.Session, id, quantity);
 
@@ -151,10 +156,8 @@ namespace BanHang.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var donHang = await _orderService.CreateOrder(userId, model, cart);
 
-            // 👉 Thanh toán
             if (model.PhuongThucThanhToan == "MOMO")
             {
                 var payUrl = await _moMoService.CreatePaymentAsync(
@@ -168,14 +171,14 @@ namespace BanHang.Controllers
 
             if (model.PhuongThucThanhToan == "VNPAY")
             {
-                var url = _vnPayService.CreatePaymentUrl(
+                var paymentUrl = _vnPayService.CreatePaymentUrl(
                     HttpContext,
                     donHang.MaDonHang,
                     donHang.TongTien,
                     $"Thanh toán đơn hàng {donHang.MaDonHang}"
                 );
 
-                return Redirect(url);
+                return Redirect(paymentUrl);
             }
 
             if (model.PhuongThucThanhToan == "COD")
@@ -184,6 +187,7 @@ namespace BanHang.Controllers
                 return RedirectToAction(nameof(Success), new { id = donHang.MaDonHang });
             }
 
+            TempData["error"] = "Phương thức thanh toán không hợp lệ.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -192,6 +196,54 @@ namespace BanHang.Controllers
         {
             ViewBag.MaDonHang = id;
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VnpayReturn()
+        {
+            var isValid = _vnPayService.ValidateSignature(Request.Query, out var responseData);
+
+            if (!isValid)
+            {
+                TempData["error"] = "Dữ liệu trả về không hợp lệ hoặc chữ ký không đúng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var responseCode = Request.Query["vnp_ResponseCode"].ToString();
+            var txnRef = Request.Query["vnp_TxnRef"].ToString();
+            var transactionStatus = Request.Query["vnp_TransactionStatus"].ToString();
+
+            if (!int.TryParse(txnRef, out int orderId))
+            {
+                TempData["error"] = "Không tìm thấy mã đơn hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var donHang = await _context.DonHangs.FindAsync(orderId);
+
+            if (donHang == null)
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+            if (responseCode == "00" && transactionStatus == "00")
+            {
+                donHang.DaThanhToan = true;
+                donHang.NgayThanhToan = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                _cartService.Clear(HttpContext.Session);
+
+                TempData["success"] = "Thanh toán VNPAY thành công.";
+                return RedirectToAction(nameof(Success), new { id = orderId });
+            }
+
+            donHang.DaThanhToan = false;
+            await _context.SaveChangesAsync();
+
+            TempData["error"] = $"Thanh toán thất bại. Mã phản hồi: {responseCode}";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

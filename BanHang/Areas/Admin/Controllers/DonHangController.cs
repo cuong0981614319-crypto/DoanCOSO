@@ -76,19 +76,30 @@ namespace BanHang.Areas.Admin.Controllers
         public async Task<IActionResult> UpdateStatus(int maDonHang, string trangThai)
         {
             var donHang = await _context.DonHangs.FindAsync(maDonHang);
+
             if (donHang == null)
             {
                 TempData["error"] = "Không tìm thấy đơn hàng.";
                 return RedirectToAction(nameof(Index));
             }
 
-            donHang.TrangThai = trangThai;
+            // ✅ Nếu chọn Hoàn thành → tự động thanh toán
+            if (trangThai == "Hoàn thành")
+            {
+                donHang.TrangThai = "Hoàn thành";
+                donHang.DaThanhToan = true;
+                donHang.NgayThanhToan = DateTime.Now;
+            }
+            else
+            {
+                donHang.TrangThai = trangThai;
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["success"] = "Cập nhật trạng thái đơn hàng thành công!";
             return RedirectToAction(nameof(Details), new { id = maDonHang });
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -114,6 +125,44 @@ namespace BanHang.Areas.Admin.Controllers
             TempData["success"] = "Xóa đơn hàng thành công!";
             return RedirectToAction(nameof(Index));
         }
-        
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ThongKe()
+        {
+            var today = DateTime.Today;
+            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+
+            var donHoanThanh = _context.DonHangs
+                .Where(x => x.DaThanhToan );
+
+            var model = new ThongKeDoanhThuViewModel
+            {
+                DoanhThuHomNay = await donHoanThanh
+                    .Where(x => x.NgayDat.Date == today)
+                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
+
+                DoanhThuThangNay = await donHoanThanh
+                    .Where(x => x.NgayDat >= firstDayOfMonth)
+                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
+
+                TongDoanhThu = await donHoanThanh
+                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
+
+                SoDonDaThanhToan = await donHoanThanh.CountAsync(),
+
+
+                DoanhThuTheoNgay = await donHoanThanh
+                    .GroupBy(x => x.NgayDat.Date)
+                    .Select(g => new DoanhThuTheoNgayItem
+                    {
+                        Ngay = g.Key,
+                        DoanhThu = g.Sum(x => x.TongTien)
+                    })
+                    .OrderBy(x => x.Ngay)
+                    .ToListAsync()
+            };
+
+            return View(model);
+        }
     }
 }

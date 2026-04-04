@@ -1,0 +1,67 @@
+﻿@model BanHang.Models.ThongKeDoanhThuViewModel
+
+@{
+    ViewData["Title"] = "Thống kê doanh thu";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Thống kê doanh thu</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Doanh thu hôm nay</h6>
+                    <h4 class="text-success">@Model.DoanhThuHomNay.ToString("N0") VNĐ</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Doanh thu tháng này</h6>
+                    <h4 class="text-primary">@Model.DoanhThuThangNay.ToString("N0") VNĐ</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Tổng doanh thu</h6>
+                    <h4 class="text-danger">@Model.TongDoanhThu.ToString("N0") VNĐ</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Số đơn đã thanh toán</h6>
+                    <h4>@Model.SoDonDaThanhToan</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mb-3">Doanh thu theo ngày</h4>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Ngày</th>
+                <th>Doanh thu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.DoanhThuTheoNgay)
+            {
+                <tr>
+                    <td>@item.Ngay.ToString("dd/MM/yyyy")</td>
+                    <td>@item.DoanhThu.ToString("N0") VNĐ</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
