@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>6490c398-06fe-4f19-9773-8cf05c91d85c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.25" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.25" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.25" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.25" />

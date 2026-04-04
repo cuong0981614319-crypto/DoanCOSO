@@ -5,7 +5,7 @@ using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Authentication.Google;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Cấu hình Database
@@ -25,6 +25,13 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// 🔥 3. Google Login (PHẢI đặt sau Identity)
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
 // 3. Cấu hình MoMo + VNPay
 builder.Services.Configure<MoMoOption>(
     builder.Configuration.GetSection("MoMo"));

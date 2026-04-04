@@ -11,7 +11,9 @@
         <div class="col-md-5 pe-md-5">
             <div class="register-intro">
                 <h1 class="fw-bold display-5 mb-3">@ViewData["Title"]</h1>
-                <p class="text-muted fs-5">Đăng ký tài khoản chỉ trong 1 phút để tích lũy điểm và nhận ưu đãi từ Hưng Hạnh.</p>
+                <p class="text-muted fs-5">
+                    Đăng ký tài khoản chỉ trong 1 phút để tích lũy điểm và nhận ưu đãi từ Hưng Hạnh.
+                </p>
                 <div class="title-underline"></div>
             </div>
         </div>
@@ -19,41 +21,7 @@
         <div class="col-md-7 ps-md-5 border-start">
             <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="register-form">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
-                @*
-                <div class="mb-4 d-flex gap-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="regType" id="regEmail" checked>
-                        <label class="form-check-label fw-bold" for="regEmail">Đăng ký bằng email</label>
-                    </div>
-                    <div class="form-check text-muted">
-                        <input class="form-check-input" type="radio" name="regType" id="regPhone">
-                        <label class="form-check-label" for="regPhone">Đăng ký bằng số điện thoại</label>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col">
-                        <input class="form-control custom-reg-input" placeholder="Họ" />
-                    </div>
-                </div>
 
-                <div class="row mb-3">
-                    <div class="col">
-                        <input class="form-control custom-reg-input" placeholder="Tên" />
-                    </div>
-                </div>
-
-                <div class="mb-3 d-flex gap-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="female">
-                        <label class="form-check-label" for="female">Nữ</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="male">
-                        <label class="form-check-label" for="male">Nam</label>
-                    </div>
-                </div>
-                *@
                 <div class="mb-3">
                     <input asp-for="Input.Email" class="form-control custom-reg-input" placeholder="Email" />
                     <span asp-validation-for="Input.Email" class="text-danger small"></span>
@@ -70,20 +38,31 @@
                 </div>
 
                 <p class="recaptcha-text mb-4">
-                    Website được bảo vệ bởi reCAPTCHA và <a href="#">Chính sách bảo mật</a> và <a href="#">Điều khoản dịch vụ</a> của Google.
+                    Website được bảo vệ bởi reCAPTCHA và
+                    <a href="#">Chính sách bảo mật</a> và
+                    <a href="#">Điều khoản dịch vụ</a> của Google.
                 </p>
 
-                <button id="registerSubmit" type="submit" class="btn btn-dark btn-register mb-4">ĐĂNG KÝ</button>
-
-                <div class="social-login-area mt-2">
-                    <a href="https://localhost:7156/" class="text-dark small text-decoration-none d-block mb-3">← Quay lại trang chủ</a>
-                 @*  <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-danger flex-grow-1 py-2" style="background-color: #df4a32;">Đăng nhập Google</button>
-                        <button type="button" class="btn btn-primary flex-grow-1 py-2" style="background-color: #3b5998;">Đăng nhập Facebook</button>
-                    </div>
-                 *@
-                </div>
+                <button id="registerSubmit" type="submit" class="btn btn-dark btn-register w-100 mb-3">
+                    ĐĂNG KÝ
+                </button>
             </form>
+
+            <div class="social-login-area mt-3">
+                <div class="text-center text-muted mb-3">hoặc</div>
+
+                <form asp-page-handler="ExternalLogin"
+                      asp-route-returnUrl="@Model.ReturnUrl"
+                      method="post">
+                    <button type="submit" name="provider" value="Google" class="btn btn-danger w-100 mb-3">
+                        Đăng ký với Google
+                    </button>
+                </form>
+
+                <a asp-controller="Home" asp-action="Index" class="text-dark small text-decoration-none d-block">
+                    ← Quay lại trang chủ
+                </a>
+            </div>
         </div>
     </div>
 </div>
