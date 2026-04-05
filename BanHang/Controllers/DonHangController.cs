@@ -25,6 +25,9 @@ namespace BanHang.Controllers
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
 
+            // Nếu muốn chắc chắn giờ hiển thị là giờ VN (cộng 7 nếu DB là UTC)
+            // donHangs.ForEach(x => x.NgayDat = x.NgayDat.AddHours(7)); 
+
             return View(donHangs);
         }
 
