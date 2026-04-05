@@ -25,26 +25,30 @@ namespace BanHang.Controllers
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
 
-            // Nếu muốn chắc chắn giờ hiển thị là giờ VN (cộng 7 nếu DB là UTC)
-            // donHangs.ForEach(x => x.NgayDat = x.NgayDat.AddHours(7)); 
-
+           
+          
             return View(donHangs);
         }
 
         public async Task<IActionResult> Details(int id)
         {
+            // 1. Lấy ID người dùng hiện tại đang đăng nhập
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // 2. Truy vấn đơn hàng và nạp các bảng liên quan (Eager Loading)
             var donHang = await _context.DonHangs
-                .Include(x => x.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.SanPham)
+                .Include(x => x.ChiTietDonHangs)        // Nạp chi tiết đơn hàng
+                    .ThenInclude(ct => ct.SanPham)     // Nạp thông tin sản phẩm trong chi tiết
+                .Include(x => x.LichSuDonHangs)        // <--- QUAN TRỌNG: Nạp lịch sử trạng thái ở đây
                 .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
 
+            // 3. Kiểm tra nếu đơn hàng không tồn tại hoặc không thuộc về user này
             if (donHang == null)
             {
                 return NotFound();
             }
 
+            // 4. Trả về View cùng với dữ liệu đã nạp đủ
             return View(donHang);
         }
         [Authorize]

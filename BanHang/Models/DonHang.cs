@@ -28,5 +28,8 @@ namespace BanHang.Models
         public DateTime? NgayThanhToan { get; set; }
 
         public virtual ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
+
+        // SỬA DÒNG NÀY:
+        public virtual ICollection<LichSuDonHang> LichSuDonHangs { get; set; } = new List<LichSuDonHang>();
     }
 }

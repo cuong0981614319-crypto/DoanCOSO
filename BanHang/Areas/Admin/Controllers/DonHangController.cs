@@ -51,7 +51,8 @@ namespace BanHang.Areas.Admin.Controllers
         {
             var donHang = await _context.DonHangs
                 .Include(x => x.ChiTietDonHangs)
-                .ThenInclude(ct => ct.SanPham)
+                .ThenInclude(ct => ct.SanPham).Include(x => x.LichSuDonHangs)
+
                 .FirstOrDefaultAsync(x => x.MaDonHang == id);
 
             if (donHang == null)
@@ -70,35 +71,56 @@ namespace BanHang.Areas.Admin.Controllers
 
             return View(donHang);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int maDonHang, string trangThai)
         {
-            var donHang = await _context.DonHangs.FindAsync(maDonHang);
+            // 1. Phải Include ChiTietDonHangs để biết khách mua món gì
+            var donHang = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)
+                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
 
             if (donHang == null)
             {
-                TempData["error"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
 
-            // ✅ Nếu chọn Hoàn thành → tự động thanh toán
-            if (trangThai == "Hoàn thành")
+            // Kiểm tra nếu trạng thái chuyển sang "Hoàn thành" và trước đó đơn chưa hoàn thành
+            if (trangThai == "Hoàn thành" && donHang.TrangThai != "Hoàn thành")
             {
-                donHang.TrangThai = "Hoàn thành";
                 donHang.DaThanhToan = true;
                 donHang.NgayThanhToan = DateTime.Now;
+
+                // 2. Duyệt qua từng sản phẩm trong đơn hàng để cập nhật số lượng "Đã bán"
+                foreach (var item in donHang.ChiTietDonHangs)
+                {
+                    var sanPham = await _context.SanPhams.FindAsync(item.MaSanPham);
+                    if (sanPham != null)
+                    {
+                        sanPham.DaBan += item.SoLuong; // Cộng dồn số lượng khách mua
+                        _context.SanPhams.Update(sanPham);
+                    }
+                }
             }
-            else
+
+            // 3. Cập nhật trạng thái mới cho đơn hàng
+            donHang.TrangThai = trangThai;
+
+            // 4. Lưu lịch sử thay đổi trạng thái
+            var lichSu = new LichSuDonHang
             {
-                donHang.TrangThai = trangThai;
-            }
+                DonHang = donHang,
+                TrangThaiMoi = trangThai,
+                NgayTao = DateTime.Now,
+                GhiChu = "Admin cập nhật trạng thái"
+            };
+
+            _context.lichSuDonHangs.Add(lichSu); // Nhớ kiểm tra tên bảng 'lichSuDonHangs' hay 'LichSuDonHangs' cho đúng nhé
 
             await _context.SaveChangesAsync();
 
-            TempData["success"] = "Cập nhật trạng thái đơn hàng thành công!";
-            return RedirectToAction(nameof(Details), new { id = maDonHang });
+            TempData["success"] = "Cập nhật trạng thái thành công!";
+            return RedirectToAction("Details", new { id = maDonHang });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -164,5 +186,6 @@ namespace BanHang.Areas.Admin.Controllers
 
             return View(model);
         }
+
     }
 }

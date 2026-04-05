@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<NguoiDung> NguoiDungs { get; set; }
     public DbSet<KhuVucHienThi> KhuVucHienThis { get; set; }
     public DbSet<HinhAnhSanPham> HinhAnhSanPhams { get; set; }
+    public DbSet<LichSuDonHang> lichSuDonHangs { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
