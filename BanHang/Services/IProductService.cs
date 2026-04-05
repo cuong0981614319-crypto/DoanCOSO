@@ -10,5 +10,7 @@ public interface IProductService
         int page,
         int pageSize);
 
-    Task<SanPham?> GetDetails(int id);
+    Task<SanPham?> GetDetails(int id); // ✔ giữ lại 1 cái thôi
+
+    Task<List<SanPham>> GetRelatedProducts(int productId, int? maDanhMuc);
 }

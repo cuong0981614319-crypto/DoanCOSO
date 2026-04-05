@@ -25,15 +25,24 @@ public class ProductController : Controller
 
         return View(products);
     }
+
     [HttpGet]
     public async Task<IActionResult> Details(int id, int quantity = 1)
     {
+        // 🔥 sửa lại đúng tên hàm
         var sanPham = await _service.GetDetails(id);
 
         if (sanPham == null)
+        {
             return NotFound();
+        }
 
+        // 🔥 sản phẩm cùng loại
+        var sanPhamCungLoai = await _service.GetRelatedProducts(id, sanPham.MaDanhMuc);
+
+        ViewBag.SanPhamCungLoai = sanPhamCungLoai;
         ViewBag.Quantity = quantity;
+
         return View(sanPham);
     }
 }

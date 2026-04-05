@@ -62,8 +62,25 @@ public class ProductService : IProductService
         return (data, totalItems);
     }
 
+    // 🔥 FIX: load đầy đủ dữ liệu cho trang Details
     public async Task<SanPham?> GetDetails(int id)
     {
-        return await _repo.GetById(id);
+        return await _repo.GetQuery()
+            .Include(p => p.DanhMuc)
+            .Include(p => p.HinhAnhSanPhams)
+            .FirstOrDefaultAsync(p => p.MaSanPham == id);
+    }
+
+    // 🔥 THÊM: sản phẩm cùng loại (cùng danh mục)
+    public async Task<List<SanPham>> GetRelatedProducts(int productId, int? maDanhMuc)
+    {
+        if (maDanhMuc == null)
+            return new List<SanPham>();
+
+        return await _repo.GetQuery()
+            .Where(p => p.MaDanhMuc == maDanhMuc && p.MaSanPham != productId)
+            .OrderByDescending(p => p.DaBan) // ưu tiên bán chạy
+            .Take(10)
+            .ToListAsync();
     }
 }
