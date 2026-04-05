@@ -51,7 +51,8 @@ namespace BanHang.Areas.Admin.Controllers
         {
             var donHang = await _context.DonHangs
                 .Include(x => x.ChiTietDonHangs)
-                .ThenInclude(ct => ct.SanPham).Include(x => x.LichSuDonHangs)
+                .ThenInclude(ct => ct.SanPham)
+                .Include(x => x.LichSuDonHangs)// them cai nay
 
                 .FirstOrDefaultAsync(x => x.MaDonHang == id);
 

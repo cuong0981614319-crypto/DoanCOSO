@@ -25,8 +25,8 @@ namespace BanHang.Controllers
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
 
-           
-          
+
+            donHangs.ForEach(x => x.NgayDat = x.NgayDat.AddHours(7));
             return View(donHangs);
         }
 

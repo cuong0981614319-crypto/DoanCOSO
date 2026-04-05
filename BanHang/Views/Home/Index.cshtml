@@ -50,17 +50,17 @@
 
 <div class="container mt-5">
 
-    @* --- BƯỚC 1: XỬ LÝ LOGIC LẤY SẢN PHẨM BÁN CHẠY TOÀN CỤC --- *@
+   
     @{
         var allProducts = Model.SelectMany(kv => kv.SanPhams ?? new List<BanHang.Models.SanPham>());
         var bestSellers = allProducts
         .Where(sp => sp.DaBan > 0)
         .OrderByDescending(sp => sp.DaBan)
-        .Take(10) // Lấy top 10 sản phẩm
+        .Take(10) 
         .ToList();
         var bestSellerSliderId = "slider-best-sellers";
     }
-
+    
  
     @if (bestSellers.Any())
     {
