@@ -9,10 +9,9 @@
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center text-dark" href="#" id="userMenu" data-bs-toggle="dropdown">
                 <i class="bi bi-person fs-4 me-2"></i>
-
                 <div class="user-info">
-                    <span class="d-block small text-muted" style="font-size: 18px;">Chào, @UserManager.GetUserName(User)</span>
-                    <span class="fw-bold" style="font-size: 18px;">Tài khoản của tôi</span>
+                    <span class="d-block small text-muted" style="font-size: 14px;">Chào, @UserManager.GetUserName(User)</span>
+                    <span class="fw-bold" style="font-size: 16px;">Tài khoản của tôi</span>
                 </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
@@ -28,45 +27,63 @@
     }
     else
     {
-        @* GIAO DIỆN ĐĂNG NHẬP NHƯ HÌNH MOHO *@
         <li class="nav-item dropdown">
-            <a class="nav-link d-flex align-items-center text-dark" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link d-flex align-items-center text-dark" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                 <div class="me-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
                         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
                     </svg>
                 </div>
                 <div class="user-info">
-                    <span class="d-block text-muted" style="font-size: 17px;">Đăng nhập / Đăng ký</span>
-                    <span class="fw-bold" style="font-size: 18px;">Tài khoản của tôi <i class="bi bi-chevron-down small"></i></span>
+                    <span class="d-block text-muted" style="font-size: 13px;">Đăng nhập / Đăng ký</span>
+                    <span class="fw-bold" style="font-size: 15px;">Tài khoản của tôi <i class="bi bi-chevron-down small"></i></span>
                 </div>
             </a>
 
-            @* Bảng điền thông tin hiện ra khi click *@
-            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-4" style="min-width: 320px; border-radius: 0;">
+            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-4" style="min-width: 350px; border-radius: 0;">
                 <div class="text-center mb-3">
                     <h6 class="fw-bold mb-1">ĐĂNG NHẬP TÀI KHOẢN</h6>
                     <p class="text-muted" style="font-size: 13px;">Nhập email và mật khẩu của bạn:</p>
                 </div>
 
+                @* Thêm Model cho Form (thông thường là LoginModel) *@
                 <form asp-area="Identity" asp-page="/Account/Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
                     <div class="mb-2">
-                        <input name="Input.Email" class="form-control custom-login-input" placeholder="Nhập email hoặc số điện thoại" required />
-                    </div>
-                    <div class="mb-2">
-                        <input name="Input.Password" type="password" class="form-control custom-login-input" placeholder="Mật khẩu" required />
+                        <input name="Input.Email" class="form-control custom-login-input" placeholder="Email hoặc số điện thoại" required />
+                        <span class="text-danger small" data-valmsg-for="Input.Email"></span>
                     </div>
 
-                    <div class="recaptcha-text mb-3">
+                    <div class="mb-2">
+                        <input name="Input.Password" type="password" class="form-control custom-login-input" placeholder="Mật khẩu" required />
+                        <span class="text-danger small" data-valmsg-for="Input.Password"></span>
+                    </div>
+
+                    <div class="recaptcha-text mb-3" style="font-size: 11px; line-height: 1.4;">
                         Website được bảo vệ bởi reCAPTCHA và <a href="#" class="text-primary text-decoration-none">Chính sách bảo mật</a> và <a href="#" class="text-primary text-decoration-none">Điều khoản dịch vụ</a> của Google.
                     </div>
 
                     <button type="submit" class="btn btn-dark w-100 fw-bold py-2 mb-3" style="border-radius: 0; background-color: #333;">
                         ĐĂNG NHẬP
                     </button>
+               
+                 
                 </form>
 
-                <div class="text-center small">
+                <form asp-area="Identity" asp-page="/Account/Login" asp-page-handler="ExternalLogin"
+                      asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)" method="post">
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="provider" value="Google" class="btn-social btn-google w-100">
+                            <i class="fab fa-google"></i> Google
+                        </button>
+                        <button type="submit" name="provider" value="Facebook" class="btn-social btn-facebook w-100">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center small border-top pt-3">
                     <p class="mb-1">Khách hàng mới? <a asp-area="Identity" asp-page="/Account/Register" class="text-primary fw-bold text-decoration-none">Tạo tài khoản</a></p>
                     <p class="mb-0">Quên mật khẩu? <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="text-primary text-decoration-none">Khôi phục mật khẩu</a></p>
                 </div>

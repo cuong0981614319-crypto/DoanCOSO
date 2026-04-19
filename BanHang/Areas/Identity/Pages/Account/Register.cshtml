@@ -49,17 +49,23 @@
             </form>
 
             <div class="social-login-area mt-3">
-                <div class="text-center text-muted mb-3">hoặc</div>
 
-                <form asp-page-handler="ExternalLogin"
-                      asp-route-returnUrl="@Model.ReturnUrl"
-                      method="post">
-                    <button type="submit" name="provider" value="Google" class="btn btn-danger w-100 mb-3">
-                        Đăng ký với Google
-                    </button>
+                <div class="divider">
+                    <span>HOẶC ĐĂNG KÝ VỚI</span>
+                </div>
+
+                <form asp-page-handler="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div class="d-flex gap-2 mb-4">
+                        <button type="submit" name="provider" value="Google" class="btn-social btn-google w-100">
+                            <i class="fab fa-google"></i> Google
+                        </button>
+                        <button type="submit" name="provider" value="Facebook" class="btn-social btn-facebook w-100">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </button>
+                    </div>
                 </form>
 
-                <a asp-controller="Home" asp-action="Index" class="text-dark small text-decoration-none d-block">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="text-dark small text-decoration-none d-block">
                     ← Quay lại trang chủ
                 </a>
             </div>

@@ -246,3 +246,116 @@
     line-height: 1.4;
     margin: 15px 0;
 }
+
+/* Container chính */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 0;
+    background-color: #f8f9fa;
+}
+
+.login-box {
+    background: #fff;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border-radius: 8px; /* Bo góc nhẹ cho hiện đại */
+}
+
+/* Input custom */
+.custom-input {
+    border-radius: 0;
+    border: 1px solid #ddd;
+    padding: 12px;
+    transition: all 0.3s;
+}
+
+    .custom-input:focus {
+        border-color: #333;
+        box-shadow: none;
+    }
+
+/* Nút đăng nhập đen */
+.btn-submit-dark {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: 0.3s;
+}
+
+    .btn-submit-dark:hover {
+        background: #000;
+    }
+
+/* Đường kẻ phân cách */
+.divider {
+    text-align: center;
+    position: relative;
+    margin: 20px 0;
+}
+
+    .divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #eee;
+        z-index: 1;
+    }
+
+    .divider span {
+        background: #fff;
+        padding: 0 15px;
+        position: relative;
+        z-index: 2;
+        color: #999;
+        font-size: 12px;
+    }
+
+/* Nút Social */
+.btn-social {
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+    .btn-social i {
+        margin-right: 8px;
+    }
+
+.btn-google:hover {
+    background: #ea4335;
+    color: white;
+    border-color: #ea4335;
+}
+
+.btn-facebook:hover {
+    background: #1877f2;
+    color: white;
+    border-color: #1877f2;
+}
+
+/* Footer */
+.recaptcha-notice {
+    font-size: 11px;
+    color: #bbb;
+    line-height: 1.5;
+}
+
+    .recaptcha-notice a {
+        color: #999;
+    }

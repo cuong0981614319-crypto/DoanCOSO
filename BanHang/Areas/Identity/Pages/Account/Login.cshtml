@@ -1,45 +1,68 @@
 ﻿@page
 @model LoginModel
 @{
-    ViewData["Title"] = "Đăng nhập tài khoản";
+    ViewData["Title"] = "ĐĂNG NHẬP";
 }
 
 <link rel="stylesheet" href="~/css/login_logout.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <div class="login-wrapper">
     <div class="login-box">
         <div class="login-header text-center">
             <h2 class="fw-bold">@ViewData["Title"]</h2>
-            <p class="text-muted">Nhập email và mật khẩu của bạn:</p>
+            <p class="text-muted">Chào mừng bạn quay trở lại!</p>
         </div>
 
+        @* Form Đăng nhập chính *@
         <form id="account" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2 small" role="alert"></div>
 
-            @* Khung điền Email *@
             <div class="mb-3">
-                <input asp-for="Input.Email" class="form-control custom-input" placeholder="Nhập email hoặc số điện thoại" />
+                <input asp-for="Input.Email" class="form-control custom-input" placeholder="Email hoặc số điện thoại" />
                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
             </div>
 
-            @* Khung điền Mật khẩu *@
             <div class="mb-3">
                 <input asp-for="Input.Password" class="form-control custom-input" type="password" placeholder="Mật khẩu" />
                 <span asp-validation-for="Input.Password" class="text-danger small"></span>
             </div>
 
-            <p class="recaptcha-notice">
-                Website được bảo vệ bởi reCAPTCHA và
-                <a href="#">Chính sách bảo mật</a> và
-                <a href="#">Điều khoản dịch vụ</a> của Google.
-            </p>
-
-            <button id="login-submit" type="submit" class="btn-submit-dark">ĐĂNG NHẬP</button>
-
-            <div class="login-footer mt-4">
-                <p>Khách hàng mới? <a asp-page="./Register">Tạo tài khoản</a></p>
-                <p>Quên mật khẩu? <a id="forgot-password" asp-page="./ForgotPassword">Khôi phục mật khẩu</a></p>
-            </div>
+            <button id="login-submit" type="submit" class="btn-submit-dark w-100 mb-3">ĐĂNG NHẬP</button>
         </form>
+
+        @* Đường kẻ phân cách *@
+        <div class="divider">
+            <span>HOẶC</span>
+        </div>
+
+        <form asp-page-handler="ExternalLogin"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              method="post">
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="provider" value="Google" class="btn-social btn-google w-100">
+                            <i class="fab fa-google"></i> Google
+                        </button>
+                        <button type="submit" name="provider" value="Facebook" class="btn-social btn-facebook w-100">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </button>
+                    </div>
+                </form>
+            
+        
+
+        <div class="login-footer mt-4 text-center">
+            <p class="mb-1 text-muted">Khách hàng mới? <a asp-page="./Register" class="fw-bold text-dark">Tạo tài khoản</a></p>
+            <p><a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">Quên mật khẩu?</a></p>
+
+            <p class="recaptcha-notice mt-3">
+                Trang web được bảo vệ bởi reCAPTCHA. <br>
+                <a href="#">Bảo mật</a> & <a href="#">Điều khoản</a>
+            </p>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

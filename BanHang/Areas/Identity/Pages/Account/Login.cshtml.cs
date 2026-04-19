@@ -100,7 +100,13 @@ namespace BanHang.Areas.Identity.Pages.Account
 
             ReturnUrl = returnUrl;
         }
-
+        public IActionResult OnPostExternalLogin(string provider, string returnUrl = null)
+        {
+            // Yêu cầu chuyển hướng đến provider (Google/Facebook)
+            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", new { returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
+        }
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
