@@ -32,5 +32,11 @@ public class ProductRepository : IProductRepository
             .Select(x => x.MauSac)
             .Distinct()
             .ToListAsync();
+    }                                                               
+    public async Task<IEnumerable<SanPham>> GetProductsNeverSoldAsync()
+    {
+        return await _context.SanPhams
+            .Where(p => p.DaBan < 20)                                                                                                                                                                                                                                                                                                                                                                              
+            .ToListAsync();
     }
 }

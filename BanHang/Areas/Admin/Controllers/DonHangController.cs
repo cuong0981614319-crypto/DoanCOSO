@@ -149,44 +149,6 @@ namespace BanHang.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ThongKe()
-        {
-            var today = DateTime.Today;
-            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-
-            var donHoanThanh = _context.DonHangs
-                .Where(x => x.DaThanhToan );
-
-            var model = new ThongKeDoanhThuViewModel
-            {
-                DoanhThuHomNay = await donHoanThanh
-                    .Where(x => x.NgayDat.Date == today)
-                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
-
-                DoanhThuThangNay = await donHoanThanh
-                    .Where(x => x.NgayDat >= firstDayOfMonth)
-                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
-
-                TongDoanhThu = await donHoanThanh
-                    .SumAsync(x => (decimal?)x.TongTien) ?? 0,
-
-                SoDonDaThanhToan = await donHoanThanh.CountAsync(),
-
-
-                DoanhThuTheoNgay = await donHoanThanh
-                    .GroupBy(x => x.NgayDat.Date)
-                    .Select(g => new DoanhThuTheoNgayItem
-                    {
-                        Ngay = g.Key,
-                        DoanhThu = g.Sum(x => x.TongTien)
-                    })
-                    .OrderBy(x => x.Ngay)
-                    .ToListAsync()
-            };
-
-            return View(model);
-        }
-
+ 
     }
 }

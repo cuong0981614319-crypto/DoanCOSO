@@ -44,7 +44,21 @@
             </div>
         </div>
     </div>
-
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" asp-controller="ThongKe" asp-action="Index" class="row g-3">
+                <div class="col-md-4">
+                    <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                </div>
+                <div class="col-md-4">
+                    <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <h4 class="mb-3">Doanh thu theo ngày</h4>
 
     <table class="table table-bordered table-striped">

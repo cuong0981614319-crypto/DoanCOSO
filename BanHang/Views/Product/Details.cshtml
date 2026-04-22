@@ -64,32 +64,30 @@
             }
 
             <div class="price-quantity-inline mb-3">
-                <div class="product-price-box-inline">
-                    <div class="text-danger fw-bold fs-3 product-price-text">
-                        @Model.Gia.ToString("N0") VNĐ
-                    </div>
-                   
-
-                    @if (!User.IsInRole("Admin") && User.Identity != null && User.Identity.IsAuthenticated)
+                @* d-flex giúp các thành phần nằm sát nhau, gap-2 tạo khoảng cách nhỏ vừa đủ *@
+                <div class="price-container d-flex align-items-baseline mb-3" style="gap: 8px;">
+                    @if (Model.PhanTramGiam > 0)
                     {
-                        <div class="quantity-inline-control">
-                            <form asp-controller="Product" asp-action="Details" method="get" class="quantity-inline-form">
-                                <input type="hidden" name="id" value="@Model.MaSanPham" />
-                                <input type="hidden" name="quantity" value="@(quantity > 1 ? quantity - 1 : 1)" />
-                                <button type="submit" class="quantity-inline-btn" title="Giảm số lượng">-</button>
-                            </form>
+                        @* 1. Badge giảm giá - Nhỏ gọn *@
+                        <div class="badge-discount border px-1 text-danger fw-bold"
+                             style="font-size: 0.8rem; background-color: #fff5f5; border-color: #feb2b2 !important;">
+                            -@Model.PhanTramGiam%
+                        </div>
 
-                            <input type="text"
-                                   id="quantityInput"
-                                   value="@quantity"
-                                   class="quantity-inline-input"
-                                   readonly />
+                        @* 2. Giá đã giảm - Màu nổi bật *@
+                        <div class="current-price text-danger fw-bold fs-4">
+                            @Model.GiaKhuyenMai.ToString("N0") VNĐ
+                        </div>
 
-                            <form asp-controller="Product" asp-action="Details" method="get" class="quantity-inline-form">
-                                <input type="hidden" name="id" value="@Model.MaSanPham" />
-                                <input type="hidden" name="quantity" value="@(quantity + 1)" />
-                                <button type="submit" class="quantity-inline-btn" title="Tăng số lượng">+</button>
-                            </form>
+                        @* 3. Giá gốc gạch ngang - Nhỏ và mờ *@
+                        <div class="original-price text-muted text-decoration-line-through" style="font-size: 0.9rem;">
+                            @Model.Gia.ToString("N0") VNĐ
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="current-price text-danger fw-bold fs-4">
+                            @Model.Gia.ToString("N0") VNĐ
                         </div>
                     }
                 </div>

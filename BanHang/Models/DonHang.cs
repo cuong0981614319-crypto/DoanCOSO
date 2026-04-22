@@ -20,6 +20,7 @@ namespace BanHang.Models
 
         public decimal TongTien { get; set; }
 
+        public string? GhiChu { get; set; }
         public string TrangThai { get; set; } = "Chờ xác nhận";
         public string? UserId { get; set; }
         public string? PhuongThucThanhToan { get; set; }

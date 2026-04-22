@@ -41,5 +41,34 @@ namespace BanHang.Models
         public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; } = new();
 
         public int DaBan { get; internal set; }
+        public decimal GiaKhuyenMai
+        {
+            get
+            {
+                if (DaBan < 10 || DaBan >0)
+                {
+                    return Gia * 0.8m;
+                }
+                else if (DaBan < 20 || DaBan > 10)
+                {
+                    return Gia * 0.92m;
+                }
+                else if (DaBan == 0)
+                {
+                    return Gia * 0.7m;
+                }
+                    return Gia;
+            }
+        }
+        public int PhanTramGiam
+        {
+            get
+            {
+                if (DaBan == 0) return 30;
+                if (DaBan < 10 || DaBan >0) return 20;
+                if (DaBan < 20) return 8;
+                return 0; 
+            }
+        }
     }
 }

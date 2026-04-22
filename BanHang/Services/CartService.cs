@@ -23,26 +23,40 @@ public class CartService : ICartService
 
     public async Task<bool> AddToCart(ISession session, int productId, int quantity)
     {
-        var product = await _context.SanPhams.FindAsync(productId);
-        if (product == null) return false;
+        var sp = await _context.SanPhams.FindAsync(productId);
+        if (sp == null) return false;
 
+        // 2. Lấy giỏ hàng hiện tại từ Session
         var cart = GetCart(session);
-        var item = cart.FirstOrDefault(x => x.MaSanPham == productId);
+        var item = cart.FirstOrDefault(c => c.MaSanPham == productId);
 
-        if (item != null)
-            item.SoLuong += quantity;
-        else
+        if (item == null)
         {
+            // 3. Nếu chưa có, thêm mới và PHẢI GÁN GiaKhuyenMai ở đây
             cart.Add(new CartItem
             {
-                MaSanPham = product.MaSanPham,
-                TenSanPham = product.TenSanPham,
-                Gia = product.Gia,
+                MaSanPham = sp.MaSanPham,
+                TenSanPham = sp.TenSanPham,
+                Gia = sp.Gia,
+
+                // ĐÂY LÀ DÒNG QUAN TRỌNG NHẤT:
+                // Nó sẽ lấy logic (DaBan < 10 thì giảm 20%) từ model SanPham qua
+                GiaKhuyenMai = sp.GiaKhuyenMai,
+
                 SoLuong = quantity,
-                HinhAnh = product.HinhAnh
+                HinhAnh = sp.HinhAnh
             });
         }
+        else
+        {
+            // 4. Nếu có rồi thì tăng số lượng
+            item.SoLuong += quantity;
 
+            // Cập nhật lại giá khuyến mãi (phòng trường hợp logic DaBan thay đổi)
+            item.GiaKhuyenMai = sp.GiaKhuyenMai;
+        }
+
+        // 5. Lưu lại vào Session
         SaveCart(session, cart);
         return true;
     }

@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Trang chủ";
+    var promoProducts = ViewBag.PromoProducts as IEnumerable<BanHang.Models.SanPham> ?? new List<BanHang.Models.SanPham>();
 }
 
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
@@ -50,24 +51,23 @@
 
 <div class="container mt-5">
 
-   
+
     @{
         var allProducts = Model.SelectMany(kv => kv.SanPhams ?? new List<BanHang.Models.SanPham>());
         var bestSellers = allProducts
         .Where(sp => sp.DaBan > 0)
         .OrderByDescending(sp => sp.DaBan)
-        .Take(10) 
+        .Take(10)
         .ToList();
         var bestSellerSliderId = "slider-best-sellers";
     }
-    
- 
-    @if (bestSellers.Any())
-    {
+    @if (bestSellers.Any()){
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fw-bold mb-0 text-danger"><i class="bi bi-fire"></i> SẢN PHẨM BÁN CHẠY</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fw-bold mb-0 text-danger"><i class="bi bi-fire"></i> Sản phẩm bán chạy</h2>
         </div>
-
+            <a asp-controller="Product" asp-action="Index" asp-route-isPromo="true" class="btn btn-outline-primary btn-sm">Xem thêm</a>
+        </div>
         <div class="product-slider-wrapper mb-5 position-relative">
             <button type="button" class="slider-btn prev" onclick="scrollSlider('@bestSellerSliderId', -1)">&#10094;</button>
             <button type="button" class="slider-btn next" onclick="scrollSlider('@bestSellerSliderId', 1)">&#10095;</button>
@@ -76,15 +76,22 @@
                 @foreach (var item in bestSellers)
                 {
                     <div class="product-item">
-                        <div class="card h-100 shadow-sm border-0 position-relative">
-                            <div class="position-absolute top-0 start-0 m-2">
-                                <span class="badge bg-danger">HOT</span>
-                            </div>
+                        <div class="card h-100 shadow-sm border-0">
 
-                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham" class="text-decoration-none">
-                                <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
-                                     class="card-img-top p-2" alt="@item.TenSanPham" style="height: 180px; object-fit: contain;">
-                            </a>
+                            @* PHẢI CÓ CLASS product-img-box Ở ĐÂY *@
+                            <div class="product-img-box">
+                                @if (item.DaBan < 20)
+                                {
+                                    <div class="promo-tag-fixed">
+                                        -@item.PhanTramGiam%
+                                    </div>
+                                }
+
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham">
+                                    <img src="@item.HinhAnh" class="card-img-top p-2"
+                                         style="height: 180px; object-fit: contain;">
+                                </a>
+                            </div>
 
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title text-truncate">
@@ -93,13 +100,124 @@
                                     </a>
                                 </h5>
 
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <p class="card-text text-danger fw-bold fs-5 mb-0">
-                                        @item.Gia.ToString("N0") VNĐ
-                                    </p>
-                                    <span class="badge bg-success">
-                                        Đã bán @item.DaBan
-                                    </span>
+                                <div class="card-body d-flex flex-column">
+
+
+                                    <div class="price-section">
+                                        @if (item.DaBan < 20)
+                                        {
+                                            @* Hiển thị giá gốc bị gạch ngang *@
+                                            <small class="text-muted text-decoration-line-through">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </small>
+                                            @* Hiển thị giá sau giảm *@
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.GiaKhuyenMai.ToString("N0") VNĐ
+                                            </p>
+                                            @* Hiển thị phần trăm giảm *@
+
+                                        }
+                                        else
+                                        {
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </p>
+                                        }
+                                    </div>
+
+                                    <div class="mt-2 d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Đã bán: @item.DaBan</small>
+
+                                    </div>
+                                </div>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <div class="btn-group mt-auto">
+                                        <a asp-area="Admin" asp-controller="Product" asp-action="Edit" asp-route-id="@item.MaSanPham" class="btn btn-sm btn-outline-warning">Sửa</a>
+                                        <form asp-area="Admin" asp-controller="Product" asp-action="Delete" asp-route-id="@item.MaSanPham" method="post" onsubmit="return confirm('Xóa sản phẩm?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <hr class="my-5" />
+    }
+
+    @if (promoProducts.Any())
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="fw-bold mb-0 text-primary"><i class="bi bi-tag-fill"></i> SẢN PHẨM KHUYẾN MÃI</h2>
+                </div>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary btn-sm">Xem thêm</a>
+        </div>
+        <div class="product-slider-wrapper mb-5 position-relative">
+            <button type="button" class="slider-btn prev" onclick="scrollSlider('slider-promo', -1)">&#10094;</button>
+            <button type="button" class="slider-btn next" onclick="scrollSlider('slider-promo', 1)">&#10095;</button>
+
+            <div class="product-slider" id="slider-promo">
+                @foreach (var item in promoProducts)
+                {
+                    <div class="product-item">
+                        <div class="card h-100 shadow-sm border-0">
+
+                            @* PHẢI CÓ CLASS product-img-box Ở ĐÂY *@
+                            <div class="product-img-box">
+                                @if (item.DaBan < 20)
+                                {
+                                    <div class="promo-tag-fixed">
+                                        -@item.PhanTramGiam%
+                                    </div>
+                                }
+
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham">
+                                    <img src="@item.HinhAnh" class="card-img-top p-2"
+                                         style="height: 180px; object-fit: contain;">
+                                </a>
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-truncate">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham" class="text-decoration-none text-dark">
+                                        @item.TenSanPham
+                                    </a>
+                                </h5>
+
+                                <div class="card-body d-flex flex-column">
+                                   
+
+                                    <div class="price-section">
+                                        @if (item.DaBan < 20)
+                                        {
+                                            @* Hiển thị giá gốc bị gạch ngang *@
+                                            <small class="text-muted text-decoration-line-through">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </small>
+                                            @* Hiển thị giá sau giảm *@
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.GiaKhuyenMai.ToString("N0") VNĐ
+                                            </p>
+                                            @* Hiển thị phần trăm giảm *@
+                                           
+                                        }
+                                        else
+                                        {
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </p>
+                                        }
+                                    </div>
+
+                                    <div class="mt-2 d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Đã bán: @item.DaBan</small>
+                                        
+                                    </div>
                                 </div>
 
                                 @if (User.IsInRole("Admin"))
@@ -120,6 +238,8 @@
         </div>
         <hr class="my-5" />
     }
+    
+    
 
     @* --- BƯỚC 3: HIỂN THỊ CÁC KHU VỰC KHÁC THEO THỨ TỰ --- *@
     @foreach (var kv in Model.OrderBy(x => x.ThuTu))
@@ -142,10 +262,21 @@
                     {
                         <div class="product-item">
                             <div class="card h-100 shadow-sm border-0">
-                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham" class="text-decoration-none">
-                                    <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
-                                         class="card-img-top p-2" alt="@item.TenSanPham" style="height: 180px; object-fit: contain;">
-                                </a>
+
+                                @* PHẢI CÓ CLASS product-img-box Ở ĐÂY *@
+                                <div class="product-img-box">
+                                    @if (item.DaBan < 20)
+                                    {
+                                        <div class="promo-tag-fixed">
+                                            -@item.PhanTramGiam%
+                                        </div>
+                                    }
+
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham">
+                                        <img src="@item.HinhAnh" class="card-img-top p-2"
+                                             style="height: 180px; object-fit: contain;">
+                                    </a>
+                                </div>
 
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title text-truncate">
@@ -154,11 +285,36 @@
                                         </a>
                                     </h5>
 
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <p class="card-text text-danger fw-bold fs-5 mb-0">@item.Gia.ToString("N0") VNĐ</p>
-                                        <span class="badge bg-success">Đã bán @item.DaBan</span>
-                                    </div>
+                                    <div class="card-body d-flex flex-column">
 
+
+                                        <div class="price-section">
+                                            @if (item.DaBan < 20)
+                                            {
+                                                @* Hiển thị giá gốc bị gạch ngang *@
+                                                <small class="text-muted text-decoration-line-through">
+                                                    @item.Gia.ToString("N0") VNĐ
+                                                </small>
+                                                @* Hiển thị giá sau giảm *@
+                                                <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                    @item.GiaKhuyenMai.ToString("N0") VNĐ
+                                                </p>
+                                                @* Hiển thị phần trăm giảm *@
+
+                                            }
+                                            else
+                                            {
+                                                <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                    @item.Gia.ToString("N0") VNĐ
+                                                </p>
+                                            }
+                                        </div>
+
+                                        <div class="mt-2 d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">Đã bán: @item.DaBan</small>
+
+                                        </div>
+                                    </div>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <div class="btn-group mt-auto">
@@ -187,9 +343,9 @@
 
 @section Scripts {
     <script>
-        function scrollSlider(id, direction) {
+        function scrollSlider(id, direction) {                                                                                                                                  
             const slider = document.getElementById(id);
-            if (!slider) return;
+            if (!slider) return;                                                                                                    
             const item = slider.querySelector(".product-item");
             if (!item) return;
             const scrollAmount = item.offsetWidth + 20;
@@ -203,7 +359,7 @@
         function showCartToast(message, isError = false) {
             const toast = document.getElementById("cart-toast");
             if (!toast) return;
-            toast.textContent = message;
+            toast.textContent = message;                                                                                                                                                                                
             toast.style.background = isError ? "#dc3545" : "#198754";
             toast.classList.add("show");
             setTimeout(() => { toast.classList.remove("show"); }, 2000);

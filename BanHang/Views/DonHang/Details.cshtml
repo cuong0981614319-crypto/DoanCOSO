@@ -32,6 +32,10 @@
                             <p class="mb-1 text-muted">Địa chỉ nhận hàng</p>
                             <p class="fw-bold">@Model.DiaChi</p>
                         </div>
+                        <div class="col-sm-6 mb-2">
+                            <p class="mb-1 text-muted">Ghi Chú</p>
+                            <p class="fw-bold">@Model.GhiChu</p>
+                        </div>
                         <div class="col-sm-6">
                             <p class="mb-1 text-muted">Ngày đặt đơn</p>
                             <p class="fw-bold">@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</p>
@@ -39,6 +43,10 @@
                         <div class="col-sm-6">
                             <p class="mb-1 text-muted">Trạng thái hiện tại</p>
                             <span class="badge bg-info text-dark p-2">@Model.TrangThai</span>
+                        </div>
+                        <div class="col-sm-12">
+                            <p class="mb-1 text-muted">Ghi Chú</p>
+                            <p class="fw-bold">@Model.GhiChu</p>
                         </div>
                     </div>
                 </div>
@@ -78,7 +86,23 @@
                                                 }
                                             </td>
                                             <td class="text-center">@item.SoLuong</td>
-                                            <td class="text-end">@item.DonGia.ToString("N0") đ</td>
+
+                                            @* --- ĐÂY LÀ CHỖ THAY ĐỔI --- *@
+                                            <td class="text-end">
+                                                @if (item.SanPham?.PhanTramGiam > 0)
+                                                {
+                                                    <div class="text-danger fw-bold">@item.SanPham.GiaKhuyenMai.ToString("N0") đ</div>
+                                                    <div class="text-muted text-decoration-line-through" style="font-size: 0.8rem; margin-top: -2px;">
+                                                        @item.SanPham.Gia.ToString("N0") đ
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="fw-bold">@item.DonGia.ToString("N0") đ</div>
+                                                }
+                                            </td>
+                                            @* --------------------------- *@
+
                                             <td class="text-end pe-4 text-danger fw-bold">
                                                 @((item.SoLuong * item.DonGia).ToString("N0")) đ
                                             </td>

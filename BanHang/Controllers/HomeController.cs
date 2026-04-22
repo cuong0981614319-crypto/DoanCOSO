@@ -7,20 +7,30 @@ namespace BanHang.Controllers
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IProductRepository _productRepository;
 
-        public HomeController(ApplicationDbContext context)
+        // C?p nh?t Constructor ?? nh?n c? context và repository
+        public HomeController(ApplicationDbContext context, IProductRepository productRepository)
         {
             _context = context;
+            _productRepository = productRepository;
         }
 
+        // CH? GI? L?I M?T HÀM INDEX NÀY
         public async Task<IActionResult> Index(int? maDanhMuc, string? keyword)
         {
+            // 1. L?y d? li?u khu v?c hi?n th? và s?n ph?m
             var khuVucs = await _context.KhuVucHienThis
                 .Include(k => k.SanPhams)
                     .ThenInclude(sp => sp.DanhMuc)
                 .OrderBy(k => k.ThuTu)
                 .ToListAsync();
 
+            // 2. L?Y S?N PH?M KHUY?N MÃI (Bán = 0) qua Repository
+            var promoProducts = await _productRepository.GetProductsNeverSoldAsync();
+            ViewBag.PromoProducts = promoProducts;
+
+            // 3. Logic l?c theo danh m?c ho?c t? khóa (N?u có)
             if (maDanhMuc.HasValue || !string.IsNullOrWhiteSpace(keyword))
             {
                 var tuKhoa = keyword?.Trim().ToLower();
@@ -51,19 +61,20 @@ namespace BanHang.Controllers
                     .ToList();
             }
 
+            // 4. Thi?t l?p ViewBag cho giao di?n
             if (maDanhMuc.HasValue)
             {
                 var danhMuc = await _context.DanhMucs
                     .FirstOrDefaultAsync(dm => dm.MaDanhMuc == maDanhMuc.Value);
-
                 ViewBag.TenDanhMucDangLoc = danhMuc?.TenDanhMuc;
             }
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;
             ViewBag.Keyword = keyword;
 
-            return View("~/Views/Home/Index.cshtml", khuVucs);
+            return View(khuVucs);
         }
+
         [HttpGet]
         public IActionResult SearchSuggestions(string keyword)
         {
@@ -90,6 +101,5 @@ namespace BanHang.Controllers
 
             return Json(products);
         }
-
     }
 }
