@@ -46,6 +46,8 @@ namespace BanHang.Services
                 MauSac = model.MauSac,
                 MaDanhMuc = model.MaDanhMuc,
                 KhuVucHienThiId = model.KhuVucHienThiId,
+                kichthuc = model.kichthuc,
+                chatlieu = model.chatlieu,
                 HinhAnhSanPhams = new List<HinhAnhSanPham>()
             };
 
@@ -94,6 +96,8 @@ namespace BanHang.Services
             existing.MauSac = model.MauSac;
             existing.MaDanhMuc = model.MaDanhMuc;
             existing.KhuVucHienThiId = model.KhuVucHienThiId;
+            existing.kichthuc = model.kichthuc;
+            existing.chatlieu = model.chatlieu;
 
             // 🔥 XÓA ảnh
             if (model.DeletedImageIds != null && model.DeletedImageIds.Any())

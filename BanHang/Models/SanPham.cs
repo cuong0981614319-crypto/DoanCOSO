@@ -25,6 +25,8 @@ namespace BanHang.Models
         public KhuVucHienThi? KhuVucHienThi { get; set; }
 
         public string? HinhAnh { get; set; }
+        public string? kichthuc { get; set; }
+        public string ? chatlieu { get; set; }
 
         [NotMapped]
         public IFormFile? ImageFile { get; set; }

@@ -263,6 +263,12 @@ namespace BanHang.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("chatlieu")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("kichthuc")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("MaSanPham");
 
                     b.HasIndex("KhuVucHienThiId");

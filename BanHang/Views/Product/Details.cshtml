@@ -96,10 +96,33 @@
             <div class="mb-4">
                 <strong>Mô tả:</strong>
                 <div class="mt-2 text-muted">
-                    @(string.IsNullOrWhiteSpace(Model.MoTa) ? "Chưa có mô tả sản phẩm." : Model.MoTa)
+                    @if (Model != null && !string.IsNullOrWhiteSpace(Model.MoTa))
+                    {
+                        @Model.MoTa
+                    }
+                    else
+                    {
+                        <span>Chưa có mô tả sản phẩm.</span>
+                    }
                 </div>
             </div>
+            <div class="product-specifications mb-4">
+                @if (!string.IsNullOrWhiteSpace(Model?.kichthuc))
+                {
+                    <p class="mb-2">
+                        <i class="bi bi-aspect-ratio me-2"></i>
+                        <strong>Kích thước:</strong> @Model?.kichthuc
+                    </p>
+                }
 
+                @if (!string.IsNullOrWhiteSpace(Model?.chatlieu))
+                {
+                    <p class="mb-2">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <strong>Chất liệu:</strong> @Model?.chatlieu
+                    </p>
+                }
+            </div>
             <div class="mb-3">
                 <span class="btn btn-sm btn-outline-success disabled">
                     Đã bán @Model.DaBan

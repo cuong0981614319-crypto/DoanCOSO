@@ -38,7 +38,17 @@
                     <input asp-for="Gia" type="number" step="0.01" class="form-control" />
                     <span asp-validation-for="Gia" class="text-danger"></span>
                 </div>
+                <div class="mb-3">
+                    <label asp-for="chatlieu" class="form-label fw-bold">Vật liệu</label>
+                    <input asp-for="chatlieu" class="form-control" placeholder="Ví dụ: Gỗ sồi, Sắt sơn tĩnh điện..." />
+                    <span asp-validation-for="chatlieu" class="text-danger"></span>
+                </div>
 
+                <div class="mb-3">
+                    <label asp-for="kichthuc" class="form-label fw-bold">Kích thước</label>
+                    <input asp-for="kichthuc" class="form-control" placeholder="Ví dụ: 120x60x75 cm..." />
+                    <span asp-validation-for="kichthuc" class="text-danger"></span>
+                </div>
                 <div class="mb-3">
                     <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
                     <select asp-for="MauSac" class="form-select">

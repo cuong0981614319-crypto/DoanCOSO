@@ -26,15 +26,15 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // 🔥 3. Google Login (PHẢI đặt sau Identity)
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+//builder.Services.AddAuthentication()
+//    .AddGoogle(options =>
+//    {
+//        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+//        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 
-        // 🔥 FIX QUAN TRỌNG
-        options.CallbackPath = "/signin-google";
-    });
+//        // 🔥 FIX QUAN TRỌNG
+//        options.CallbackPath = "/signin-google";
+//    });
 // 3. Cấu hình MoMo + VNPay
 builder.Services.Configure<MoMoOption>(
     builder.Configuration.GetSection("MoMo"));
@@ -113,53 +113,53 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // 10. Tự động migrate + tạo role/user admin
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
 
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    await context.Database.MigrateAsync();
+//    var context = services.GetRequiredService<ApplicationDbContext>();
+//    await context.Database.MigrateAsync();
 
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+//    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+//    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    string[] roles = { "Admin", "User" };
+//    string[] roles = { "Admin", "User" };
 
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
+//    foreach (var role in roles)
+//    {
+//        if (!await roleManager.RoleExistsAsync(role))
+//        {
+//            await roleManager.CreateAsync(new IdentityRole(role));
+//        }
+//    }
 
-    var adminEmail = "admin@gmail.com";
-    var admin = await userManager.FindByEmailAsync(adminEmail);
+//    var adminEmail = "admin@gmail.com";
+//    var admin = await userManager.FindByEmailAsync(adminEmail);
 
-    if (admin == null)
-    {
-        admin = new IdentityUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
+//    if (admin == null)
+//    {
+//        admin = new IdentityUser
+//        {
+//            UserName = adminEmail,
+//            Email = adminEmail,
+//            EmailConfirmed = true
+//        };
 
-        var result = await userManager.CreateAsync(admin, "123456");
+//        var result = await userManager.CreateAsync(admin, "123456");
 
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-    }
-    else
-    {
-        if (!await userManager.IsInRoleAsync(admin, "Admin"))
-        {
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-    }
-}
+//        if (result.Succeeded)
+//        {
+//            await userManager.AddToRoleAsync(admin, "Admin");
+//        }
+//    }
+//    else
+//    {
+//        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+//        {
+//            await userManager.AddToRoleAsync(admin, "Admin");
+//        }
+//    }
+//}
 
 // 11. Route cho Area Admin
 app.MapControllerRoute(

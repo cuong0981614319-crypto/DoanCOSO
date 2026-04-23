@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BanHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260422065816_AddGiaKhuyenMaiToProduccccc")]
-    partial class AddGiaKhuyenMaiToProduccccc
+    [Migration("20260423155535_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,6 +86,9 @@ namespace BanHang.Migrations
 
                     b.Property<string>("DiaChi")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GhiChu")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HoTen")

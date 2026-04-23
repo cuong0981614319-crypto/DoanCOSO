@@ -4,6 +4,7 @@
     
     var danhMucs = ViewBag.DanhMucs as List<BanHang.Models.DanhMuc>;
     var mauSacs = ViewBag.MauSacs as List<string>;
+    var kichThuocs = ViewBag.KichThuocs as List<string>;
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
 }
@@ -25,11 +26,18 @@
                     <label class="form-label fw-semibold">Danh mục</label>
                     <select name="maDanhMuc" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả danh mục --</option>
+
+                        @{
+                            // Lấy danh sách từ ViewBag đã nạp ở Controller
+                            var danhMucs = ViewBag.DanhMucs as List<BanHang.Models.DanhMuc>;
+                        }
+
                         @if (danhMucs != null)
                         {
                             @foreach (var dm in danhMucs)
                             {
-                                if (ViewBag.MaDanhMuc != null && (int)ViewBag.MaDanhMuc == dm.MaDanhMuc)
+                                // Kiểm tra nếu MaDanhMuc này đang được chọn thì thêm thuộc tính selected
+                                if (ViewBag.CurrentMaDanhMuc != null && (int)ViewBag.CurrentMaDanhMuc == dm.MaDanhMuc)
                                 {
                                     <option value="@dm.MaDanhMuc" selected>@dm.TenDanhMuc</option>
                                 }
@@ -100,6 +108,31 @@
                                 else
                                 {
                                     <option value="@mau">@mau</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Kích thước</label>
+                    <select name="kichThuc" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Tất cả kích thước --</option>
+
+                        @{
+                            var danhSachKichThuc = ViewBag.KichThucs as List<string>;
+                        }
+
+                        @if (danhSachKichThuc != null)
+                        {
+                            @foreach (var kt in danhSachKichThuc)
+                            {
+                                if (ViewBag.CurrentKichThuc == kt)
+                                {
+                                    <option value="@kt" selected>@kt</option>
+                                }
+                                else
+                                {
+                                    <option value="@kt">@kt</option>
                                 }
                             }
                         }

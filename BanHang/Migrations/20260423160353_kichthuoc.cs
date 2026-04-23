@@ -5,14 +5,20 @@
 namespace BanHang.Migrations
 {
     /// <inheritdoc />
-    public partial class adduser : Migration
+    public partial class kichthuoc : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "UserId",
-                table: "DonHangs",
+                name: "chatlieu",
+                table: "SanPhams",
+                type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "kichthuc",
+                table: "SanPhams",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -21,8 +27,12 @@ namespace BanHang.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "DonHangs");
+                name: "chatlieu",
+                table: "SanPhams");
+
+            migrationBuilder.DropColumn(
+                name: "kichthuc",
+                table: "SanPhams");
         }
     }
 }
