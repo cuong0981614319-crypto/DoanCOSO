@@ -22,7 +22,7 @@
             <form asp-controller="Product" asp-action="Index" method="get" class="row g-3 align-items-end">
                 <input type="hidden" name="khuVucId" value="@ViewBag.KhuVucId" />
 
-                <div class="col-md-4">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label fw-semibold">Danh mục</label>
                     <select name="maDanhMuc" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả danh mục --</option>
@@ -50,7 +50,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label fw-semibold">Giá sản phẩm</label>
                     <select name="mucGia" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả mức giá --</option>
@@ -93,7 +93,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label fw-semibold">Màu sắc</label>
                     <select name="mauSac" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả màu sắc --</option>
@@ -113,7 +113,7 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label fw-semibold">Kích thước</label>
                     <select name="kichThuc" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả kích thước --</option>

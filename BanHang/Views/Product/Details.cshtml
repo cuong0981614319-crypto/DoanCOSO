@@ -93,19 +93,6 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <strong>Mô tả:</strong>
-                <div class="mt-2 text-muted">
-                    @if (Model != null && !string.IsNullOrWhiteSpace(Model.MoTa))
-                    {
-                        @Model.MoTa
-                    }
-                    else
-                    {
-                        <span>Chưa có mô tả sản phẩm.</span>
-                    }
-                </div>
-            </div>
             <div class="product-specifications mb-4">
                 @if (!string.IsNullOrWhiteSpace(Model?.kichthuc))
                 {
@@ -122,6 +109,20 @@
                         <strong>Chất liệu:</strong> @Model?.chatlieu
                     </p>
                 }
+            </div>
+
+            <div class="mb-4">
+                <strong>Mô tả:</strong>
+                <div class="mt-2 text-muted">
+                    @if (Model != null && !string.IsNullOrWhiteSpace(Model.MoTa))
+                    {
+                        @Model.MoTa
+                    }
+                    else
+                    {
+                        <span>Chưa có mô tả sản phẩm.</span>
+                    }
+                </div>
             </div>
             <div class="mb-3">
                 <span class="btn btn-sm btn-outline-success disabled">
@@ -199,55 +200,93 @@
                 {
                     <div class="product-item">
                         <div class="card h-100 shadow-sm border-0">
-                            <a asp-controller="Product"
-                               asp-action="Details"
-                               asp-route-id="@item.MaSanPham"
-                               class="text-decoration-none">
-                                <img src="@(string.IsNullOrEmpty(item.HinhAnh) ? "https://via.placeholder.com/250x180" : item.HinhAnh)"
-                                     class="card-img-top p-2"
-                                     alt="@item.TenSanPham" />
-                            </a>
+
+                            @* PHẢI CÓ CLASS product-img-box Ở ĐÂY *@
+                            <div class="product-img-box">
+                                @if (item.DaBan < 20)
+                                {
+                                    <div class="promo-tag-fixed">
+                                        -@item.PhanTramGiam%
+                                    </div>
+                                }
+
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham">
+                                    <img src="@item.HinhAnh" class="card-img-top p-2"
+                                         style="height: 180px; object-fit: contain;">
+                                </a>
+                            </div>
 
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">
-                                    <a asp-controller="Product"
-                                       asp-action="Details"
-                                       asp-route-id="@item.MaSanPham"
-                                       class="text-decoration-none text-dark">
+                                <h5 class="card-title text-truncate">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham" class="text-decoration-none text-dark">
                                         @item.TenSanPham
                                     </a>
                                 </h5>
 
-                                <div class="product-meta">
-                                    <p class="card-text text-danger fw-bold fs-5 mb-0">
-                                        @item.Gia.ToString("N0") VNĐ
-                                    </p>
+                                <div class="card-body d-flex flex-column">
 
-                                    <span class="sold-text">
-                                        Đã bán @item.DaBan
-                                    </span>
+
+                                    <div class="price-section">
+                                        @if (item.DaBan < 20)
+                                        {
+                                            @* Hiển thị giá gốc bị gạch ngang *@
+                                            <small class="text-muted text-decoration-line-through">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </small>
+                                            @* Hiển thị giá sau giảm *@
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.GiaKhuyenMai.ToString("N0") VNĐ
+                                            </p>
+                                            @* Hiển thị phần trăm giảm *@
+
+                                        }
+                                        else
+                                        {
+                                            <p class="card-text text-danger fw-bold fs-5 mb-0">
+                                                @item.Gia.ToString("N0") VNĐ
+                                            </p>
+                                        }
+                                    </div>
+
+                                    <div class="mt-2 d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Đã bán: @item.DaBan</small>
+
+                                    </div>
                                 </div>
 
-                                @if (!User.IsInRole("Admin"))
+                                @if (!string.IsNullOrEmpty(item.MauSac))
                                 {
-                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                                    {
-                                        <button type="button"
-                                                class="btn btn-dark btn-add-related-to-cart"
-                                                data-id="@item.MaSanPham">
-                                            Thêm vào giỏ
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <a asp-area="Identity"
-                                           asp-page="/Account/Login"
-                                           asp-route-returnUrl="@Context.Request.Path"
-                                           class="btn btn-outline-dark">
-                                            Thêm vào giỏ
-                                        </a>
-                                    }
+                                    <p class="mb-3 text-muted small">
+                                        Màu sắc: @item.MauSac
+                                    </p>
                                 }
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <div class="btn-group mt-auto">
+                                        <a asp-area="Admin"
+                                           asp-controller="Product"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.MaSanPham"
+                                           class="btn btn-sm btn-outline-warning">
+                                            Sửa
+                                        </a>
+
+                                        <form asp-area="Admin"
+                                              asp-controller="Product"
+                                              asp-action="Delete"
+                                              asp-route-id="@item.MaSanPham"
+                                              method="post"
+                                              onsubmit="return confirm('Xóa sản phẩm?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+
                             </div>
                         </div>
                     </div>

@@ -14,44 +14,57 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-geo-alt"></i> Thông tin giao hàng</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 mb-2">
-                            <p class="mb-1 text-muted">Họ tên người nhận</p>
-                            <p class="fw-bold">@Model.HoTen</p>
+            <div class="row">
+                
+                    <div class="card shadow-sm border-0 mb-4  h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold text-primary">
+                                <i class="bi bi-geo-alt"></i> Thông tin giao hàng
+                            </h5>
                         </div>
-                        <div class="col-sm-6 mb-2">
-                            <p class="mb-1 text-muted">Số điện thoại</p>
-                            <p class="fw-bold">@Model.SoDienThoai</p>
-                        </div>
-                        <div class="col-12 mb-2">
-                            <p class="mb-1 text-muted">Địa chỉ nhận hàng</p>
-                            <p class="fw-bold">@Model.DiaChi</p>
-                        </div>
-                        <div class="col-sm-6 mb-2">
-                            <p class="mb-1 text-muted">Ghi Chú</p>
-                            <p class="fw-bold">@Model.GhiChu</p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p class="mb-1 text-muted">Ngày đặt đơn</p>
-                            <p class="fw-bold">@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p class="mb-1 text-muted">Trạng thái hiện tại</p>
-                            <span class="badge bg-info text-dark p-2">@Model.TrangThai</span>
-                        </div>
-                        <div class="col-sm-12">
-                            <p class="mb-1 text-muted">Ghi Chú</p>
-                            <p class="fw-bold">@Model.GhiChu</p>
+
+                        <div class="card-body">
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Họ tên người nhận</p>
+                                    <p class="fw-bold mb-0">@Model.HoTen</p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Số điện thoại</p>
+                                    <p class="fw-bold mb-0">@Model.SoDienThoai</p>
+                                </div>
+
+                                <div class="col-12">
+                                    <p class="text-muted mb-1">Địa chỉ nhận hàng</p>
+                                    <p class="fw-bold mb-0">@Model.DiaChi</p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Ngày đặt đơn</p>
+                                    <p class="fw-bold mb-0">
+                                        @Model.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Trạng thái hiện tại</p>
+                                    <span class="badge bg-info text-dark p-2">
+                                        @Model.TrangThai
+                                    </span>
+                                </div>
+
+                                <div class="col-12">
+                                    <p class="text-muted mb-1">Ghi chú</p>
+                                    <p class="fw-bold mb-0">@Model.GhiChu</p>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
-                </div>
+               
             </div>
-
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-box-seam"></i> Sản phẩm trong đơn</h5>
