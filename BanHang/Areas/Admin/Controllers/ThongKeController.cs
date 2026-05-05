@@ -21,14 +21,11 @@ namespace BanHang.Areas.Admin.Controllers
             var today = DateTime.Today;
             var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
 
-            // Chỉ tính những đơn đã thanh toán vào doanh thu
-            var donThanhToanQuery = _context.DonHangs
-                .Where(x => x.DaThanhToan);
+            // Chỉ tính những đơn đã thanh toán
+            var donThanhToanQuery = _context.DonHangs.Where(x => x.DaThanhToan);
 
-            // Khởi tạo Model
             var model = new ThongKeDoanhThuViewModel
             {
-                // 1. Thống kê tổng quan (Các thẻ Card)
                 DoanhThuHomNay = await donThanhToanQuery
                     .Where(x => x.NgayDat.Date == today)
                     .SumAsync(x => (decimal?)x.TongTien) ?? 0,
@@ -43,19 +40,21 @@ namespace BanHang.Areas.Admin.Controllers
                 SoDonDaThanhToan = await donThanhToanQuery.CountAsync()
             };
 
-            // 2. Xử lý logic lọc cho bảng "Doanh thu theo ngày"
+            // --- Bổ sung Thống kê Sản phẩm theo Danh mục (cho Biểu đồ tròn) ---
+            var thongKeDanhMuc = await _context.DanhMucs
+                .Select(dm => new {
+                    Label = dm.TenDanhMuc,
+                    Count = dm.SanPhams.Count()
+                }).ToListAsync();
+
+            ViewBag.Labels = thongKeDanhMuc.Select(x => x.Label).ToList();
+            ViewBag.Counts = thongKeDanhMuc.Select(x => x.Count).ToList();
+            // -----------------------------------------------------------
+
+            // Logic lọc Doanh thu theo ngày... (giữ nguyên như code của bạn)
             var chartQuery = donThanhToanQuery.AsQueryable();
-
-            if (fromDate.HasValue)
-            {
-                chartQuery = chartQuery.Where(x => x.NgayDat >= fromDate.Value);
-            }
-
-            if (toDate.HasValue)
-            {
-                // .AddDays(1) để bao gồm cả dữ liệu của ngày kết thúc (tránh mất dữ liệu lúc 00:00)
-                chartQuery = chartQuery.Where(x => x.NgayDat < toDate.Value.AddDays(1));
-            }
+            if (fromDate.HasValue) chartQuery = chartQuery.Where(x => x.NgayDat >= fromDate.Value);
+            if (toDate.HasValue) chartQuery = chartQuery.Where(x => x.NgayDat < toDate.Value.AddDays(1));
 
             model.DoanhThuTheoNgay = await chartQuery
                 .GroupBy(x => x.NgayDat.Date)
@@ -64,12 +63,8 @@ namespace BanHang.Areas.Admin.Controllers
                     Ngay = g.Key,
                     DoanhThu = g.Sum(x => x.TongTien)
                 })
-                .OrderByDescending(x => x.Ngay) // Để ngày mới nhất lên đầu bảng
+                .OrderByDescending(x => x.Ngay)
                 .ToListAsync();
-
-            // Truyền lại ngày đã chọn để hiển thị trên Input ở View
-            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
-            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
             return View(model);
         }

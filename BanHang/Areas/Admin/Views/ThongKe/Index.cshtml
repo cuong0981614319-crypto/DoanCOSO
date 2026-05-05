@@ -7,6 +7,7 @@
 <div class="container mt-4">
     <h2 class="mb-4">Thống kê doanh thu</h2>
 
+    <!-- Thẻ Card tổng quan -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card shadow-sm">
@@ -44,6 +45,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Bộ lọc ngày -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form method="get" asp-controller="ThongKe" asp-action="Index" class="row g-3">
@@ -54,13 +57,26 @@
                     <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
                 </div>
                 <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary">Lọc</button>
+                    <button type="submit" class="btn btn-primary">Lọc dữ liệu</button>
                 </div>
             </form>
         </div>
     </div>
-    <h4 class="mb-3">Doanh thu theo ngày</h4>
 
+    <!-- ============================================================ -->
+    <!-- PHẦN BIỂU ĐỒ MỚI THÊM VÀO -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">Biểu đồ tăng trưởng doanh thu</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="revenueChart" style="min-height: 300px; max-height: 400px; width: 100%;"></canvas>
+        </div>
+    </div>
+    <!-- ============================================================ -->
+
+    <h4 class="mb-3">Chi tiết doanh thu theo ngày</h4>
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
@@ -79,3 +95,55 @@
         </tbody>
     </table>
 </div>
+
+<!-- Scripts vẽ biểu đồ -->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            // Lấy dữ liệu từ Model truyền sang
+            const labels = @Html.Raw(Json.Serialize(Model.DoanhThuTheoNgay.Select(x => x.Ngay.ToString("dd/MM"))));
+            const data = @Html.Raw(Json.Serialize(Model.DoanhThuTheoNgay.Select(x => x.DoanhThu)));
+
+            new Chart(ctx, {
+                type: 'line', // Sử dụng biểu đồ đường để thấy sự tăng trưởng
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        fill: true,
+                        tension: 0.4, // Độ cong của đường
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#0d6efd'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' đ';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
