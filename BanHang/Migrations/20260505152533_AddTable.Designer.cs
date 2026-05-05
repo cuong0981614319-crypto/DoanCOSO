@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BanHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505152533_AddTable")]
+    partial class AddTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,38 +51,6 @@ namespace BanHang.Migrations
                     b.HasIndex("MaSanPham");
 
                     b.ToTable("ChiTietDonHangs");
-                });
-
-            modelBuilder.Entity("BanHang.Models.DanhGia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Diem")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NoiDung")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SanPhamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenNguoiDung")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SanPhamId");
-
-                    b.ToTable("DanhGias");
                 });
 
             modelBuilder.Entity("BanHang.Models.DanhMuc", b =>
@@ -527,17 +498,6 @@ namespace BanHang.Migrations
                     b.Navigation("SanPham");
                 });
 
-            modelBuilder.Entity("BanHang.Models.DanhGia", b =>
-                {
-                    b.HasOne("BanHang.Models.SanPham", "SanPham")
-                        .WithMany("DanhGias")
-                        .HasForeignKey("SanPhamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SanPham");
-                });
-
             modelBuilder.Entity("BanHang.Models.HinhAnhSanPham", b =>
                 {
                     b.HasOne("BanHang.Models.SanPham", "SanPham")
@@ -645,8 +605,6 @@ namespace BanHang.Migrations
 
             modelBuilder.Entity("BanHang.Models.SanPham", b =>
                 {
-                    b.Navigation("DanhGias");
-
                     b.Navigation("HinhAnhSanPhams");
                 });
 #pragma warning restore 612, 618

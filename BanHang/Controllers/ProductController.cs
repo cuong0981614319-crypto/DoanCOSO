@@ -1,4 +1,6 @@
 ﻿using BanHang.Migrations;
+using BanHang.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -47,11 +49,10 @@ public class ProductController : Controller
 
         return View(products);
     }
-
     [HttpGet]
     public async Task<IActionResult> Details(int id, int quantity = 1)
     {
-        // 🔥 sửa lại đúng tên hàm
+        // Lấy thông tin sản phẩm từ service
         var sanPham = await _service.GetDetails(id);
 
         if (sanPham == null)
@@ -59,13 +60,42 @@ public class ProductController : Controller
             return NotFound();
         }
 
-        // 🔥 sản phẩm cùng loại
+        // 🔥 QUAN TRỌNG: Nạp danh sách đánh giá từ Database vào Model
+        // Vì _service.GetDetails thường không lấy kèm các bảng liên quan
+        sanPham.DanhGias = await _context.DanhGias
+                                         .Where(d => d.SanPhamId == id)
+                                         .OrderByDescending(d => d.NgayTao)
+                                         .ToListAsync();
+
+        // Sản phẩm cùng loại
         var sanPhamCungLoai = await _service.GetRelatedProducts(id, sanPham.MaDanhMuc);
 
         ViewBag.SanPhamCungLoai = sanPhamCungLoai;
         ViewBag.Quantity = quantity;
 
         return View(sanPham);
+    }
+    [HttpPost]
+    [HttpPost]
+    [Authorize] // Chỉ cho phép người dùng đã đăng nhập thực hiện
+    public async Task<IActionResult> AddReview(int sanPhamId, int diem, string noiDung)
+    {
+        // Lấy tên đăng nhập từ Identity (thường là Email hoặc Username)
+        string currentUserName = User.Identity?.Name ?? "Khách";
+
+        var danhGia = new DanhGia
+        {
+            SanPhamId = sanPhamId,
+            TenNguoiDung = currentUserName, // Tự động lấy tên hệ thống
+            Diem = diem,
+            NoiDung = noiDung,
+            NgayTao = DateTime.Now
+        };
+
+        _context.DanhGias.Add(danhGia);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Details", new { id = sanPhamId });
     }
 
 }

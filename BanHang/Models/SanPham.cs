@@ -41,7 +41,7 @@ namespace BanHang.Models
         public string? SelectedThumbnail { get; set; }
 
         public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; } = new();
-
+        public List<DanhGia> DanhGias { get; set; } = new List<DanhGia>();
         public int DaBan { get; internal set; }
         public decimal GiaKhuyenMai
         {
