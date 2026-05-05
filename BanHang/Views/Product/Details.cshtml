@@ -209,43 +209,7 @@
     <!-- Form gửi đánh giá -->
     <!-- Form gửi đánh giá -->
     <!-- Form gửi đánh giá -->
-    <div class="add-review mt-4">
-        <h4>Gửi đánh giá của bạn</h4>
-        @if (User.Identity != null && User.Identity.IsAuthenticated)
-        {
-            <form asp-action="AddReview" method="post">
-                @* Ẩn ID sản phẩm để gửi lên Controller *@
-                <input type="hidden" name="sanPhamId" value="@Model.MaSanPham" />
-
-                <div class="form-group mb-3">
-                    <p>Đang đánh giá với tư cách: <strong>@User.Identity.Name</strong></p>
-                </div>
-
-                <div class="form-group mb-2">
-                    <label>Số sao:</label>
-                    <select name="diem" class="form-control" style="width: 150px;">
-                        <option value="5">5 Sao ★★★★★</option>
-                        <option value="4">4 Sao ★★★★</option>
-                        <option value="3">3 Sao ★★★</option>
-                        <option value="2">2 Sao ★★</option>
-                        <option value="1">1 Sao ★</option>
-                    </select>
-                </div>
-
-                <div class="form-group mb-2">
-                    <label>Nội dung đánh giá:</label>
-                    <textarea name="noiDung" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..." required></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
-            </form>
-        }
-        else
-        {
-            <div class="alert alert-warning">
-                Vui lòng <a asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@Context.Request.Path">đăng nhập</a> để gửi đánh giá sản phẩm.
-            </div>
-        }
+    
     </div>
     </div>
     <hr class="my-5" />

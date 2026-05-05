@@ -21,10 +21,11 @@ namespace BanHang.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var donHangs = await _context.DonHangs
+                .Include(x => x.ChiTietDonHangs)           // Nạp chi tiết đơn hàng
+                    .ThenInclude(ct => ct.SanPham)        // Nạp sản phẩm để lấy HinhAnh và TenSanPham
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
-
 
             donHangs.ForEach(x => x.NgayDat = x.NgayDat.AddHours(7));
             return View(donHangs);
@@ -89,6 +90,69 @@ namespace BanHang.Controllers
 
             TempData["success"] = "Hủy đơn thành công!";
             return RedirectToAction("MyOrders", "DonHang");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DanhGia(int MaSanPham, string NoiDung, int Diem)
+        {
+            try
+            {
+                // ✅ Validation đầu vào
+                if (Diem < 1 || Diem > 5)
+                {
+                    TempData["error"] = "Điểm đánh giá phải từ 1-5 sao!";
+                    return RedirectToAction("Review", "Product", new { id = MaSanPham });
+                }
+
+                if (string.IsNullOrWhiteSpace(NoiDung) || NoiDung.Length < 10)
+                {
+                    TempData["error"] = "Nhận xét phải có ít nhất 10 ký tự!";
+                    return RedirectToAction("Review", "Product", new { id = MaSanPham });
+                }
+
+                if (NoiDung.Length > 500)
+                {
+                    TempData["error"] = "Nhận xét không được quá 500 ký tự!";
+                    return RedirectToAction("Review", "Product", new { id = MaSanPham });
+                }
+
+                // ✅ Lấy thông tin user hiện tại
+                var userName = User.Identity?.Name ?? User.FindFirstValue(ClaimTypes.Email) ?? "Khách hàng";
+
+                // ✅ Tạo đánh giá mới
+                var danhGia = new DanhGia
+                {
+                    SanPhamId = MaSanPham,
+                    TenNguoiDung = userName,
+                    Diem = Diem,
+                    NoiDung = NoiDung.Trim(),
+                    NgayTao = DateTime.Now
+                };
+
+                // ✅ Kiểm tra đã đánh giá chưa (tùy chọn)
+                var daDanhGia = await _context.DanhGias
+                    .AnyAsync(d => d.SanPhamId == MaSanPham && d.TenNguoiDung == userName);
+
+                if (daDanhGia)
+                {
+                    TempData["error"] = "Bạn đã đánh giá sản phẩm này rồi!";
+                    return RedirectToAction("Review", "Product", new { id = MaSanPham });
+                }
+
+                // ✅ Lưu vào DB
+                _context.DanhGias.Add(danhGia);
+                await _context.SaveChangesAsync();
+
+                // ✅ Thành công - Quay về trang Review (không phải Details)
+                TempData["success"] = $"Cảm ơn {userName}! Đánh giá của bạn đã được gửi.";
+                return RedirectToAction("Review", "Product", new { id = MaSanPham });
+            }
+            catch (Exception ex)
+            {
+                // ✅ Log lỗi (tùy chọn)
+                TempData["error"] = "Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại!";
+                return RedirectToAction("Review", "Product", new { id = MaSanPham });
+            }
         }
     }
 }

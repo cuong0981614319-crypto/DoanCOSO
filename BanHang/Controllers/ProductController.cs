@@ -50,46 +50,32 @@ public class ProductController : Controller
         return View(products);
     }
     [HttpGet]
-    public async Task<IActionResult> Details(int id, int quantity = 1)
+    public async Task<IActionResult> Details(int id)
     {
-        // Lấy thông tin sản phẩm từ service
         var sanPham = await _service.GetDetails(id);
 
-        if (sanPham == null)
-        {
-            return NotFound();
-        }
+        // 🔍 DEBUG
+        var count = await _context.DanhGias.CountAsync(d => d.SanPhamId == id);
+        ViewBag.DebugCount = $"Đánh giá: {count} (SanPhamId={id})";
 
-        // 🔥 QUAN TRỌNG: Nạp danh sách đánh giá từ Database vào Model
-        // Vì _service.GetDetails thường không lấy kèm các bảng liên quan
         sanPham.DanhGias = await _context.DanhGias
-                                         .Where(d => d.SanPhamId == id)
-                                         .OrderByDescending(d => d.NgayTao)
-                                         .ToListAsync();
-
-        // Sản phẩm cùng loại
-        var sanPhamCungLoai = await _service.GetRelatedProducts(id, sanPham.MaDanhMuc);
-
-        ViewBag.SanPhamCungLoai = sanPhamCungLoai;
-        ViewBag.Quantity = quantity;
+            .Where(d => d.SanPhamId == id)
+            .OrderByDescending(d => d.NgayTao)
+            .ToListAsync();
 
         return View(sanPham);
     }
     [HttpPost]
-    [HttpPost]
-    [Authorize] // Chỉ cho phép người dùng đã đăng nhập thực hiện
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddReview(int sanPhamId, int diem, string noiDung)
     {
-        // Lấy tên đăng nhập từ Identity (thường là Email hoặc Username)
-        string currentUserName = User.Identity?.Name ?? "Khách";
-
         var danhGia = new DanhGia
         {
             SanPhamId = sanPhamId,
-            TenNguoiDung = currentUserName, // Tự động lấy tên hệ thống
             Diem = diem,
             NoiDung = noiDung,
-            NgayTao = DateTime.Now
+            NgayTao = DateTime.Now,
+            TenNguoiDung = User.Identity.Name
         };
 
         _context.DanhGias.Add(danhGia);
@@ -97,5 +83,34 @@ public class ProductController : Controller
 
         return RedirectToAction("Details", new { id = sanPhamId });
     }
+    public IActionResult Review(int id)
+    {
+        var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
+        if (product == null) return NotFound();
 
+        ViewBag.ProductId = id;
+        ViewBag.ProductName = product.TenSanPham;
+        ViewBag.ProductPrice = product.Gia;
+        ViewBag.ProductImage = product.HinhAnh;
+        ViewBag.Reviews = _context.DanhGias.Where(d => d.SanPhamId == id).ToList();
+
+        // ✅ Nếu view ở Views/Product/Danhgia.cshtml
+        return View("Danhgia");
+
+        // Hoặc nếu view ở Views/DonHang/
+        // return View("~/Views/DonHang/Danhgia.cshtml");
+    }
+    public IActionResult Danhgia(int id)
+    {
+        var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
+        if (product == null) return NotFound();
+
+        ViewBag.ProductId = id;
+        ViewBag.ProductName = product.TenSanPham;
+        ViewBag.ProductPrice = product.Gia;
+        ViewBag.ProductImage = product.HinhAnh;
+        ViewBag.Reviews = _context.DanhGias.Where(d => d.SanPhamId == id).ToList();
+
+        return View(); // Tìm Views/Product/DanhGia.cshtml
+    }
 }

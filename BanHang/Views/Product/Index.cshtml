@@ -93,53 +93,10 @@
                     </select>
                 </div>
 
+               
+               
+
                 <div class="col-md-3 col-sm-6">
-                    <label class="form-label fw-semibold">Màu sắc</label>
-                    <select name="mauSac" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Tất cả màu sắc --</option>
-                        @if (mauSacs != null)
-                        {
-                            @foreach (var mau in mauSacs)
-                            {
-                                if ((string?)ViewBag.MauSac == mau)
-                                {
-                                    <option value="@mau" selected>@mau</option>
-                                }
-                                else
-                                {
-                                    <option value="@mau">@mau</option>
-                                }
-                            }
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <label class="form-label fw-semibold">Kích thước</label>
-                    <select name="kichThuc" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Tất cả kích thước --</option>
-
-                        @{
-                            var danhSachKichThuc = ViewBag.KichThucs as List<string>;
-                        }
-
-                        @if (danhSachKichThuc != null)
-                        {
-                            @foreach (var kt in danhSachKichThuc)
-                            {
-                                if (ViewBag.CurrentKichThuc == kt)
-                                {
-                                    <option value="@kt" selected>@kt</option>
-                                }
-                                else
-                                {
-                                    <option value="@kt">@kt</option>
-                                }
-                            }
-                        }
-                    </select>
-                </div>
-
-                <div class="col-12">
                     <a asp-controller="Product"
                        asp-action="Index"
                        asp-route-khuVucId="@ViewBag.KhuVucId"
