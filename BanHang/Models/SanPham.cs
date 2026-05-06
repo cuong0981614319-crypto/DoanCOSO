@@ -43,6 +43,11 @@ namespace BanHang.Models
         public List<HinhAnhSanPham>? HinhAnhSanPhams { get; set; } = new();
         public List<DanhGia> DanhGias { get; set; } = new List<DanhGia>();
         public int DaBan { get; internal set; }
+        [NotMapped]
+        public double AvgRating { get; set; }
+
+        [NotMapped]
+        public int TotalReviews { get; set; }
         public decimal GiaKhuyenMai
         {
             get

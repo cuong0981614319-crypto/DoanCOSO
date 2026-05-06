@@ -60,6 +60,14 @@ public class ProductController : Controller
 
         var sanPham = await _service.GetDetails(id);
 
+        // ✅ THÊM ĐOẠN NÀY
+        sanPham.AvgRating = await _context.DanhGias
+            .Where(d => d.SanPhamId == id)
+            .AverageAsync(d => (double?)d.Diem) ?? 0;
+
+        sanPham.TotalReviews = await _context.DanhGias
+            .CountAsync(d => d.SanPhamId == id);
+
         var query = _context.DanhGias
             .Where(d => d.SanPhamId == id)
             .Include(d => d.Images)
