@@ -50,24 +50,55 @@ public class ProductController : Controller
         return View(products);
     }
     [HttpGet]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(
+       int id,
+       int page = 1,
+       int? star = null,
+       bool? hasImage = null)
     {
+        int pageSize = 10;
+
         var sanPham = await _service.GetDetails(id);
 
-        // 🔍 DEBUG
-        var count = await _context.DanhGias.CountAsync(d => d.SanPhamId == id);
-        ViewBag.DebugCount = $"Đánh giá: {count} (SanPhamId={id})";
-
-        sanPham.DanhGias = await _context.DanhGias
+        var query = _context.DanhGias
             .Where(d => d.SanPhamId == id)
+            .Include(d => d.Images)
+            .AsQueryable();
+
+        // lọc sao
+        if (star.HasValue && star > 0)
+        {
+            query = query.Where(d => d.Diem == star);
+        }
+
+        // lọc có ảnh
+        if (hasImage == true)
+        {
+            query = query.Where(d => d.Images.Any());
+        }
+
+        int totalItems = await query.CountAsync();
+
+        var reviews = await query
             .OrderByDescending(d => d.NgayTao)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        sanPham.DanhGias = reviews;
+
+        // ViewBag cho phân trang
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+        ViewBag.CurrentStar = star;
+        ViewBag.HasImage = hasImage;
 
         return View(sanPham);
     }
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddReview(int sanPhamId, int diem, string noiDung)
+    public async Task<IActionResult> AddReview(int sanPhamId, int diem, string noiDung, List<IFormFile> images)
     {
         var danhGia = new DanhGia
         {
@@ -81,25 +112,45 @@ public class ProductController : Controller
         _context.DanhGias.Add(danhGia);
         await _context.SaveChangesAsync();
 
+        // 📁 đường dẫn lưu ảnh
+        string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/reviews");
+
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
+
+        // 📸 lưu nhiều ảnh
+        if (images != null && images.Count > 0)
+        {
+            foreach (var file in images)
+            {
+                if (file.Length > 0)
+                {
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    var img = new DanhGiaImage
+                    {
+                        DanhGiaId = danhGia.Id,
+                        ImageUrl = "/images/reviews/" + fileName
+                    };
+
+                    _context.DanhGiaImages.Add(img);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         return RedirectToAction("Details", new { id = sanPhamId });
     }
-    public IActionResult Review(int id)
-    {
-        var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
-        if (product == null) return NotFound();
-
-        ViewBag.ProductId = id;
-        ViewBag.ProductName = product.TenSanPham;
-        ViewBag.ProductPrice = product.Gia;
-        ViewBag.ProductImage = product.HinhAnh;
-        ViewBag.Reviews = _context.DanhGias.Where(d => d.SanPhamId == id).ToList();
-
-        // ✅ Nếu view ở Views/Product/Danhgia.cshtml
-        return View("Danhgia");
-
-        // Hoặc nếu view ở Views/DonHang/
-        // return View("~/Views/DonHang/Danhgia.cshtml");
-    }
+    [HttpGet]
     public IActionResult Danhgia(int id)
     {
         var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
@@ -109,8 +160,7 @@ public class ProductController : Controller
         ViewBag.ProductName = product.TenSanPham;
         ViewBag.ProductPrice = product.Gia;
         ViewBag.ProductImage = product.HinhAnh;
-        ViewBag.Reviews = _context.DanhGias.Where(d => d.SanPhamId == id).ToList();
 
-        return View(); // Tìm Views/Product/DanhGia.cshtml
+        return View(); // phải có Views/Product/Danhgia.cshtml
     }
 }

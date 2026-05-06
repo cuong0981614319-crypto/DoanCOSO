@@ -1,0 +1,142 @@
+﻿/* ================= REVIEW IMAGE ================= */
+.review-images {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.review-img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 2px solid transparent;
+}
+
+    .review-img:hover {
+        transform: scale(1.08);
+        border-color: #764ba2;
+    }
+
+/* ================= MODAL XEM ẢNH ================= */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+    /* ảnh trong modal */
+    .image-modal img {
+        max-width: 85%;
+        max-height: 85%;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        animation: zoomIn 0.3s ease;
+    }
+
+    /* nút đóng (❌) */
+    .image-modal::after {
+        content: "✕";
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+
+/* ================= ANIMATION ================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+.review-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+}
+
+    .filter-btn.active {
+        background: #764ba2;
+        color: white;
+        border-color: #764ba2;
+    }
+
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+}
+
+    .page-btn.active {
+        background: #764ba2;
+        color: white;
+        border-color: #764ba2;
+    }
+
+.review-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+}
+
+    .filter-btn.active {
+        background: #764ba2;
+        color: white;
+        border-color: #764ba2;
+    }

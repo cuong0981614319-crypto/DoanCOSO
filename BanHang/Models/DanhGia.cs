@@ -24,5 +24,6 @@ namespace BanHang.Models
         public int SanPhamId { get; set; }
         [ForeignKey("SanPhamId")]
         public SanPham? SanPham { get; set; }
+        public List<DanhGiaImage> Images { get; set; }
     }
 }

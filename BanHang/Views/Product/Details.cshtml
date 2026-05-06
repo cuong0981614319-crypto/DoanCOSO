@@ -64,22 +64,22 @@
             }
 
             <div class="price-quantity-inline mb-3">
-                @* d-flex giúp các thành phần nằm sát nhau, gap-2 tạo khoảng cách nhỏ vừa đủ *@
+               
                 <div class="price-container d-flex align-items-baseline mb-3" style="gap: 8px;">
                     @if (Model.PhanTramGiam > 0)
                     {
-                        @* 1. Badge giảm giá - Nhỏ gọn *@
+                      
                         <div class="badge-discount border px-1 text-danger fw-bold"
                              style="font-size: 0.8rem; background-color: #fff5f5; border-color: #feb2b2 !important;">
                             -@Model.PhanTramGiam%
                         </div>
 
-                        @* 2. Giá đã giảm - Màu nổi bật *@
+                  
                         <div class="current-price text-danger fw-bold fs-4">
                             @Model.GiaKhuyenMai.ToString("N0") VNĐ
                         </div>
 
-                        @* 3. Giá gốc gạch ngang - Nhỏ và mờ *@
+                     
                         <div class="original-price text-muted text-decoration-line-through" style="font-size: 0.9rem;">
                             @Model.Gia.ToString("N0") VNĐ
                         </div>
@@ -186,16 +186,50 @@
     <hr />
     <h3>Đánh giá sản phẩm</h3>
 
+    <div class="d-flex gap-3 mb-3">
+
+        <!-- Lọc sao -->
+        <select id="filterStar" class="form-select" onchange="applyFilter()">
+            <option value="" selected="@(ViewBag.CurrentStar == null)">Tất cả sao</option>
+            <option value="5" selected="@(ViewBag.CurrentStar == 5)">5★</option>
+            <option value="4" selected="@(ViewBag.CurrentStar == 4)">4★</option>
+            <option value="3" selected="@(ViewBag.CurrentStar == 3)">3★</option>
+            <option value="2" selected="@(ViewBag.CurrentStar == 2)">2★</option>
+            <option value="1" selected="@(ViewBag.CurrentStar == 1)">1★</option>
+        </select>
+
+        <!-- Lọc ảnh -->
+        <select id="filterImage" class="form-select" onchange="applyFilter()">
+            <option value="" selected="@(ViewBag.HasImage == null)">Tất cả</option>
+            <option value="true" selected="@(ViewBag.HasImage == true)">Có hình ảnh</option>
+        </select>
+
+    </div>
     <!-- Hiển thị danh sách đánh giá -->
     <div class="reviews">
+
         @if (Model.DanhGias != null && Model.DanhGias.Any())
         {
             @foreach (var review in Model.DanhGias)
             {
-                <div class="review-item border-bottom mb-3">
+                <div class="review-item border-bottom mb-3"
+                     data-star="@review.Diem"
+                     data-has-image="@(review.Images != null && review.Images.Any() ? "true" : "false")">
                     <strong>@review.TenNguoiDung</strong>
                     <span class="text-warning">@(new string('★', review.Diem))</span>
                     <p>@review.NoiDung</p>
+
+                    @if (review.Images != null && review.Images.Any())
+                    {
+                        <div class="review-images mt-2">
+                            @foreach (var img in review.Images)
+                            {
+                                <img src="@img.ImageUrl"
+                                     class="review-img"
+                                     onclick="openImageModal('@img.ImageUrl')" />
+                            }
+                        </div>
+                    }
                     <small class="text-muted">@review.NgayTao.ToString("dd/MM/yyyy")</small>
                 </div>
             }
@@ -211,7 +245,61 @@
     <!-- Form gửi đánh giá -->
     
     </div>
-    </div>
+<div class="pagination mt-4 d-flex justify-content-center align-items-center gap-2 flex-wrap">
+
+    <!-- Nút PREV -->
+    @if (ViewBag.CurrentPage > 1)
+    {
+        <a asp-action="Details"
+           asp-route-id="@Model.MaSanPham"
+           asp-route-page="@(ViewBag.CurrentPage - 1)"
+           asp-route-star="@ViewBag.CurrentStar"
+           asp-route-hasImage="@ViewBag.HasImage"
+           class="btn btn-outline-dark">
+            ← Prev
+        </a>
+    }
+    else
+    {
+        <button class="btn btn-outline-dark" disabled>← Prev</button>
+    }
+
+    <!-- Số trang -->
+    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+    {
+        <a asp-action="Details"
+           asp-route-id="@Model.MaSanPham"
+           asp-route-page="@i"
+           asp-route-star="@ViewBag.CurrentStar"
+           asp-route-hasImage="@ViewBag.HasImage"
+           class="btn @(i == ViewBag.CurrentPage ? "btn-dark" : "btn-outline-dark")">
+            @i
+        </a>
+    }
+
+    <!-- Nút NEXT -->
+    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+        <a asp-action="Details"
+           asp-route-id="@Model.MaSanPham"
+           asp-route-page="@(ViewBag.CurrentPage + 1)"
+           asp-route-star="@ViewBag.CurrentStar"
+           asp-route-hasImage="@ViewBag.HasImage"
+           class="btn btn-outline-dark">
+            Next →
+        </a>
+    }
+    else
+    {
+        <button class="btn btn-outline-dark" disabled>Next →</button>
+    }
+
+</div>
+
+<!-- Hiển thị Trang X / Y -->
+<div class="text-center mt-2 text-muted">
+    Trang @ViewBag.CurrentPage / @ViewBag.TotalPages
+</div>
     <hr class="my-5" />
 
     <div class="related-section mb-4">
@@ -334,6 +422,9 @@
 
 <div id="cart-toast" class="cart-toast">Đã thêm vào giỏ hàng!</div>
 
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <img id="modalImage" />
+</div>
 
 
 <script>
@@ -479,4 +570,93 @@
             });
         });
     });
+        function openImageModal(src) {
+        const modal = document.getElementById("imageModal");
+        const img = document.getElementById("modalImage");
+
+        img.src = src;
+        modal.style.display = "flex";
+    }
+
+    function closeImageModal() {
+        document.getElementById("imageModal").style.display = "none";
+    }
+
+    let currentStar = 0;
+    let filterImage = false;
+    let visibleCount = 10;
+
+    function applyFilter() {
+        const reviews = document.querySelectorAll(".review-item");
+        let count = 0;
+        let totalMatch = 0;
+
+        reviews.forEach(r => {
+            const star = parseInt(r.dataset.star);
+            const hasImage = r.dataset.hasImage === "true";
+
+            let match = true;
+
+            if (currentStar !== 0 && star !== currentStar) match = false;
+            if (filterImage && !hasImage) match = false;
+
+            if (match) {
+                totalMatch++;
+
+                if (count < visibleCount) {
+                    r.style.display = "block";
+                    count++;
+                } else {
+                    r.style.display = "none";
+                }
+            } else {
+                r.style.display = "none";
+            }
+        });
+
+        // nút load more
+        const btn = document.getElementById("btnLoadMore");
+        if (btn) {
+            btn.style.display = (visibleCount < totalMatch) ? "inline-block" : "none";
+        }
+    }
+
+    // ===== EVENT =====
+
+    // lọc sao
+    document.getElementById("filterStar").addEventListener("change", function () {
+        currentStar = parseInt(this.value);
+        visibleCount = 10;
+        applyFilter();
+    });
+
+    // lọc ảnh
+    document.getElementById("filterImage").addEventListener("change", function () {
+        filterImage = this.value === "true";
+        visibleCount = 10;
+        applyFilter();
+    });
+
+    // load thêm
+    document.getElementById("btnLoadMore").addEventListener("click", function () {
+        visibleCount += 10;
+        applyFilter();
+    });
+
+    // chạy lần đầu
+    document.addEventListener("DOMContentLoaded", function () {
+        applyFilter();
+    });
+
+        function applyFilter() {
+        const star = document.getElementById("filterStar").value;
+        const hasImage = document.getElementById("filterImage").value;
+
+        let url = `/Product/Details/@Model.MaSanPham?page=1`;
+
+        if (star) url += `&star=${star}`;
+        if (hasImage) url += `&hasImage=${hasImage}`;
+
+        window.location.href = url;
+    }
 </script>
