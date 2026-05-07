@@ -1,11 +1,9 @@
 ﻿@model dynamic
 @{
     ViewData["Title"] = "Đánh giá sản phẩm";
-    <link rel="stylesheet" href="~/css/productUser/danhgia.css" asp-append-version="true" />
-    var productName = ViewBag.ProductName as string ?? "Sản phẩm";
-    var productPrice = ViewBag.ProductPrice;
-    var productId = ViewBag.ProductId;
 }
+
+<link rel="stylesheet" href="~/css/Danhgia.css" asp-append-version="true" />
 
 <div class="product-review-container">
     <!-- Product Header -->
@@ -13,50 +11,79 @@
         <div class="product-image">
             @if (ViewBag.ProductImage != null)
             {
-                <img src="@ViewBag.ProductImage" style="width:100%; height:100%; object-fit:cover; border-radius:15px;" />
+                <img src="@ViewBag.ProductImage" alt="Product Image" />
             }
             else
             {
                 <i class="fas fa-mobile-alt"></i>
             }
         </div>
-        <div class="product-title">@productName</div>
-        <div class="product-price">@(productPrice != null ? string.Format("{0:N0}đ", productPrice) : "")</div>
+        <div class="product-info">
+            <div class="product-title">@(ViewBag.ProductName ?? "Sản phẩm")</div>
+
+            <!-- GIÁ KHUYẾN MÃI - FIX LỖI CAST -->
+            <div class="product-price-container">
+                @{
+                    var phanTramGiam = ViewBag.PhanTramGiam;
+                    var giaGoc = ViewBag.GiaGoc;
+                    var productPrice = ViewBag.ProductPrice;
+                    var coGiamGia = phanTramGiam != null && (int)phanTramGiam > 0;
+                }
+
+                @if (coGiamGia)
+                {
+                    <!-- Giá gốc (gạch ngang) -->
+                    <div class="price-old">@(giaGoc != null ? string.Format("{0:N0}đ", giaGoc) : "")</div>
+
+                    <!-- Giá khuyến mãi + % giảm -->
+                    <div class="price-discount">
+                        <span class="price-new">@(productPrice != null ? string.Format("{0:N0}đ", productPrice) : "")</span>
+                        <span class="discount-badge">@(phanTramGiam != null ? $"{phanTramGiam}%" : "0%")</span>
+                    </div>
+                }
+                else
+                {
+                    <!-- Giá thường -->
+                    <div class="price-normal">@(productPrice != null ? string.Format("{0:N0}đ", productPrice) : "")</div>
+                }
+            </div>
+        </div>
     </div>
 
     <!-- Review Form -->
     <div class="review-form">
-        @* Đảm bảo asp-action và asp-controller khớp chính xác với code C# của bạn *@
         <form asp-action="AddReview" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
-
             <input type="hidden" name="sanPhamId" value="@ViewBag.ProductId" />
 
             <div class="mb-3">
-                <label>Điểm:</label>
+                <label>Điểm đánh giá:</label>
                 <select name="diem" class="form-control">
-                    <option value="5">5 ⭐</option>
-                    <option value="4">4 ⭐</option>
-                    <option value="3">3 ⭐</option>
-                    <option value="2">2 ⭐</option>
-                    <option value="1">1 ⭐</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
+                    <option value="4">⭐⭐⭐⭐ 4 sao</option>
+                    <option value="3">⭐⭐⭐ 3 sao</option>
+                    <option value="2">⭐⭐ 2 sao</option>
+                    <option value="1">⭐ 1 sao</option>
                 </select>
             </div>
 
             <div class="mb-3">
-                <label>Nội dung:</label>
-                <textarea name="noiDung" class="form-control"></textarea>
+                <label>Nội dung đánh giá:</label>
+                <textarea name="noiDung" class="form-control" rows="5"
+                          placeholder="Hãy chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
             </div>
+
             <div class="mb-3">
-                <label>Hình ảnh:</label>
+                <label>Đính kèm hình ảnh:</label>
                 <input type="file" name="images" multiple class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Chọn nhiều ảnh (JPG, PNG) để minh họa đánh giá</small>
             </div>
-            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-paper-plane"></i> Gửi đánh giá
+            </button>
         </form>
     </div>
-
-    <!-- Reviews List -->
-    
 </div>
 
 <script>
@@ -67,6 +94,5 @@
             alert.style.opacity = "0";
             setTimeout(() => alert.remove(), 500);
         }
-    }, 2000);
+    }, 3000);
 </script>
-

@@ -1,0 +1,238 @@
+﻿/* ========================================
+   DANH GIA SAN PHAM - FULL RESPONSIVE
+======================================== */
+
+/* Container chính */
+.product-review-container {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 20px 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Product Header */
+.product-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.product-image {
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease;
+}
+
+    .product-image:hover {
+        transform: scale(1.05);
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-image i {
+        font-size: 32px;
+        color: white;
+    }
+
+/* Product Info */
+.product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.product-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+/* GIÁ KHUYẾN MÃI */
+.product-price-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.price-old {
+    font-size: 15px;
+    color: #6c757d;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.price-discount {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.price-new {
+    font-size: 22px;
+    font-weight: 800;
+    color: #e74c3c !important;
+    text-shadow: 0 1px 2px rgba(231, 76, 60, 0.3);
+}
+
+.price-normal {
+    font-size: 20px;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 4px 25px rgba(255, 107, 107, 0.6);
+    }
+
+    100% {
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+}
+
+/* Review Form */
+.review-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.5);
+    backdrop-filter: blur(10px);
+}
+
+    .review-form .mb-3 {
+        margin-bottom: 25px !important;
+    }
+
+label {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    display: block;
+    font-size: 15px;
+}
+
+/* Form Controls */
+.form-control {
+    border-radius: 15px;
+    border: 2px solid #e9ecef;
+    padding: 15px 18px;
+    font-size: 15px;
+    transition: all 0.4s ease;
+    background: #fafbfc;
+}
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+        background: #fff;
+        transform: translateY(-1px);
+    }
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-text {
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+/* Button */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 15px;
+    padding: 16px 24px;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-primary:active {
+        transform: translateY(-1px);
+    }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-review-container {
+        padding: 15px 10px;
+        margin: 10px;
+    }
+
+    .product-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        padding: 20px 15px;
+    }
+
+    .product-image {
+        width: 80px;
+        height: 80px;
+        align-self: center;
+    }
+
+    .review-form {
+        padding: 20px 15px;
+    }
+
+    .price-discount {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+
+/* Loading animation cho reviews */
+.reviews-list {
+    margin-top: 30px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}

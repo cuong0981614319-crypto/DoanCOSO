@@ -159,6 +159,7 @@ public class ProductController : Controller
         return RedirectToAction("Details", new { id = sanPhamId });
     }
     [HttpGet]
+    [HttpGet]
     public IActionResult Danhgia(int id)
     {
         var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
@@ -166,9 +167,11 @@ public class ProductController : Controller
 
         ViewBag.ProductId = id;
         ViewBag.ProductName = product.TenSanPham;
-        ViewBag.ProductPrice = product.Gia;
-        ViewBag.ProductImage = product.HinhAnh;
+        ViewBag.ProductImage = product.HinhAnh; // Đảm bảo trường này trong DB có dữ liệu
+        ViewBag.GiaGoc = product.Gia;           // Phải gán đúng tên biến View đang dùng
+        ViewBag.ProductPrice = product.GiaKhuyenMai;
+        ViewBag.PhanTramGiam = product.PhanTramGiam;
 
-        return View(); // phải có Views/Product/Danhgia.cshtml
+        return View();
     }
 }
