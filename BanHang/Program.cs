@@ -39,6 +39,8 @@ builder.Services.AddAuthentication()
 builder.Services.Configure<MoMoOption>(
     builder.Configuration.GetSection("MoMo"));
 builder.Services.AddScoped<MoMoService>();
+builder.Services.AddHttpClient();
+builder.Services.AddLogging();
 
 builder.Services.Configure<VNPayOptions>(
     builder.Configuration.GetSection("VNPay"));

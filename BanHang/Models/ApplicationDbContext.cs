@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<LichSuDonHang> lichSuDonHangs { get; set; }
     public DbSet<DanhGia> DanhGias { get; set; }
     public DbSet<DanhGiaImage> DanhGiaImages { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

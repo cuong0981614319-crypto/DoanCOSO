@@ -12,67 +12,80 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] Nội Thất Nhựa Đài Loan Hưng hạnh</title>
+    <title>@ViewData["Title"] Nội Thất Nhựa Đài Loan Hưng Hạnh</title>
+
     <link rel="icon" href="~/img/anh1.png" />
+
+    <!-- CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+   
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
     <link rel="stylesheet" href="~/BanHang.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
+
+    <!-- HEADER -->
     <header class="bg-white border-bottom">
+
         <div class="container py-3">
             <div class="row align-items-center">
-                @if(User.IsInRole("Admin"))
-                {
-                    <div class="col-md-3">
-                    <a asp-area="admin"
-                       asp-controller="Product"
-                       asp-action="Index"
-                       class="text-decoration-none">
-                        <img src="/img/anh1.png"
-                             alt="Hung Hanh Logo"
-                             class="logo-img" />
 
-                    </a>
-                    </div>
-                }
-                else{
-
+                <!-- LOGO -->
                 <div class="col-md-3">
                     <a asp-area=""
                        asp-controller="Home"
                        asp-action="Index"
                        class="text-decoration-none">
+
                         <img src="/img/anh1.png"
                              alt="Hung Hanh Logo"
                              class="logo-img" />
-
                     </a>
-                    </div>
-                }
-                
+                </div>
 
-                <form method="get" action="/Product/Search" class="search-box">
-                    <input type="text"
-                           id="searchInput"
-                           name="keyword"
-                           placeholder="Tìm kiếm sản phẩm..."
-                           autocomplete="off" />
+                <!-- SEARCH -->
+                <div class="col-md-5">
+                    <form method="get"
+                          action="/Product/Search"
+                          class="search-box">
 
-                    <button type="submit" id="searchBtn">
-                        <i class="fa fa-search"></i>
-                    </button>
+                        <input type="text"
+                               id="searchInput"
+                               name="keyword"
+                               placeholder="Tìm kiếm sản phẩm..."
+                               autocomplete="off" />
 
-                    <div id="searchSuggestions" class="search-suggestions"></div>
-                </form>
+                        <button type="submit" id="searchBtn">
+                            <i class="fa fa-search"></i>
+                        </button>
 
+                        <div id="searchSuggestions"
+                             class="search-suggestions">
+                        </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT -->
                 <div class="col-md-4 d-flex justify-content-end align-items-center gap-3">
+
                     <partial name="_LoginPartial" />
 
+                    <!-- CART -->
                     <div class="dropdown">
+
                         <a asp-controller="Cart"
                            asp-action="Index"
                            class="text-dark text-decoration-none d-flex align-items-center position-relative"
@@ -80,93 +93,125 @@
                            role="button"
                            data-bs-toggle="dropdown"
                            aria-expanded="false">
+
                             <div class="me-2 position-relative">
-                                <i class="bi bi-bag" style="font-size: 26px;"></i>
+                                <i class="bi bi-bag"
+                                   style="font-size: 26px;"></i>
+
                                 <span id="cart-badge"
-                                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                      style="font-size: 12px;">
+                                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                     @cartCount
                                 </span>
                             </div>
+
                             <span class="fw-bold">Giỏ hàng</span>
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 mt-3" aria-labelledby="cartDropdown">
+                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 mt-3"
+                             aria-labelledby="cartDropdown">
+
                             <h6 class="fw-bold mb-3">GIỎ HÀNG</h6>
+
                             <hr />
 
                             <div id="cart-dropdown-items">
+
                                 @if (cart.Any())
                                 {
-                                    <div style="max-height: 400px; overflow-y: auto;">
+                                    <div style="max-height:400px; overflow-y:auto;">
+
                                         @foreach (var item in cart)
                                         {
                                             <div class="d-flex align-items-center mb-3">
-                                                <div style="width: 60px; height: 60px;" class="me-2">
-                                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
-                                                    {
-                                                        <img src="@item.HinhAnh"
-                                                             alt="@item.TenSanPham"
-                                                             style="width: 100%; height: 100%; object-fit: contain;" />
-                                                    }
+
+                                                <div style="width:60px; height:60px;"
+                                                     class="me-2">
+
+                                                    <img src="@item.HinhAnh"
+                                                         alt="@item.TenSanPham"
+                                                         style="width:100%; height:100%; object-fit:contain;" />
                                                 </div>
+
                                                 <div class="flex-grow-1">
-                                                    <div class="fw-semibold">@item.TenSanPham</div>
-                                                    <div class="text-muted small">SL: @item.SoLuong</div>
+                                                    <div class="fw-semibold">
+                                                        @item.TenSanPham
+                                                    </div>
+
+                                                    <div class="text-muted small">
+                                                        SL: @item.SoLuong
+                                                    </div>
                                                 </div>
+
                                                 <div class="text-danger fw-bold">
                                                     @item.ThanhTien.ToString("N0")đ
                                                 </div>
                                             </div>
                                         }
+
                                     </div>
                                 }
                                 else
                                 {
-                                    <div class="py-3 text-center text-muted">Giỏ hàng trống</div>
+                                    <div class="text-center text-muted py-3">
+                                        Giỏ hàng trống
+                                    </div>
                                 }
+
                             </div>
 
                             <hr />
+
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-semibold">TỔNG TIỀN:</span>
-                                <span id="cart-total" class="fw-bold text-danger">@cartTotal.ToString("N0")đ</span>
+
+                                <span class="fw-bold text-danger">
+                                    @cartTotal.ToString("N0")đ
+                                </span>
                             </div>
 
                             <div class="d-flex gap-2">
+
                                 <a asp-controller="Cart"
                                    asp-action="Index"
-                                   class="btn btn-outline-dark flex-grow-1 btn-sm fw-bold py-2">
+                                   class="btn btn-outline-dark flex-grow-1 btn-sm">
                                     XEM GIỎ HÀNG
                                 </a>
+
                                 <a asp-controller="Cart"
                                    asp-action="Checkout"
-                                   class="btn btn-dark flex-grow-1 btn-sm fw-bold py-2">
+                                   class="btn btn-dark flex-grow-1 btn-sm">
                                     THANH TOÁN
                                 </a>
                             </div>
+
                         </div>
                     </div>
+
                 </div>
+
             </div>
         </div>
 
+        <!-- MENU -->
         <nav class="navbar navbar-expand-lg py-0 border-top">
+
             <div class="container justify-content-center">
-                <ul class="navbar-nav gap-4 fw-semibold text-uppercase align-items-center" style="font-size: 13px;">
+
+                <ul class="navbar-nav gap-4 fw-semibold text-uppercase align-items-center"
+                    style="font-size:13px;">
+
                     @await Component.InvokeAsync("Menu")
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
-                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Thietke">
                             Thiết kế - Thi công
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
-                        asp-area=""
                            asp-controller="CongCu"
                            asp-action="Khuyenmai">
                             Khuyến mãi
@@ -175,7 +220,6 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
-                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Tintuc">
                             Tin tức
@@ -184,105 +228,44 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
-                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Cuahang">
                             Cửa hàng
                         </a>
                     </li>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <li>
-                            <a class="nav-link text-dark py-3"
-                            asp-area="Admin"
-                            asp-controller="ThongKe"
-                            asp-action="Index">
-                                Thong Ke
-                            </a>
-                        </li>
-                    }
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark py-3"
-                               href="#"
-                               id="adminDropdown"
-                               role="button"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                <i class="bi bi-gear me-1"></i> Quản lý
-                            </a>
 
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="adminDropdown">
-                                <li>
-                                    <a class="dropdown-item"
-                                       asp-area="Admin"
-                                       asp-controller="Product"
-                                       asp-action="Index">
-                                        📦 Sản phẩm
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item"
-                                       asp-area="Admin"
-                                       asp-controller="DanhMuc"
-                                       asp-action="Index">
-                                        📂 Danh mục
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item"
-                                       asp-area="Admin"
-                                       asp-controller="KhuVuc"
-                                       asp-action="Index">
-                                        📍 Khu vực
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item"
-                                       asp-area="Admin"
-                                       asp-controller="DonHang"
-                                       asp-action="Index">
-                                        🧾 Đơn hàng
-                                    </a>
-                                </li>
-                               
-                            </ul>
-                        </li>
-                    }
-
-                    @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
-                    {
-                        <li class="nav-item">
-                            <a asp-controller="DonHang"
-                               asp-action="MyOrders"
-                               class="nav-link text-dark py-3">
-                                Đơn hàng của tôi
-                            </a>
-                        </li>
-                    }
                 </ul>
+
             </div>
+
         </nav>
+
     </header>
 
+    <!-- BODY -->
     <main role="main" class="pb-3">
         @RenderBody()
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-light pt-5 mt-5 border-top">
+
         <div class="container">
+
             <div class="row">
+
                 <div class="col-md-3">
                     <h5 class="fw-bold">NỘI THẤT HƯNG HẠNH</h5>
+
                     <p>
-                        Nội thất Hưng Hạnh chuyên cung cấp các sản phẩm nội thất
-                        nhựa Đài Loan chất lượng cao, thiết kế hiện đại và bền bỉ.
+                        Nội thất Hưng Hạnh chuyên cung cấp các sản phẩm
+                        nội thất nhựa Đài Loan chất lượng cao.
                     </p>
                 </div>
 
                 <div class="col-md-3">
                     <h5 class="fw-bold">THÔNG TIN</h5>
+
                     <ul class="list-unstyled">
                         <li>Chính Sách Bán Hàng</li>
                         <li>Chính Sách Giao Hàng</li>
@@ -292,162 +275,192 @@
                 </div>
 
                 <div class="col-md-3">
-                    <h5 class="fw-bold">THÔNG TIN LIÊN HỆ</h5>
-                    <p>📍 Thôn 1, Xã Bàu Cạn, Tỉnh Gia Lai</p>
-                    <p>📞 096 8850604</p>
+                    <h5 class="fw-bold">LIÊN HỆ</h5>
+
+                    <p>📍 Gia Lai</p>
+                    <p>📞 0968850604</p>
                     <p>✉ myhanh71298@gmail.com</p>
                 </div>
 
                 <div class="col-md-3">
-                    <h5 class="fw-bold mb-3 text-uppercase">Fanpage</h5>
 
-                    <div class="fanpage-box">
-                        <img src="/img/anh1.png" alt="Hưng Hạnh" class="fanpage-logo" />
+                    <h5 class="fw-bold">Fanpage</h5>
 
-                        <div class="fanpage-content">
-                            <div class="fanpage-name">Nội Thất Hưng Hạnh</div>
-                            <a href="https://www.facebook.com/profile.php?id=100054928830629"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="fanpage-link">
-                                Xem fanpage
-                            </a>
-                        </div>
-                    </div>
+                    <a href="https://www.facebook.com/profile.php?id=100054928830629"
+                       target="_blank"
+                       class="btn btn-primary mt-2">
+
+                        <i class="bi bi-facebook"></i>
+                        Facebook
+                    </a>
+
                 </div>
+
             </div>
 
-            <div class="text-center mt-4 pb-3">
-                <a href="https://www.facebook.com/share/18b6hrEarR/?mibextid=wwXIfr"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="mx-2 text-decoration-none">
-                    <i class="bi bi-facebook"></i> Facebook
-                </a>
-
-                <a href="https://youtube.com"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="mx-2 text-decoration-none">
-                    <i class="bi bi-youtube"></i> Youtube
-                </a>
-
-                <a href="https://instagram.com"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="mx-2 text-decoration-none">
-                    <i class="bi bi-instagram"></i> Instagram
-                </a>
-
-                <a href="https://www.tiktok.com/@@haihung160797"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="mx-2 text-decoration-none">
-                    <i class="bi bi-tiktok"></i> TikTok
-                </a>
-            </div>
         </div>
 
-        <div class="bg-dark text-white text-center p-3">
+        <div class="bg-dark text-white text-center p-3 mt-4">
             © @DateTime.Now.Year - BanHang
         </div>
+
     </footer>
 
+    <!-- FLOATING CONTACT -->
+    <div class="floating-contact">
+
+        <a href="tel:0968850604"
+           class="floating-btn phone">
+
+            <img src="/img/phone-call.png" />
+        </a>
+
+        <a href="#"
+           class="floating-btn zalo">
+
+            <img src="/img/Simpleicons-Team-Simple-Zalo.512.png" />
+        </a>
+
+        <a href="#"
+           class="floating-btn messenger">
+
+            <img src="/img/messenger.png" />
+        </a>
+
+    </div>
+
+    <!-- CHAT ICON -->
+    <div class="chat-icon" onclick="toggleChat()">
+        <i class="fa-solid fa-comments"></i>
+
+    </div>
+
+    <!-- CHATBOX -->
+    <div class="chat-popup" id="chatPopup">
+
+        <div class="chat-header">
+            Hỗ trợ khách hàng
+        </div>
+
+        <div class="chat-body" id="chat-messages">
+
+            <div class="msg admin">
+                Xin chào 👋 <br />
+                Bạn cần hỗ trợ gì?
+            </div>
+
+        </div>
+
+        <div class="chat-footer">
+
+            <input type="text"
+                   id="chat-input"
+                   placeholder="Nhập tin nhắn..." />
+
+            <button onclick="sendMessage()">
+                Gửi
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- SCRIPT -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
-    <div class="floating-contact">
-        <a href="tel:0968850604" class="floating-btn phone" title="Gọi ngay">
-            <span>
-                <img src="/img/phone-call.png"
-                     alt="Hung Hanh Logo"
-                     class="logo-img" />
-            </span>
-        </a>
-
-        <a href="https://cdn.hstatic.net/files/200000065946/file/stick_zalo.png" target="_blank" class="floating-btn zalo" title="Chat Zalo">
-            <span>
-                <img src="/img/Simpleicons-Team-Simple-Zalo.512.png"
-                     alt="Hung Hanh Logo"
-                     class="logo-img" />
-            </span>
-        </a>
-
-        <a href="https://m.me/yourpage" target="_blank" class="floating-btn messenger" title="Messenger">
-            <span>
-                <img src="/img/messenger.png"
-                     alt="Hung Hanh Logo"
-                     class="logo-img" />
-            </span>
-        </a>
-    </div>
     <script>
-            const searchInput = document.getElementById("searchInput");
-            const suggestionsBox = document.getElementById("searchSuggestions");
 
-            let debounceTimer;
+                 let isTyping = false;
 
-            searchInput.addEventListener("input", function () {
-                const keyword = this.value.trim();
+        function toggleChat() {
+            const chatPopup = document.getElementById("chatPopup");
+            chatPopup.classList.toggle("active");
 
-                clearTimeout(debounceTimer);
-
-                if (keyword.length === 0) {
-                    suggestionsBox.style.display = "none";
-                    suggestionsBox.innerHTML = "";
-                    return;
-                }
-
-                debounceTimer = setTimeout(() => {
-                    fetch(`/Home/SearchSuggestions?keyword=${encodeURIComponent(keyword)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (!data || data.length === 0) {
-                                suggestionsBox.innerHTML = `<div class="search-empty">Không tìm thấy sản phẩm</div>`;
-                                suggestionsBox.style.display = "block";
-                                return;
-                            }
-
-                            let html = "";
-
-                                        data.forEach(item => {
-                html += `
-                    <a href="/Product/Details/${item.id}" class="search-item">
-                        <img src="${item.image}" alt="${item.name}">
-                        <div class="search-item-info">
-                            <div class="search-item-name">${item.name}</div>
-                            <div class="search-item-price">
-                                ${Number(item.price).toLocaleString('vi-VN')}đ
-                            </div>
-                        </div>
-                    </a>
-                `;
-            });
-
-                            suggestionsBox.innerHTML = html;
-                            suggestionsBox.style.display = "block";
-                        })
-                        .catch(error => {
-                            console.error(error);
-                            suggestionsBox.style.display = "none";
-                        });
+            // Focus input when opening
+            if (chatPopup.classList.contains("active")) {
+                setTimeout(() => {
+                    document.getElementById("chat-input").focus();
                 }, 300);
-            });
+            }
+        }
 
-            document.addEventListener("click", function (e) {
-                if (!document.querySelector(".search-box").contains(e.target)) {
-                    suggestionsBox.style.display = "none";
-                }
-            });
+        // Enter key support
+        document.getElementById("chat-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
 
-            searchInput.addEventListener("focus", function () {
-                if (suggestionsBox.innerHTML.trim() !== "") {
-                    suggestionsBox.style.display = "block";
-                }
-            });
+        async function sendMessage() {
+            const input = document.getElementById("chat-input");
+            const message = input.value.trim();
+
+            if (message === '' || isTyping) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show typing indicator
+            isTyping = true;
+            addTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                // Remove typing indicator and add AI response
+                removeTypingIndicator();
+                addMessage(data.reply || 'Không nhận được phản hồi.', 'admin');
+
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('Lỗi kết nối AI 😢<br>Vui lòng gọi hotline: 0968850604', 'admin');
+                console.error('Chat error:', error);
+            }
+
+            isTyping = false;
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById("chat-messages");
+            const div = document.createElement('div');
+            div.className = `msg ${sender}`;
+            div.innerHTML = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const container = document.getElementById("chat-messages");
+            const div = document.createElement('div');
+            div.id = 'typing-indicator';
+            div.className = 'msg admin';
+            div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
     </script>
-</body>
 
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
 </html>
