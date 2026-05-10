@@ -204,6 +204,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
+                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Thietke">
                             Thiết kế - Thi công
@@ -212,6 +213,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
+                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Khuyenmai">
                             Khuyến mãi
@@ -220,6 +222,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
+                           asp-area=""
                            asp-controller="CongCu"
                            asp-action="Tintuc">
                             Tin tức
@@ -228,12 +231,31 @@
 
                     <li class="nav-item">
                         <a class="nav-link text-dark py-3"
+                        asp-area=""
                            asp-controller="CongCu"
                            asp-action="Cuahang">
                             Cửa hàng
                         </a>
                     </li>
-
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark py-3"
+                           asp-controller="ThongKe"
+                           asp-action="Index">
+                            Thống kê
+                        </a>
+                    </li>}
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark py-3"
+                               asp-controller="DonHang"
+                               asp-action="MyOrders">
+                                Đơn Hàng Của Tôi
+                            </a>
+                        </li>
+                    }
                 </ul>
 
             </div>
