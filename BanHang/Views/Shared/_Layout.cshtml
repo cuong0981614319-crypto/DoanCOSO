@@ -1,4 +1,4 @@
-﻿@using BanHang.Extensions
+@using BanHang.Extensions
 @using BanHang.Models
 
 @{
@@ -410,37 +410,23 @@
     <!-- CHAT ICON -->
     <div class="chat-icon" onclick="toggleChat()">
         <i class="fa-solid fa-comments"></i>
-
     </div>
 
-    <!-- CHATBOX -->
-    <div class="chat-popup" id="chatPopup">
-
+    <!-- KHUNG CHAT -->
+    <div id="chatPopup" class="chat-popup">
         <div class="chat-header">
-            Hỗ trợ khách hàng
+            Tư vấn Hưng Hạnh
+            <button class="btn-close btn-close-white float-end" onclick="toggleChat()" style="font-size:12px; margin-top:4px;"></button>
         </div>
-
-        <div class="chat-body" id="chat-messages">
-
+        <div class="chat-body" id="chat-body">
             <div class="msg admin">
-                Xin chào 👋 <br />
-                Bạn cần hỗ trợ gì?
+                Xin chào! Tôi là trợ lý ảo của Nội Thất Hưng Hạnh. Tôi có thể giúp gì cho bạn?
             </div>
-
         </div>
-
         <div class="chat-footer">
-
-            <input type="text"
-                   id="chat-input"
-                   placeholder="Nhập tin nhắn..." />
-
-            <button onclick="sendMessage()">
-                Gửi
-            </button>
-
+            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." onkeypress="handleChatKeyPress(event)">
+            <button onclick="sendChatMessage()"><i class="fa fa-paper-plane"></i></button>
         </div>
-
     </div>
 
     <!-- SCRIPT -->
@@ -451,8 +437,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
-
-                 let isTyping = false;
+        let isTyping = false;
 
         function toggleChat() {
             const chatPopup = document.getElementById("chatPopup");
@@ -466,77 +451,70 @@
             }
         }
 
-        // Enter key support
-        document.getElementById("chat-input").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                sendMessage();
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
             }
-        });
+        }
 
-               async function sendMessage() {
+        async function sendChatMessage() {
             const input = document.getElementById("chat-input");
             const message = input.value.trim();
+            if (!message || isTyping) return;
 
-            if (message === '' || isTyping) return;
-
-            addMessage(message, 'user');
-            input.value = '';
-
+            // Thêm tin nhắn của User
+            addMessage("user", message);
+            input.value = "";
             isTyping = true;
-            addTypingIndicator();
+
+            // Thêm typing indicator
+            const chatBody = document.getElementById("chat-body");
+            const typingDiv = document.createElement("div");
+            typingDiv.className = "msg admin typing";
+            typingDiv.id = "typingIndicator";
+            typingDiv.innerText = "Đang gõ...";
+            chatBody.appendChild(typingDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
 
             try {
-                const response = await fetch('/api/chat', {
+                const response = await fetch('/api/Chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ message: message })
                 });
 
-                if (!response.ok) {
-                    removeTypingIndicator();
-                    addMessage("Server lỗi 😢", "admin");
-                    return;
-                }
-
                 const data = await response.json();
+                
+                // Xoá typing
+                const indicator = document.getElementById("typingIndicator");
+                if (indicator) indicator.remove();
 
-                removeTypingIndicator();
-                addMessage(data.reply, 'admin');
-
+                // Thêm tin nhắn Bot
+                addMessage("admin", data.reply);
             } catch (error) {
-                removeTypingIndicator();
-                addMessage('Lỗi kết nối server 😢', 'admin');
+                const indicator = document.getElementById("typingIndicator");
+                if (indicator) indicator.remove();
+                addMessage("admin", "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.");
+            } finally {
+                isTyping = false;
             }
-
-            isTyping = false;
         }
 
-        function addMessage(text, sender) {
-            const container = document.getElementById("chat-messages");
-            const div = document.createElement('div');
-            div.className = `msg ${sender}`;
-            div.innerHTML = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
+        function addMessage(sender, text) {
+            const chatBody = document.getElementById("chat-body");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "msg " + sender;
+            
+            // Format line breaks
+            text = text.replace(/\n/g, "<br>");
+            // Format bold text **text** to <strong>text</strong>
+            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-        function addTypingIndicator() {
-            const container = document.getElementById("chat-messages");
-            const div = document.createElement('div');
-            div.id = 'typing-indicator';
-            div.className = 'msg admin';
-            div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typing-indicator');
-            if (indicator) {
-                indicator.remove();
-            }
+            msgDiv.innerHTML = text;
+            chatBody.appendChild(msgDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
     </script>
 
