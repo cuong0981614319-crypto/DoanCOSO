@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 using BanHang.Models;
@@ -101,8 +101,8 @@ namespace BanHang.Areas.Identity.Pages.Account
                         var userRoles = await _userManager.GetRolesAsync(user);
                         if (userRoles.Contains("Admin"))
                         {
-                            // Chuyển hướng đến trang Quản lý sản phẩm của Admin
-                            return RedirectToAction("Index", "Product", new { area = "Admin" });
+                            // Chuyển hướng đến trang Thống kê của Admin
+                            return RedirectToAction("Index", "ThongKe", new { area = "Admin" });
                         }
                     }
                     // --------------------------------

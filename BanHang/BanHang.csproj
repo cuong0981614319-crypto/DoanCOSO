@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migration\**" />
     <Compile Remove="wwwroot\images\**" />
+    <Content Remove="Migration\**" />
     <Content Remove="wwwroot\images\**" />
+    <EmbeddedResource Remove="Migration\**" />
     <EmbeddedResource Remove="wwwroot\images\**" />
+    <None Remove="Migration\**" />
     <None Remove="wwwroot\images\**" />
   </ItemGroup>
 
@@ -35,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migration\" />
     <Folder Include="wwwroot\img\" />
   </ItemGroup>
 

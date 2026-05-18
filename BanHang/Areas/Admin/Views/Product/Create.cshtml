@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Thêm sản phẩm mới";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
@@ -44,6 +43,12 @@
                     <label asp-for="kichthuc" class="form-label fw-bold">Kích thước</label>
                     <input asp-for="kichthuc" class="form-control" placeholder="Ví dụ: 120x60x75 cm..." />
                     <span asp-validation-for="kichthuc" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="NgayThem" class="form-label fw-bold">Ngày thêm</label>
+                    <input asp-for="NgayThem" class="form-control" type="date" />
+                    <span asp-validation-for="NgayThem" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
