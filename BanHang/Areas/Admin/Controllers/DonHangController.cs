@@ -38,7 +38,10 @@ namespace BanHang.Areas.Admin.Controllers
                 }
             }
 
+            // Nối thêm dữ liệu bảng liên quan tại đây 👇
             var donHangs = await query
+                .Include(x => x.ChiTietDonHangs)        // Load danh sách chi tiết đơn hàng
+                    .ThenInclude(ct => ct.SanPham)     // Từ chi tiết, load tiếp thông tin sản phẩm (để lấy HinhAnh)
                 .OrderByDescending(x => x.NgayDat)
                 .ToListAsync();
 

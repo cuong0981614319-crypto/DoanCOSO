@@ -81,55 +81,70 @@
             }
 
             <div class="price-quantity-inline mb-3">
-               
                 <div class="price-container d-flex align-items-baseline mb-3" style="gap: 8px;">
                     @if (Model.PhanTramGiam > 0)
                     {
-                      
                         <div class="badge-discount border px-1 text-danger fw-bold"
                              style="font-size: 0.8rem; background-color: #fff5f5; border-color: #feb2b2 !important;">
                             -@Model.PhanTramGiam%
                         </div>
 
-                  
                         <div class="current-price text-danger fw-bold fs-4">
                             @Model.GiaKhuyenMai.ToString("N0") VNĐ
                         </div>
 
-                     
                         <div class="original-price text-muted text-decoration-line-through" style="font-size: 0.9rem;">
                             @Model.Gia.ToString("N0") VNĐ
                         </div>
-                       
                     }
                     else
                     {
                         <div class="current-price text-danger fw-bold fs-4">
                             @Model.Gia.ToString("N0") VNĐ
                         </div>
-                
                     }
                 </div>
             </div>
 
-            <div class="product-specifications mb-4">
-                @if (!string.IsNullOrWhiteSpace(Model?.kichthuc))
-                {
-                    <p class="mb-2">
-                        <i class="bi bi-aspect-ratio me-2"></i>
-                        <strong>Kích thước:</strong> @Model?.kichthuc
-                    </p>
-                }
+            <div class="product-info-container mb-4">
+                <div class="product-specifications mb-3">
+                    @if (!string.IsNullOrWhiteSpace(Model?.kichthuc))
+                    {
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-aspect-ratio text-secondary me-2 fs-5"></i>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 0.85rem; line-height: 1.2;">Kích thước:</span>
+                                <strong class="text-dark">@Model?.kichthuc</strong>
+                            </div>
+                        </div>
+                    }
 
-                @if (!string.IsNullOrWhiteSpace(Model?.chatlieu))
+                    @if (!string.IsNullOrWhiteSpace(Model?.chatlieu))
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-box-seam text-secondary me-2 fs-5"></i>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 0.85rem; line-height: 1.2;">Chất liệu:</span>
+                                <strong class="text-dark">@Model?.chatlieu</strong>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model?.MoTa))
                 {
-                    <p class="mb-2">
-                        <i class="bi bi-box-seam me-2"></i>
-                        <strong>Chất liệu:</strong> @Model?.chatlieu
-                    </p>
+                    <div class="product-description">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-file-earmark-text text-secondary me-2 fs-5"></i>
+                            <strong class="text-dark">Mô tả sản phẩm</strong>
+                        </div>
+                        <div class="text-muted p-3 bg-white rounded border" style="font-size: 0.95rem; line-height: 1.6; min-width: 250px;">
+                            @Model.MoTa
+                            @* Nếu dùng trình soạn thảo giàu HTML thì đổi thành: @Html.Raw(Model.MoTa) *@
+                        </div>
+                    </div>
                 }
             </div>
-
             
             <div class="mb-3">
                 <span class="btn btn-sm btn-outline-success disabled">
@@ -191,11 +206,7 @@
         </div>
     </div>
     <ul class="nav nav-tabs mt-4" id="productTabs">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#desc">
-                Mô tả
-            </button>
-        </li>
+        
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">
                 Đánh giá (@Model.TotalReviews)
@@ -206,16 +217,7 @@
     <div class="tab-content border p-3">
 
         <!-- TAB MÔ TẢ -->
-        <div class="tab-pane fade show active" id="desc">
-            @if (!string.IsNullOrWhiteSpace(Model.MoTa))
-            {
-                <p>@Model.MoTa</p>
-            }
-            else
-            {
-                <p class="text-muted">Chưa có mô tả</p>
-            }
-        </div>
+        
 
         <!-- TAB ĐÁNH GIÁ -->
         <div class="tab-pane fade" id="reviews">
@@ -244,11 +246,17 @@
                     @foreach (var review in Model.DanhGias)
                     {
                         <div class="review-item border-bottom mb-3">
-                            <strong>@review.TenNguoiDung</strong>
-                            <span class="text-warning">
-                                @(new string('★', review.Diem))
-                            </span>
-                            <p>@review.NoiDung</p>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-person-circle text-secondary fs-5"></i>
+                                <strong>@review.TenNguoiDung</strong>
+                                <span class="text-warning ms-2">
+                                    @(new string('★', review.Diem))
+                                </span>
+                            </div>
+
+                            <p class="mb-2">
+                                <span class="text-muted fw-bold">Nội dung đánh giá:</span> @review.NoiDung
+                            </p>
 
                             @if (review.Images != null && review.Images.Any())
                             {
@@ -523,12 +531,10 @@
         });
 
         // ===== GIỮ TAB REVIEW =====
-        if (window.location.hash === "#reviews") {
-            const tabTrigger = document.querySelector('[data-bs-target="#reviews"]');
-            if (tabTrigger) {
-                new bootstrap.Tab(tabTrigger).show();
-            }
-        }
+           const tabTrigger = document.querySelector('[data-bs-target="#reviews"]');
+    if (tabTrigger) {
+        new bootstrap.Tab(tabTrigger).show();
+    }
 
         // ===== ADD TO CART =====
         function showCartToast(message, isError = false) {

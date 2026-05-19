@@ -113,8 +113,7 @@
                             <th>Mã đơn</th>
                             <th>Khách hàng</th>
                             <th>SĐT</th>
-                            <th>Địa chỉ</th>
-                            <th>Ngày đặt</th>
+                            <th>Ảnh</th>                        
                             <th>Tổng tiền</th>
                             <th>Thanh toán</th>
                             <th>Trạng thái</th>
@@ -132,8 +131,18 @@
                                     <td>#@item.MaDonHang</td>
                                     <td>@item.HoTen</td>
                                     <td>@item.SoDienThoai</td>
-                                    <td>@item.DiaChi</td>
-                                    <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @{
+                                            // Get the first product image from the order's details collection
+                                            var firstDetail = item.ChiTietDonHangs?.FirstOrDefault();
+                                            var hinhAnh = firstDetail?.SanPham?.HinhAnh;
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(hinhAnh))
+                                        {
+                                            <img src="@hinhAnh" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;" />
+                                        }
+                                    </td>
                                     <td class="text-danger fw-bold">@item.TongTien.ToString("N0") VNĐ</td>
                                     <td>
                                         @if (item.DaThanhToan)
