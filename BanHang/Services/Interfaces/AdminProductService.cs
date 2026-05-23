@@ -48,7 +48,8 @@ namespace BanHang.Services
                 KhuVucHienThiId = model.KhuVucHienThiId,
                 kichthuc = model.kichthuc,
                 chatlieu = model.chatlieu,
-                HinhAnhSanPhams = new List<HinhAnhSanPham>()
+                HinhAnhSanPhams = new List<HinhAnhSanPham>(),
+                NgayThem = model.NgayThem,
             };
 
             // 🔥 Upload nhiều ảnh
@@ -96,6 +97,7 @@ namespace BanHang.Services
             existing.MauSac = model.MauSac;
             existing.MaDanhMuc = model.MaDanhMuc;
             existing.KhuVucHienThiId = model.KhuVucHienThiId;
+            existing.NgayThem = model.NgayThem;
             existing.kichthuc = model.kichthuc;
             existing.chatlieu = model.chatlieu;
 

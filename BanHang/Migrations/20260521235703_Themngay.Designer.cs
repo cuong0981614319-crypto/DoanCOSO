@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BanHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260518150924_AddNgayThemToSanPham")]
-    partial class AddNgayThemToSanPham
+    [Migration("20260521235703_Themngay")]
+    partial class Themngay
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

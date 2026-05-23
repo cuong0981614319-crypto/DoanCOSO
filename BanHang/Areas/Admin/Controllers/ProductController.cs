@@ -27,10 +27,15 @@ namespace BanHang.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await _productService.LoadDropdownsAsync(ViewBag);
-            return View(new SanPham());
-        }
+            var model = new SanPham
+            {
+                NgayThem = DateTime.Now
+            };
 
+            await _productService.LoadDropdownsAsync(ViewBag);
+
+            return View(model);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPham model)

@@ -50,8 +50,13 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="NgayThem" class="form-label fw-bold">Ngày thêm</label>
-                    <input asp-for="NgayThem" class="form-control" type="date" />
+                    <label asp-for="NgayThem" class="form-label fw-bold"></label>
+
+                    <input asp-for="NgayThem"
+                           type="date"
+                           class="form-control"
+                           value="@(Model.NgayThem?.ToString("yyyy-MM-dd"))" />
+
                     <span asp-validation-for="NgayThem" class="text-danger"></span>
                 </div>
                 <div class="mb-3">

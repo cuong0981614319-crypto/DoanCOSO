@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel;
 
 namespace BanHang.Models
 {
@@ -27,10 +28,11 @@ namespace BanHang.Models
         public string? HinhAnh { get; set; }
         public string? kichthuc { get; set; }
         public string ? chatlieu { get; set; }
-        
+
         [Display(Name = "Ngày thêm")]
         [DataType(DataType.Date)]
-        public DateTime? NgayThem { get; set; } = DateTime.Now;
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]
+        public DateTime? NgayThem { get; set; }
 
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
