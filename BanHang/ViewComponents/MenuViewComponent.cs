@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BanHang.Models;
 
@@ -17,7 +17,14 @@ namespace BanHang.ViewComponents
         {
             // Lấy danh sách danh mục từ database
             var items = await _context.DanhMucs.ToListAsync();
-            return View(items);
+            
+            // Lọc trùng lặp theo tên danh mục (xử lý chữ hoa/thường và khoảng trắng)
+            var uniqueItems = items
+                .GroupBy(x => x.TenDanhMuc.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())
+                .ToList();
+
+            return View(uniqueItems);
         }
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+using System.Text.Encodings.Web;
 
 namespace BanHang.Controllers
 {
@@ -15,7 +15,10 @@ namespace BanHang.Controllers
         private readonly HttpClient _httpClient;
         private readonly string _geminiApiKey;
 
-        public ChatController(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public ChatController(
+            ApplicationDbContext context,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClientFactory.CreateClient();
@@ -27,88 +30,131 @@ namespace BanHang.Controllers
             public string Message { get; set; } = string.Empty;
         }
 
+        private string GetLocalFallbackResponse(string message, string danhMucData)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return "Dạ, bạn cần hỗ trợ gì ạ?";
+            
+            var msg = message.ToLower();
+            if (msg.Contains("chào") || msg.Contains("hi ") || msg == "hi" || msg.Contains("hello"))
+                return "Xin chào! Mình là trợ lý tự động của Nội Thất Hưng Hạnh. Hiện tại hệ thống AI đang quá tải lượt dùng miễn phí, nhưng mình có thể giúp bạn xem danh mục hoặc địa chỉ cửa hàng. Bạn cần hỗ trợ gì ạ?";
+            
+            if (msg.Contains("địa chỉ") || msg.Contains("ở đâu"))
+                return "Cửa hàng Nội Thất Hưng Hạnh có địa chỉ tại Gia Lai. Rất hân hạnh được đón tiếp bạn!";
+                
+            if (msg.Contains("điện thoại") || msg.Contains("liên hệ") || msg.Contains("hotline") || msg.Contains("sđt") || msg.Contains("số điện thoại"))
+                return "Bạn có thể liên hệ ngay hotline: **0968850604** hoặc email: myhanh71298@gmail.com nhé.";
+                
+            if (msg.Contains("sản phẩm") || msg.Contains("danh mục") || msg.Contains("bán gì") || msg.Contains("có gì"))
+                return "Cửa hàng chuyên cung cấp nội thất nhựa Đài Loan. Các danh mục gồm: " + danhMucData + ". Bạn tham khảo thêm trên menu website nhé.";
+                
+            return "Dạ, hiện tại AI của cửa hàng đang hết lượt phản hồi tự động. Bạn vui lòng liên hệ trực tiếp hotline **0968850604** để nhân viên tư vấn chi tiết cho bạn nhé!";
+        }
+
         [HttpPost]
         public async Task<IActionResult> SendMessage([FromBody] ChatRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Message))
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
             {
-                return BadRequest("Message is empty");
+                return BadRequest(new { reply = "Tin nhắn không được để trống." });
             }
 
-            if (string.IsNullOrEmpty(_geminiApiKey) || _geminiApiKey == "YOUR_GEMINI_API_KEY_HERE")
+            var danhMucs = await _context.DanhMucs.Select(d => d.TenDanhMuc).Distinct().ToListAsync();
+            string danhMucData = danhMucs.Count > 0 ? string.Join(", ", danhMucs) : "Chưa có danh mục";
+
+            if (string.IsNullOrWhiteSpace(_geminiApiKey) || _geminiApiKey == "YOUR_GEMINI_API_KEY_HERE" || _geminiApiKey.Length < 10)
             {
-                return Ok(new { reply = "Chưa cấu hình API Key cho Gemini. Vui lòng thêm key hợp lệ vào file appsettings.Development.json tại mục Gemini:ApiKey." });
+                return Ok(new { reply = GetLocalFallbackResponse(request.Message, danhMucData) });
             }
 
             try
             {
-                // 1. Đọc dữ liệu từ Database để cấp context cho Gemini
-                var danhMucs = await _context.DanhMucs.Select(d => d.TenDanhMuc).ToListAsync();
-                var danhMucData = string.Join(", ", danhMucs);
-
                 var topSanPhams = await _context.SanPhams
                     .OrderByDescending(s => s.DaBan)
-                    .Take(10)
+                    .Take(30)
                     .Select(s => new { s.TenSanPham, s.Gia, s.GiaKhuyenMai, s.MoTa })
                     .ToListAsync();
-                
-                string productData = JsonSerializer.Serialize(topSanPhams, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
-                var thongTinCuaHang = @"
+                string productData = JsonSerializer.Serialize(
+                    topSanPhams,
+                    new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+
+                string thongTinCuaHang = @"
 Tên cửa hàng: Nội Thất Hưng Hạnh
-Chuyên: cung cấp các sản phẩm nội thất nhựa Đài Loan chất lượng cao.
+Chuyên: cung cấp các sản phẩm nội thất nhựa Đài Loan chất lượng cao
 Địa chỉ: Gia Lai
 Hotline: 0968850604
 Email: myhanh71298@gmail.com
-Chính sách: Bảo hành, đổi trả, giao hàng toàn quốc.
+Chính sách: Bảo hành, đổi trả, giao hàng toàn quốc
 ";
 
-                // 2. Cấu hình Prompt
-                string systemPrompt = $@"Bạn là nhân viên tư vấn bán hàng trí tuệ nhân tạo của cửa hàng {thongTinCuaHang}.
-Danh mục sản phẩm hiện có: {danhMucData}.
-Một số sản phẩm nổi bật: {productData}.
-Nhiệm vụ của bạn là tư vấn cho khách hàng một cách thân thiện, ngắn gọn, dễ hiểu và chuyên nghiệp.
-Luôn chào hỏi lịch sự nếu là tin nhắn đầu tiên. 
-Gợi ý sản phẩm phù hợp nếu khách hỏi. Nếu khách hỏi thông tin ngoài luồng hoặc không có trong dữ liệu, hãy khuyên họ liên hệ hotline 0968850604. 
-Hãy định dạng chữ đậm bằng cách bọc nội dung trong ** **. Trả lời bằng tiếng Việt.
-Tin nhắn của khách hàng: ";
+                string systemPrompt = $@"
+Bạn là trợ lý tư vấn bán hàng AI của cửa hàng Nội Thất Hưng Hạnh.
 
-                // 3. Gọi API Gemini
-                var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={_geminiApiKey}";
+Thông tin cửa hàng:
+{thongTinCuaHang}
+
+Danh mục sản phẩm:
+{danhMucData}
+
+Sản phẩm nổi bật:
+{productData}
+
+Yêu cầu:
+- Trả lời bằng tiếng Việt.
+- Thân thiện, ngắn gọn, dễ hiểu.
+- Nếu khách hỏi sản phẩm thì tư vấn theo dữ liệu có sẵn.
+- Nếu không có thông tin thì bảo khách liên hệ hotline 0968850604.
+- Không trả lời lan man ngoài lĩnh vực nội thất.
+- Có thể dùng **chữ đậm** cho ý quan trọng.
+
+Tin nhắn khách hàng:
+{request.Message}
+";
+
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_geminiApiKey}";
 
                 var payload = new
                 {
                     contents = new[]
                     {
-                        new { role = "user", parts = new[] { new { text = systemPrompt + "\n\n" + request.Message } } }
+                        new { role = "user", parts = new[] { new { text = systemPrompt } } }
                     }
                 };
 
-                var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(url, content);
+                var jsonPayload = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                if (response.IsSuccessStatusCode)
+                var response = await _httpClient.PostAsync(url, content);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    using var document = JsonDocument.Parse(responseString);
-                    var candidates = document.RootElement.GetProperty("candidates");
-                    if (candidates.GetArrayLength() > 0)
+                    // Fallback to local response if AI quota exceeded or unavailable
+                    return Ok(new { reply = GetLocalFallbackResponse(request.Message, danhMucData) });
+                }
+
+                using var document = JsonDocument.Parse(responseString);
+
+                if (document.RootElement.TryGetProperty("candidates", out var candidates) &&
+                    candidates.GetArrayLength() > 0)
+                {
+                    var candidate = candidates[0];
+
+                    if (candidate.TryGetProperty("content", out var responseContent) &&
+                        responseContent.TryGetProperty("parts", out var parts) &&
+                        parts.GetArrayLength() > 0 &&
+                        parts[0].TryGetProperty("text", out var text))
                     {
-                        var reply = candidates[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+                        var reply = text.GetString();
                         return Ok(new { reply = reply });
                     }
                 }
-                else
-                {
-                    var errorStr = await response.Content.ReadAsStringAsync();
-                    return Ok(new { reply = "Lỗi kết nối tới Gemini: " + response.StatusCode + ". Vui lòng kiểm tra lại cấu hình." });
-                }
 
-                return Ok(new { reply = "Xin lỗi, hiện tại hệ thống tư vấn đang bận. Vui lòng liên hệ hotline 0968850604 để được hỗ trợ trực tiếp." });
+                return Ok(new { reply = GetLocalFallbackResponse(request.Message, danhMucData) });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Ok(new { reply = "Đã xảy ra lỗi kết nối với trợ lý ảo. Xin vui lòng liên hệ hotline 0968850604." });
+                return Ok(new { reply = GetLocalFallbackResponse(request.Message, danhMucData) });
             }
         }
     }

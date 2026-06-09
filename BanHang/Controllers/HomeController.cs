@@ -1,4 +1,4 @@
-﻿using BanHang.Models;
+using BanHang.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,33 +19,64 @@ namespace BanHang.Controllers
         // CH? GI? L?I M?T HÀM INDEX NÀY
         public async Task<IActionResult> Index(int? maDanhMuc, string? keyword)
         {
-            // 1. L?y d? li?u khu v?c hi?n th? và s?n ph?m
             var khuVucs = await _context.KhuVucHienThis
                 .Include(k => k.SanPhams)
                     .ThenInclude(sp => sp.DanhMuc)
                 .OrderBy(k => k.ThuTu)
                 .ToListAsync();
 
-            // 2. L?Y S?N PH?M KHUY?N MÃI (Bán = 0) qua Repository
-            var promoProducts = await _productRepository.GetProductsNeverSoldAsync();
-            ViewBag.PromoProducts = promoProducts;
+            ViewBag.PromoProducts = await _productRepository.GetProductsNeverSoldAsync();
 
-            // 3. Logic l?c theo danh m?c ho?c t? khóa (N?u có)
-            // 4. Thiết lập ViewBag cho giao diện
+            // Lọc danh mục
             if (maDanhMuc.HasValue)
             {
+                foreach (var kv in khuVucs)
+                {
+                    kv.SanPhams = kv.SanPhams
+                        .Where(sp => sp.MaDanhMuc == maDanhMuc.Value)
+                        .ToList();
+                }
+
+                khuVucs = khuVucs
+                    .Where(kv => kv.SanPhams.Any())
+                    .ToList();
+
                 var danhMuc = await _context.DanhMucs
-                    .FirstOrDefaultAsync(dm => dm.MaDanhMuc == maDanhMuc.Value);
+                    .FirstOrDefaultAsync(x => x.MaDanhMuc == maDanhMuc.Value);
+
                 ViewBag.TenDanhMucDangLoc = danhMuc?.TenDanhMuc;
+            }
+
+            // Lọc từ khóa
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim().ToLower();
+
+                foreach (var kv in khuVucs)
+                {
+                    kv.SanPhams = kv.SanPhams
+                        .Where(sp => sp.TenSanPham != null &&
+                                     sp.TenSanPham.ToLower().Contains(keyword))
+                        .ToList();
+                }
+
+                khuVucs = khuVucs
+                    .Where(kv => kv.SanPhams.Any())
+                    .ToList();
             }
 
             ViewBag.MaDanhMucDangChon = maDanhMuc;
             ViewBag.Keyword = keyword;
 
-            // ================== THÊM Ở ĐÂY ==================
-            var allProducts = khuVucs.SelectMany(kv => kv.SanPhams ?? new List<SanPham>());
+            // Lấy sản phẩm bán chạy trực tiếp từ DB (DaBan > 5)
+            ViewBag.BestSellers = await _context.SanPhams
+                .Where(sp => sp.DaBan > 5)
+                .OrderByDescending(sp => sp.DaBan)
+                .Take(10)
+                .ToListAsync();
 
-            // 👉 lấy 1 lần (tối ưu)
+            var allProducts = khuVucs.SelectMany(kv => kv.SanPhams);
+
             var ratings = await _context.DanhGias
                 .GroupBy(d => d.SanPhamId)
                 .Select(g => new
@@ -62,12 +93,23 @@ namespace BanHang.Controllers
                 sp.AvgRating = r?.Avg ?? 0;
                 sp.TotalReviews = r?.Count ?? 0;
             }
-            // ================== END ==================
+
+            // Gán rating cho sản phẩm bán chạy
+            var bestSellersList = ViewBag.BestSellers as List<SanPham>;
+            if (bestSellersList != null)
+            {
+                foreach (var sp in bestSellersList)
+                {
+                    var r = ratings.FirstOrDefault(x => x.SanPhamId == sp.MaSanPham);
+                    sp.AvgRating = r?.Avg ?? 0;
+                    sp.TotalReviews = r?.Count ?? 0;
+                }
+            }
 
             return View(khuVucs);
         }
 
-            [HttpGet]
+        [HttpGet]
         public IActionResult SearchSuggestions(string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))

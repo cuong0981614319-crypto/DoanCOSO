@@ -7,8 +7,7 @@ namespace BanHang.Models
         [Key]
         public int MaDonHang { get; set; }
 
-        [Required]
-        public string HoTen { get; set; } = string.Empty;
+        public string? HoTen { get; set; } = string.Empty;
 
         [Required]
         public string SoDienThoai { get; set; } = string.Empty;

@@ -1,4 +1,4 @@
-﻿using BanHang.Migrations;
+using BanHang.Migrations;
 using BanHang.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +25,11 @@ public class ProductController : Controller
         int page = 1)
     {
         int pageSize = 16;
-        ViewBag.DanhMucs = await _context.DanhMucs.ToListAsync();
+        var danhMucs = await _context.DanhMucs.ToListAsync();
+        ViewBag.DanhMucs = danhMucs
+            .GroupBy(x => x.TenDanhMuc.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
 
         // Lưu lại ID đang chọn để giữ trạng thái "selected"
         ViewBag.CurrentMaDanhMuc = maDanhMuc;
@@ -59,6 +63,12 @@ public class ProductController : Controller
         int pageSize = 10;
 
         var sanPham = await _service.GetDetails(id);
+
+        // Lấy sản phẩm cùng loại
+        ViewBag.SanPhamCungLoai = await _context.SanPhams
+            .Where(s => s.MaDanhMuc == sanPham.MaDanhMuc && s.MaSanPham != id)
+            .Take(10)
+            .ToListAsync();
 
         // ✅ THÊM ĐOẠN NÀY
         sanPham.AvgRating = await _context.DanhGias
@@ -158,7 +168,7 @@ public class ProductController : Controller
 
         return RedirectToAction("Details", new { id = sanPhamId });
     }
-    [HttpGet]
+
     [HttpGet]
     public IActionResult Danhgia(int id)
     {
