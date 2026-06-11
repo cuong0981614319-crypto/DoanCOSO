@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
 using BanHang.Models;
-using Microsoft.EntityFrameworkCore;
+using BanHang.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BanHang.Areas.Admin.Controllers
 {
@@ -9,46 +9,39 @@ namespace BanHang.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class KhuVucController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IKhuVucRepository _repo;
 
-        public KhuVucController(ApplicationDbContext context)
+        public KhuVucController(IKhuVucRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.KhuVucHienThis.ToListAsync());
+            return View(await _repo.GetAllAsync());
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         public async Task<IActionResult> Create(KhuVucHienThi kv)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(kv);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(kv);
+            if (!ModelState.IsValid) return View(kv);
+
+            await _repo.AddAsync(kv);
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var kv = await _context.KhuVucHienThis.FindAsync(id);
+            var kv = await _repo.GetByIdWithSanPhamsAsync(id);
             return View(kv);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(KhuVucHienThi kv)
         {
-            _context.Update(kv);
-            await _context.SaveChangesAsync();
+            await _repo.UpdateAsync(kv);
             return RedirectToAction(nameof(Index));
         }
 
@@ -56,9 +49,7 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var khuVuc = await _context.KhuVucHienThis
-                .Include(x => x.SanPhams)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var khuVuc = await _repo.GetByIdWithSanPhamsAsync(id);
 
             if (khuVuc == null)
             {
@@ -72,9 +63,7 @@ namespace BanHang.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.KhuVucHienThis.Remove(khuVuc);
-            await _context.SaveChangesAsync();
-
+            await _repo.DeleteAsync(id);
             TempData["success"] = "Xóa khu vực thành công!";
             return RedirectToAction(nameof(Index));
         }

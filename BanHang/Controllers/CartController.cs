@@ -1,4 +1,5 @@
-﻿using BanHang.Models;
+using BanHang.Models;
+using BanHang.Repositories;
 using BanHang.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,26 +13,25 @@ namespace BanHang.Controllers
         private readonly IOrderService _orderService;
         private readonly MoMoService _moMoService;
         private readonly VNPayService _vnPayService;
-        private readonly ApplicationDbContext _context;
+        private readonly IOrderRepository _orderRepo;
 
         public CartController(
             ICartService cartService,
             IOrderService orderService,
             MoMoService moMoService,
             VNPayService vnPayService,
-            ApplicationDbContext context)
+            IOrderRepository orderRepo)
         {
             _cartService = cartService;
             _orderService = orderService;
             _moMoService = moMoService;
             _vnPayService = vnPayService;
-            _context = context;
+            _orderRepo = orderRepo;
         }
 
         [Authorize]
         public IActionResult Index()
         {
-            // Lấy danh sách CartItem từ Service
             var cart = _cartService.GetCart(HttpContext.Session);
             return View(cart);
         }
@@ -43,9 +43,7 @@ namespace BanHang.Controllers
         {
             if (quantity <= 0) quantity = 1;
 
-            // Service này phải gán được GiaKhuyenMai từ SanPham vào CartItem
             var success = await _cartService.AddToCart(HttpContext.Session, id, quantity);
-
             if (!success) return NotFound();
 
             TempData["success"] = "Đã thêm vào giỏ hàng!";
@@ -60,18 +58,13 @@ namespace BanHang.Controllers
         public async Task<IActionResult> AddToCartAjax(int id, int quantity = 1)
         {
             if (User.Identity == null || !User.Identity.IsAuthenticated)
-            {
                 return Json(new { success = false, redirectToLogin = true });
-            }
 
             if (quantity <= 0) quantity = 1;
 
             var success = await _cartService.AddToCart(HttpContext.Session, id, quantity);
-
             if (!success)
-            {
                 return Json(new { success = false, message = "Sản phẩm không tồn tại." });
-            }
 
             var cart = _cartService.GetCart(HttpContext.Session);
 
@@ -80,7 +73,6 @@ namespace BanHang.Controllers
                 success = true,
                 message = "Đã thêm vào giỏ hàng!",
                 cartCount = cart.Sum(x => x.SoLuong),
-                // Tổng tiền tính dựa trên giá khuyến mãi trong CartItem
                 cartTotal = cart.Sum(x => x.ThanhTien),
                 items = cart.Select(x => new
                 {
@@ -122,17 +114,14 @@ namespace BanHang.Controllers
         public IActionResult Checkout()
         {
             var cart = _cartService.GetCart(HttpContext.Session);
-
             if (cart == null || !cart.Any())
             {
                 TempData["error"] = "Giỏ hàng trống!";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Gán danh sách cụ thể thay vì dynamic để View dễ xử lý
             ViewBag.GioHang = cart;
             ViewBag.TongTien = cart.Sum(x => x.ThanhTien);
-
             return View(new ThanhToan());
         }
 
@@ -141,7 +130,6 @@ namespace BanHang.Controllers
         public async Task<IActionResult> Checkout(ThanhToan model)
         {
             var cart = _cartService.GetCart(HttpContext.Session);
-
             if (!cart.Any())
             {
                 TempData["error"] = "Giỏ hàng trống!";
@@ -156,8 +144,6 @@ namespace BanHang.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // OrderService sẽ lưu đơn hàng vào DB dựa trên giá khuyến mãi trong cart
             var donHang = await _orderService.CreateOrder(userId, model, cart);
 
             if (model.PhuongThucThanhToan == "MOMO")
@@ -165,8 +151,7 @@ namespace BanHang.Controllers
                 var payUrl = await _moMoService.CreatePaymentAsync(
                     donHang.MaDonHang.ToString(),
                     (long)donHang.TongTien,
-                    $"Thanh toán đơn hàng #{donHang.MaDonHang}"
-                );
+                    $"Thanh toán đơn hàng #{donHang.MaDonHang}");
                 return Redirect(payUrl);
             }
 
@@ -176,8 +161,7 @@ namespace BanHang.Controllers
                     HttpContext,
                     donHang.MaDonHang,
                     donHang.TongTien,
-                    $"Thanh toán đơn hàng {donHang.MaDonHang}"
-                );
+                    $"Thanh toán đơn hàng {donHang.MaDonHang}");
                 return Redirect(paymentUrl);
             }
 
@@ -201,8 +185,7 @@ namespace BanHang.Controllers
         [HttpGet]
         public async Task<IActionResult> VnpayReturn()
         {
-            var isValid = _vnPayService.ValidateSignature(Request.Query, out var responseData);
-
+            var isValid = _vnPayService.ValidateSignature(Request.Query, out _);
             if (!isValid)
             {
                 TempData["error"] = "Dữ liệu trả về không hợp lệ.";
@@ -212,17 +195,11 @@ namespace BanHang.Controllers
             var responseCode = Request.Query["vnp_ResponseCode"].ToString();
             var txnRef = Request.Query["vnp_TxnRef"].ToString();
 
-            if (int.TryParse(txnRef, out int orderId))
+            if (int.TryParse(txnRef, out int orderId) && responseCode == "00")
             {
-                var donHang = await _context.DonHangs.FindAsync(orderId);
-                if (donHang != null && responseCode == "00")
-                {
-                    donHang.DaThanhToan = true;
-                    donHang.NgayThanhToan = DateTime.Now;
-                    await _context.SaveChangesAsync();
-                    _cartService.Clear(HttpContext.Session);
-                    return RedirectToAction(nameof(Success), new { id = orderId });
-                }
+                await _orderRepo.UpdatePaymentAsync(orderId, true, DateTime.Now);
+                _cartService.Clear(HttpContext.Session);
+                return RedirectToAction(nameof(Success), new { id = orderId });
             }
 
             TempData["error"] = "Thanh toán thất bại.";

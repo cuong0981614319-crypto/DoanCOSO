@@ -98,17 +98,28 @@ builder.Services.AddRazorPages();
 
 
 // ==========================
+// REPOSITORIES
+// ==========================
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IHomeRepository, BanHang.Repositories.HomeRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IDonHangRepository, BanHang.Repositories.DonHangRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IProductDetailRepository, BanHang.Repositories.ProductDetailRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IDanhMucRepository, BanHang.Repositories.DanhMucRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IKhuVucRepository, BanHang.Repositories.KhuVucRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IAdminDonHangRepository, BanHang.Repositories.AdminDonHangRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IThongKeRepository, BanHang.Repositories.ThongKeRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IOrderRepository, BanHang.Repositories.OrderRepository>();
+
+// ==========================
 // SERVICES
 // ==========================
 builder.Services.AddScoped<IProductService, ProductService>();
-
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
 builder.Services.AddScoped<ICartService, CartService>();
-
 builder.Services.AddScoped<IOrderService, OrderService>();
-
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<BanHang.Services.IHomeService, BanHang.Services.HomeService>();
+builder.Services.AddScoped<BanHang.Services.IDonHangService, BanHang.Services.DonHangService>();
+builder.Services.AddScoped<BanHang.Services.IProductDetailService, BanHang.Services.ProductDetailService>();
 
 
 // ==========================

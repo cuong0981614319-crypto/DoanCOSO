@@ -1,7 +1,7 @@
-﻿using BanHang.Models;
+using BanHang.Models;
+using BanHang.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BanHang.Areas.Admin.Controllers
 {
@@ -9,40 +9,28 @@ namespace BanHang.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class DanhMucController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDanhMucRepository _repo;
 
-        public DanhMucController(ApplicationDbContext context)
+        public DanhMucController(IDanhMucRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         public async Task<IActionResult> Index()
         {
-            var danhMucs = await _context.DanhMucs
-                .OrderBy(x => x.MaDanhMuc)
-                .ToListAsync();
-
-            return View(danhMucs);
+            return View(await _repo.GetAllAsync());
         }
 
         [HttpGet]
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DanhMuc model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
-            _context.DanhMucs.Add(model);
-            await _context.SaveChangesAsync();
-
+            await _repo.AddAsync(model);
             TempData["success"] = "Thêm danh mục thành công!";
             return RedirectToAction(nameof(Index));
         }
@@ -50,9 +38,8 @@ namespace BanHang.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var danhMuc = await _context.DanhMucs.FindAsync(id);
+            var danhMuc = await _repo.GetByIdAsync(id);
             if (danhMuc == null) return NotFound();
-
             return View(danhMuc);
         }
 
@@ -60,18 +47,9 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(DanhMuc model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
-            var danhMuc = await _context.DanhMucs.FindAsync(model.MaDanhMuc);
-            if (danhMuc == null) return NotFound();
-
-            danhMuc.TenDanhMuc = model.TenDanhMuc;
-
-            await _context.SaveChangesAsync();
-
+            await _repo.UpdateAsync(model);
             TempData["success"] = "Cập nhật danh mục thành công!";
             return RedirectToAction(nameof(Index));
         }
@@ -80,25 +58,13 @@ namespace BanHang.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var danhMuc = await _context.DanhMucs
-                .Include(x => x.SanPhams)
-                .FirstOrDefaultAsync(x => x.MaDanhMuc == id);
+            var result = await _repo.DeleteAsync(id);
 
-            if (danhMuc == null)
-            {
-                return NotFound();
-            }
-
-            if (danhMuc.SanPhams != null && danhMuc.SanPhams.Any())
-            {
+            if (!result)
                 TempData["error"] = "Không thể xoá danh mục này vì đang có sản phẩm.";
-                return RedirectToAction(nameof(Index));
-            }
+            else
+                TempData["success"] = "Xóa danh mục thành công!";
 
-            _context.DanhMucs.Remove(danhMuc);
-            await _context.SaveChangesAsync();
-
-            TempData["success"] = "Xóa danh mục thành công!";
             return RedirectToAction(nameof(Index));
         }
     }

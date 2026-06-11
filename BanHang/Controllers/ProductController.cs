@@ -1,19 +1,16 @@
-using BanHang.Migrations;
 using BanHang.Models;
-using Microsoft.AspNetCore.Authorization;
+using BanHang.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 public class ProductController : Controller
 {
-    private readonly IProductService _service;
-    private readonly ApplicationDbContext _context;
+    private readonly IProductService _productService;
+    private readonly IProductDetailService _productDetailService;
 
-    public ProductController(IProductService service, ApplicationDbContext context)
+    public ProductController(IProductService productService, IProductDetailService productDetailService)
     {
-        _service = service; 
-        _context = context;
+        _productService = productService;
+        _productDetailService = productDetailService;
     }
 
     public async Task<IActionResult> Index(
@@ -25,160 +22,80 @@ public class ProductController : Controller
         int page = 1)
     {
         int pageSize = 16;
-        var danhMucs = await _context.DanhMucs.ToListAsync();
+
+        var (kichThucs, mauSacs, danhMucs) = await _productDetailService.GetFilterDropdownsAsync();
+
         ViewBag.DanhMucs = danhMucs
             .GroupBy(x => x.TenDanhMuc.Trim(), StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
 
-        // Lưu lại ID đang chọn để giữ trạng thái "selected"
         ViewBag.CurrentMaDanhMuc = maDanhMuc;
-        ViewBag.KichThucs = await _context.SanPhams
-        .Select(p => p.kichthuc)
-        .Distinct()
-        .Where(k => !string.IsNullOrEmpty(k))
-        .ToListAsync();
-
-        // Lưu lại giá trị đang chọn để giữ trạng thái trên giao diện
+        ViewBag.KichThucs = kichThucs;
         ViewBag.CurrentKichThuc = kichthuoc;
-        ViewBag.MauSacs = await _context.SanPhams
-            .Select(p => p.MauSac)
-            .Distinct()
-            .Where(m => !string.IsNullOrEmpty(m))
-            .ToListAsync();
-        var (products, totalItems) = await _service.GetFilteredProducts(
+        ViewBag.MauSacs = mauSacs;
+
+        var (products, totalItems) = await _productService.GetFilteredProducts(
             khuVucId, maDanhMuc, mucGia, mauSac, page, pageSize);
 
         ViewBag.TotalItems = totalItems;
 
         return View(products);
     }
+
     [HttpGet]
-    public async Task<IActionResult> Details(
-       int id,
-       int page = 1,
-       int? star = null,
-       bool? hasImage = null)
+    public async Task<IActionResult> Details(int id, int page = 1, int? star = null, bool? hasImage = null)
     {
         int pageSize = 10;
 
-        var sanPham = await _service.GetDetails(id);
+        var sanPham = await _productDetailService.GetDetailsAsync(id, page, star, hasImage, pageSize);
+        if (sanPham == null) return NotFound();
 
-        // Lấy sản phẩm cùng loại
-        ViewBag.SanPhamCungLoai = await _context.SanPhams
-            .Where(s => s.MaDanhMuc == sanPham.MaDanhMuc && s.MaSanPham != id)
-            .Take(10)
-            .ToListAsync();
+        var (_, totalReviews) = await GetReviewCounts(id, star, hasImage, page, pageSize);
 
-        // ✅ THÊM ĐOẠN NÀY
-        sanPham.AvgRating = await _context.DanhGias
-            .Where(d => d.SanPhamId == id)
-            .AverageAsync(d => (double?)d.Diem) ?? 0;
-
-        sanPham.TotalReviews = await _context.DanhGias
-            .CountAsync(d => d.SanPhamId == id);
-
-        var query = _context.DanhGias
-            .Where(d => d.SanPhamId == id)
-            .Include(d => d.Images)
-            .AsQueryable();
-
-        // lọc sao
-        if (star.HasValue && star > 0)
-        {
-            query = query.Where(d => d.Diem == star);
-        }
-
-        // lọc có ảnh
-        if (hasImage == true)
-        {
-            query = query.Where(d => d.Images.Any());
-        }
-
-        int totalItems = await query.CountAsync();
-
-        var reviews = await query
-            .OrderByDescending(d => d.NgayTao)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        sanPham.DanhGias = reviews;
-
-        // ViewBag cho phân trang
+        ViewBag.SanPhamCungLoai = await GetSameCategoryProducts(id, sanPham.MaDanhMuc);
         ViewBag.CurrentPage = page;
-        ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
+        ViewBag.TotalPages = (int)Math.Ceiling((double)totalReviews / pageSize);
         ViewBag.CurrentStar = star;
         ViewBag.HasImage = hasImage;
 
         return View(sanPham);
     }
+
+    // Helper cục bộ - gọi lại service để lấy total count cho phân trang
+    private async Task<(List<object> items, int total)> GetReviewCounts(int id, int? star, bool? hasImage, int page, int pageSize)
+    {
+        // Lấy tổng số review cho phân trang - gọi qua IProductDetailService
+        var sanPham = await _productDetailService.GetDetailsAsync(id, page, star, hasImage, pageSize);
+        return (new List<object>(), sanPham?.DanhGias?.Count ?? 0);
+    }
+
+    private async Task<List<BanHang.Models.SanPham>> GetSameCategoryProducts(int sanPhamId, int? maDanhMuc)
+    {
+        if (maDanhMuc == null) return new();
+        var (products, _) = await _productService.GetFilteredProducts(null, maDanhMuc, null, null, 1, 10);
+        return products.Where(p => p.MaSanPham != sanPhamId).Take(10).ToList();
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddReview(int sanPhamId, int diem, string noiDung, List<IFormFile> images)
     {
-        var danhGia = new DanhGia
-        {
-            SanPhamId = sanPhamId,
-            Diem = diem,
-            NoiDung = noiDung,
-            NgayTao = DateTime.Now,
-            TenNguoiDung = User.Identity.Name
-        };
-
-        _context.DanhGias.Add(danhGia);
-        await _context.SaveChangesAsync();
-
-        // 📁 đường dẫn lưu ảnh
         string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/reviews");
-
-        if (!Directory.Exists(uploadPath))
-        {
-            Directory.CreateDirectory(uploadPath);
-        }
-
-        // 📸 lưu nhiều ảnh
-        if (images != null && images.Count > 0)
-        {
-            foreach (var file in images)
-            {
-                if (file.Length > 0)
-                {
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    var filePath = Path.Combine(uploadPath, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    var img = new DanhGiaImage
-                    {
-                        DanhGiaId = danhGia.Id,
-                        ImageUrl = "/images/reviews/" + fileName
-                    };
-
-                    _context.DanhGiaImages.Add(img);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
+        await _productDetailService.AddReviewAsync(sanPhamId, diem, noiDung, User.Identity!.Name!, images, uploadPath);
         return RedirectToAction("Details", new { id = sanPhamId });
     }
 
     [HttpGet]
-    public IActionResult Danhgia(int id)
+    public async Task<IActionResult> Danhgia(int id)
     {
-        var product = _context.SanPhams.FirstOrDefault(p => p.MaSanPham == id);
+        var product = await _productDetailService.GetBasicAsync(id);
         if (product == null) return NotFound();
 
         ViewBag.ProductId = id;
         ViewBag.ProductName = product.TenSanPham;
-        ViewBag.ProductImage = product.HinhAnh; // Đảm bảo trường này trong DB có dữ liệu
-        ViewBag.GiaGoc = product.Gia;           // Phải gán đúng tên biến View đang dùng
+        ViewBag.ProductImage = product.HinhAnh;
+        ViewBag.GiaGoc = product.Gia;
         ViewBag.ProductPrice = product.GiaKhuyenMai;
         ViewBag.PhanTramGiam = product.PhanTramGiam;
 
