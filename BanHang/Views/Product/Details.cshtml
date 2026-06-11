@@ -1,4 +1,4 @@
-﻿@model BanHang.Models.SanPham
+@model BanHang.Models.SanPham
 @using BanHang.Models
 
 @{
@@ -29,8 +29,7 @@
                 <img id="mainProductImage"
                      src="@mainImage"
                      alt="@Model.TenSanPham"
-                     class="img-fluid w-100"
-                     style="height: 400px; object-fit: contain;" />
+                     class="img-fluid w-100" />
             </div>
 
             @if (dsAnh.Any())
@@ -41,8 +40,7 @@
                         <div class="col-3">
                             <img src="@img.DuongDanAnh"
                                  alt="@Model.TenSanPham"
-                                 class="img-fluid border rounded product-thumb @(mainImage == img.DuongDanAnh ? "active-thumb" : "")"
-                                 style="height: 90px; width: 100%; object-fit: contain; cursor: pointer;" />
+                                 class="img-fluid border rounded product-thumb @(mainImage == img.DuongDanAnh ? "active-thumb" : "")" />
                         </div>
                     }
                 </div>
@@ -368,7 +366,7 @@
 
                                 <a asp-controller="Product" asp-action="Details" asp-route-id="@item.MaSanPham">
                                     <img src="@item.HinhAnh" class="card-img-top p-2"
-                                         style="height: 180px; object-fit: contain;">
+                                         >
                                 </a>
                             </div>
 

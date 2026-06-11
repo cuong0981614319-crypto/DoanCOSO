@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #f3f3f3;
     --card: #ffffff;
     --text: #222222;
@@ -44,20 +44,27 @@ body {
 
 .main-image-box {
     grid-area: main;
-    background: var(--card) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+    background: #fff !important;
+    border: 1px solid #eaeaea !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+    padding: 10px !important;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
     .main-image-box img {
         width: 100%;
-        height: 690px !important;
-        object-fit: cover !important;
+        height: 480px !important;
+        object-fit: contain !important;
         display: block;
         background: #fff;
+        transition: transform 0.3s ease;
+    }
+    .main-image-box img:hover {
+        transform: scale(1.02);
     }
 
 .thumbnail-list {
@@ -76,21 +83,21 @@ body {
 .product-thumb {
     width: 100%;
     height: 72px !important;
-    object-fit: cover !important;
+    object-fit: contain !important;
     border: 1px solid var(--line-2) !important;
-    border-radius: 0 !important;
+    border-radius: 6px !important;
     background: #fff;
     cursor: pointer;
-    transition: .2s ease;
-    padding: 0 !important;
+    transition: all .2s ease;
+    padding: 4px !important;
 }
 
     .product-thumb:hover {
-        border-color: #999 !important;
+        border-color: var(--orange) !important;
     }
 
 .active-thumb {
-    border: 2px solid #111 !important;
+    border: 2px solid var(--orange) !important;
 }
 
 /* Cột phải */
@@ -466,7 +473,7 @@ body {
 /* responsive */
 @media (max-width:1199.98px) {
     .main-image-box img {
-        height: 600px !important;
+        height: 420px !important;
     }
 
     .product-item {
@@ -481,7 +488,7 @@ body {
     }
 
     .main-image-box img {
-        height: 470px !important;
+        height: 380px !important;
     }
 
     .product-detail-page h2 {
@@ -516,11 +523,12 @@ body {
     }
 
     .main-image-box img {
-        height: 320px !important;
+        height: 300px !important;
     }
 
     .product-thumb {
         height: 70px !important;
+        object-fit: contain !important;
     }
 
     .product-price-box-inline {
@@ -574,11 +582,12 @@ body {
 }
 
 .main-image-box img {
-    height: 620px !important;
+    height: 480px !important;
 }
 
 .product-thumb {
     height: 64px !important;
+    object-fit: contain !important;
 }
 
 /* cột phải */
@@ -682,12 +691,16 @@ body {
     /* ảnh vuông, nền trắng */
     .product-item .card-img-top {
         width: 100%;
-        height: 250px;
-        object-fit: cover;
+        height: 180px !important;
+        object-fit: contain !important;
         background: #fff;
         border: 1px solid #ececec;
-        border-radius: 0 !important;
-        padding: 0 !important;
+        border-radius: 4px !important;
+        padding: 8px !important;
+        transition: transform 0.2s ease;
+    }
+    .product-item .card-img-top:hover {
+        transform: scale(1.03);
     }
 
     /* body gọn hơn */
@@ -786,7 +799,7 @@ body {
     }
 
         .product-item .card-img-top {
-            height: 230px;
+            height: 180px !important;
         }
 }
 
@@ -796,7 +809,7 @@ body {
     }
 
         .product-item .card-img-top {
-            height: 220px;
+            height: 180px !important;
         }
 }
 
@@ -815,7 +828,7 @@ body {
     }
 
         .product-item .card-img-top {
-            height: 240px;
+            height: 180px !important;
         }
 
         .product-item .card-title {
