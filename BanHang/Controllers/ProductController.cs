@@ -27,7 +27,7 @@ public class ProductController : Controller
         if (string.IsNullOrWhiteSpace(mauSac))
             mauSac = null;
 
-        int pageSize = 16;
+        int pageSize = 15;
 
         var (kichThucs, mauSacs, danhMucs) =
             await _productDetailService.GetFilterDropdownsAsync();
@@ -41,7 +41,7 @@ public class ProductController : Controller
         ViewBag.KichThucs = kichThucs;
         ViewBag.CurrentKichThuc = kichthuoc;
         ViewBag.MauSacs = mauSacs;
-
+        ViewBag.MaDanhMuc = maDanhMuc;
         ViewBag.MucGia = mucGia;
         ViewBag.MauSac = mauSac;
         ViewBag.KhuVucId = khuVucId;
@@ -50,6 +50,8 @@ public class ProductController : Controller
             khuVucId, maDanhMuc, mucGia, mauSac, page, pageSize);
 
         ViewBag.TotalItems = totalItems;
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
         return View(products);
     }
