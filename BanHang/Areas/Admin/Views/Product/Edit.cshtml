@@ -61,16 +61,7 @@
                 </div>
                 <div class="mb-3">
                     <label asp-for="MauSac" class="form-label fw-bold">Màu sắc</label>
-                    <select asp-for="MauSac" class="form-select">
-                        <option value="">-- Chọn màu sắc --</option>
-                        <option value="Đen">Đen</option>
-                        <option value="Trắng">Trắng</option>
-                        <option value="Xám">Xám</option>
-                        <option value="Nâu">Nâu</option>
-                        <option value="Be">Be</option>
-                        <option value="Xanh">Xanh</option>
-                        <option value="Đỏ">Đỏ</option>
-                    </select>
+                    <input asp-for="MauSac" class="form-control" />
                     <span asp-validation-for="MauSac" class="text-danger"></span>
                 </div>
 
