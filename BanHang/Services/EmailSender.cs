@@ -15,36 +15,45 @@ namespace BanHang.Services
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var emailSettings = _configuration.GetSection("EmailSettings");
-            var senderEmail = emailSettings["SenderEmail"];
-            var password = emailSettings["Password"];
-            var host = emailSettings["SmtpServer"] ?? "smtp.gmail.com";
-            var port = int.Parse(emailSettings["Port"] ?? "587");
-            var senderName = emailSettings["SenderName"] ?? "Shop BanHang";
-
-            if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(password))
+            try
             {
-                // Fallback for development if not configured
-                Console.WriteLine($"[EmailSender] To: {email}, Subject: {subject}, Body: {htmlMessage}");
-                return;
+                var emailSettings = _configuration.GetSection("EmailSettings");
+
+                var senderEmail = emailSettings["SenderEmail"];
+                var password = emailSettings["Password"];
+                var host = emailSettings["SmtpServer"] ?? "smtp.gmail.com";
+                var port = int.Parse(emailSettings["Port"] ?? "587");
+                var senderName = emailSettings["SenderName"] ?? "Shop BanHang";
+
+                Console.WriteLine($"SMTP HOST: {host}");
+                Console.WriteLine($"SMTP PORT: {port}");
+                Console.WriteLine($"SMTP EMAIL: {senderEmail}");
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail!, senderName),
+                    Subject = subject,
+                    Body = htmlMessage,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(email);
+
+                using var smtpClient = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(senderEmail, password),
+                    EnableSsl = true
+                };
+
+                await smtpClient.SendMailAsync(mailMessage);
+
+                Console.WriteLine("EMAIL SENT SUCCESS");
             }
-
-            var mailMessage = new MailMessage
+            catch (Exception ex)
             {
-                From = new MailAddress(senderEmail, senderName),
-                Subject = subject,
-                Body = htmlMessage,
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(email);
-
-            using var smtpClient = new SmtpClient(host, port)
-            {
-                Credentials = new NetworkCredential(senderEmail, password),
-                EnableSsl = true
-            };
-
-            await smtpClient.SendMailAsync(mailMessage);
+                Console.WriteLine("SMTP ERROR: " + ex);
+                throw;
+            }
         }
     }
 }
