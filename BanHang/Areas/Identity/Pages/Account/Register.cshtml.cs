@@ -117,25 +117,41 @@ namespace BanHang.Areas.Identity.Pages.Account
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
-
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Mã xác minh OTP",
-                        $"Mã xác minh OTP của bạn là: <b>{code}</b>. Vui lòng nhập mã này trên trang web để hoàn tất đăng ký.");
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("ConfirmEmail", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+                    var callbackUrl = Url.Page(
+                        "/Account/ConfirmEmail",
+                        pageHandler: null,
+                        values: new
+                        {
+                            area = "Identity",
+                            userId = user.Id,
+                            code = code,
+                            returnUrl = returnUrl
+                        },
+                        protocol: Request.Scheme);
+
+                    await _emailSender.SendEmailAsync(
+                        Input.Email,
+                        "Xác thực tài khoản Nội Thất Hưng Hạnh",
+                        $@"
+        <h3>Xác thực tài khoản</h3>
+        <p>Vui lòng bấm vào nút bên dưới để xác thực email:</p>
+        <p>
+            <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'
+               style='background:#111;color:white;padding:12px 20px;
+                      text-decoration:none;border-radius:6px;display:inline-block'>
+                Xác thực tài khoản
+            </a>
+        </p>");
+
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
                 }
                 foreach (var error in result.Errors)
                 {
