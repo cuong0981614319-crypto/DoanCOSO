@@ -23,11 +23,14 @@
             <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="register-form">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
+                    <div class="mb-3">
+                        <input asp-for="Input.Username" class="form-control custom-reg-input" placeholder="Tên đăng nhập" />
+                        <span asp-validation-for="Input.Username" class="text-danger small"></span>
+                    </div>
                 <div class="mb-3">
                     <input asp-for="Input.Email" class="form-control custom-reg-input" placeholder="Email" />
                     <span asp-validation-for="Input.Email" class="text-danger small"></span>
                 </div>
-
                 <div class="mb-3">
                     <input asp-for="Input.Password" class="form-control custom-reg-input" placeholder="Mật khẩu" />
                     <span asp-validation-for="Input.Password" class="text-danger small"></span>

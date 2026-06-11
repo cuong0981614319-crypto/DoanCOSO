@@ -75,6 +75,14 @@ namespace BanHang.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
+            [Display(Name = "Tên đăng nhập")]
+            public string Username { get; set; }
+
+            /// <summary>
+            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+            ///     directly from your code. This API may change or be removed in future releases.
+            /// </summary>
+            [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
@@ -114,48 +122,16 @@ namespace BanHang.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new
-                        {
-                            area = "Identity",
-                            userId = user.Id,
-                            code = code,
-                            returnUrl = returnUrl
-                        },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(
-                        Input.Email,
-                        "Xác thực tài khoản Nội Thất Hưng Hạnh",
-                        $@"
-        <h3>Xác thực tài khoản</h3>
-        <p>Vui lòng bấm vào nút bên dưới để xác thực email:</p>
-        <p>
-            <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'
-               style='background:#111;color:white;padding:12px 20px;
-                      text-decoration:none;border-radius:6px;display:inline-block'>
-                Xác thực tài khoản
-            </a>
-        </p>");
-
-                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    return LocalRedirect(returnUrl);
                 }
             }
 

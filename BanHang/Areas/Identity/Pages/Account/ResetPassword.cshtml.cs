@@ -1,16 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 
 namespace BanHang.Areas.Identity.Pages.Account
 {
@@ -23,66 +17,42 @@ namespace BanHang.Areas.Identity.Pages.Account
             _userManager = userManager;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [EmailAddress]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
-            public string Password { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-            public string ConfirmPassword { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [Display(Name = "Mã OTP")]
             public string Code { get; set; }
 
+            [Required]
+            [StringLength(100, ErrorMessage = "Mật khẩu phải ít nhất {2} ký tự.", MinimumLength = 6)]
+            [DataType(DataType.Password)]
+            public string Password { get; set; }
+
+            [DataType(DataType.Password)]
+            [Display(Name = "Nhập lại mật khẩu")]
+            [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp.")]
+            public string ConfirmPassword { get; set; }
         }
 
         public IActionResult OnGet(string email = null)
         {
-            if (email == null)
+            if (string.IsNullOrWhiteSpace(email))
             {
                 return BadRequest("Yêu cầu không hợp lệ.");
             }
-            
+
             Input = new InputModel
             {
                 Email = email
             };
+
             return Page();
         }
 
@@ -93,21 +63,37 @@ namespace BanHang.Areas.Identity.Pages.Account
                 return Page();
             }
 
+            var savedOtp = HttpContext.Session.GetString("ResetOtp");
+            var savedEmail = HttpContext.Session.GetString("ResetEmail");
+
+            if (string.IsNullOrEmpty(savedOtp) ||
+                string.IsNullOrEmpty(savedEmail) ||
+                savedOtp != Input.Code ||
+                savedEmail != Input.Email)
+            {
+                ModelState.AddModelError(string.Empty, "Mã OTP không đúng hoặc đã hết hạn.");
+                return Page();
+            }
+
             var user = await _userManager.FindByEmailAsync(Input.Email);
+
             if (user == null)
             {
-                // Don't reveal that the user does not exist
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var result = await _userManager.ResetPasswordAsync(
+                user,
+                token,
+                Input.Password);
+
             if (result.Succeeded)
             {
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    user.EmailConfirmed = true;
-                    await _userManager.UpdateAsync(user);
-                }
+                HttpContext.Session.Remove("ResetOtp");
+                HttpContext.Session.Remove("ResetEmail");
+
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
@@ -115,6 +101,7 @@ namespace BanHang.Areas.Identity.Pages.Account
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return Page();
         }
     }
