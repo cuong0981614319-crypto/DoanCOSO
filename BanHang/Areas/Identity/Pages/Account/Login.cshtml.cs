@@ -121,7 +121,14 @@ namespace BanHang.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    var userCheck = await _userManager.FindByEmailAsync(Input.Email);
+                    if (userCheck != null && !await _userManager.IsEmailConfirmedAsync(userCheck))
+                    {
+                        ModelState.AddModelError(string.Empty, "Tài khoản của bạn chưa được xác minh Email. Vui lòng kiểm tra hộp thư hoặc thực hiện quên mật khẩu để xác minh lại.");
+                        return Page();
+                    }
+
+                    ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
                     return Page();
                 }
             }

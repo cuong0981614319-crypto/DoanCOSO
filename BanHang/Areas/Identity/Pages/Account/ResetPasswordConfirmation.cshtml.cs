@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BanHang.Areas.Identity.Pages.Account
 {
-    public class ForgotPasswordConfirmationModel : PageModel
+    [AllowAnonymous]
+    public class ResetPasswordConfirmationModel : PageModel
     {
         public void OnGet()
         {

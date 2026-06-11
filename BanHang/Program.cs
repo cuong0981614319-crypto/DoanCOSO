@@ -31,7 +31,10 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
 
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
+
+    options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -258,17 +261,4 @@ app.MapRazorPages();
 
 app.Run();
 
-
-// ==========================
-// EMAIL SENDER
-// ==========================
-public class EmailSender : IEmailSender
-{
-    public Task SendEmailAsync(
-        string email,
-        string subject,
-        string htmlMessage)
-    {
-        return Task.CompletedTask;
-    }
-}
+

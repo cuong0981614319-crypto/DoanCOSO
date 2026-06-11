@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -67,24 +67,23 @@ namespace BanHang.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
+            [Display(Name = "Mã OTP")]
             public string Code { get; set; }
 
         }
 
-        public IActionResult OnGet(string code = null)
+        public IActionResult OnGet(string email = null)
         {
-            if (code == null)
+            if (email == null)
             {
-                return BadRequest("A code must be supplied for password reset.");
+                return BadRequest("Yêu cầu không hợp lệ.");
             }
-            else
+            
+            Input = new InputModel
             {
-                Input = new InputModel
-                {
-                    Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))
-                };
-                return Page();
-            }
+                Email = email
+            };
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -104,6 +103,11 @@ namespace BanHang.Areas.Identity.Pages.Account
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                }
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 

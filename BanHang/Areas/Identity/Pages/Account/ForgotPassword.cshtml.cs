@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -64,22 +64,14 @@ namespace BanHang.Areas.Identity.Pages.Account
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
 
-            // ❗ Reset mật khẩu về 123456
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            var result = await _userManager.ResetPasswordAsync(user, token, "123456");
+            await _emailSender.SendEmailAsync(
+                Input.Email,
+                "Khôi phục mật khẩu",
+                $"Mã OTP để khôi phục mật khẩu của bạn là: <b>{code}</b>. Vui lòng không chia sẻ mã này cho bất kỳ ai.");
 
-            if (result.Succeeded)
-            {
-                return RedirectToPage("./ForgotPasswordConfirmation");
-            }
-
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-
-            return Page();
+            return RedirectToPage("./ResetPassword", new { email = Input.Email });
         }
     }
 }

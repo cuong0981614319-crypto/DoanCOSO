@@ -1,8 +1,31 @@
-﻿@page
+@page
 @model ConfirmEmailModel
 @{
-    ViewData["Title"] = "Confirm email";
+    ViewData["Title"] = "Xác minh tài khoản";
 }
 
-<h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="text-center mb-4">@ViewData["Title"]</h1>
+        <p class="text-center text-muted">Vui lòng nhập mã OTP đã được gửi đến email của bạn để xác minh.</p>
+        <partial name="_StatusMessage" model="Model.StatusMessage" />
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Input.Email" />
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Code" class="form-control" autocomplete="off" aria-required="true" placeholder="123456" />
+                        <label asp-for="Input.Code"></label>
+                        <span asp-validation-for="Input.Code" class="text-danger"></span>
+                    </div>
+                    <button id="confirm-submit" type="submit" class="w-100 btn btn-lg btn-primary">Xác minh</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
