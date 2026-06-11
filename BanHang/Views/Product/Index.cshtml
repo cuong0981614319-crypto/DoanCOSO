@@ -69,7 +69,14 @@
                     <label class="form-label fw-semibold">Giá sản phẩm</label>
                     <select name="mucGia" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Tất cả mức giá --</option>
-
+                        @if (string.IsNullOrEmpty((string?)ViewBag.MucGia))
+                        {
+                            <option value="" selected>Tất cả sản phẩm</option>
+                        }
+                        else
+                        {
+                            <option value="">Tất cả sản phẩm</option>
+                        }
                         @if ((string?)ViewBag.MucGia == "duoi1tr")
                         {
                             <option value="duoi1tr" selected>Dưới 1 triệu</option>

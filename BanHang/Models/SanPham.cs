@@ -58,29 +58,34 @@ namespace BanHang.Models
         {
             get
             {
-                if (DaBan < 10 && DaBan >0)
-                {
-                    return Gia * 0.8m;
-                }
-                else if (DaBan < 20 && DaBan > 10)
-                {
-                    return Gia * 0.92m;
-                }
-                else if (DaBan == 0)
-                {
-                    return Gia * 0.7m;
-                }
-                    return Gia;
+                int phanTram = PhanTramGiam;
+                return Gia - (Gia * phanTram / 100);
             }
         }
+
         public int PhanTramGiam
         {
             get
             {
-                if (DaBan == 0) return 30;
-                if (DaBan < 10 && DaBan >0) return 20;
-                if (DaBan < 20 && DaBan >10) return 8;
-                return 0; 
+                // Ngày 1/6/2026 giảm toàn bộ sản phẩm 10%
+                if (DateTime.Today.Date == new DateTime(2026, 6, 1))
+                {
+                    return 10;
+                }
+
+                // Sản phẩm thêm năm 2025 giảm 8%
+                if (NgayThem.HasValue && NgayThem.Value.Year == 2025)
+                {
+                    return 8;
+                }
+
+                // Sản phẩm thêm năm 2026 giảm 5%
+                if (NgayThem.HasValue && NgayThem.Value.Year == 2026)
+                {
+                    return 5;
+                }
+
+                return 0;
             }
         }
     }

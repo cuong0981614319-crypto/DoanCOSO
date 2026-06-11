@@ -14,16 +14,23 @@ public class ProductController : Controller
     }
 
     public async Task<IActionResult> Index(
-        int? khuVucId,
-        int? maDanhMuc,
-        string? mucGia,
-        string? mauSac,
-        int? kichthuoc,
-        int page = 1)
+     int? khuVucId,
+     int? maDanhMuc,
+     string? mucGia,
+     string? mauSac,
+     int? kichthuoc,
+     int page = 1)
     {
+        if (string.IsNullOrWhiteSpace(mucGia))
+            mucGia = null;
+
+        if (string.IsNullOrWhiteSpace(mauSac))
+            mauSac = null;
+
         int pageSize = 16;
 
-        var (kichThucs, mauSacs, danhMucs) = await _productDetailService.GetFilterDropdownsAsync();
+        var (kichThucs, mauSacs, danhMucs) =
+            await _productDetailService.GetFilterDropdownsAsync();
 
         ViewBag.DanhMucs = danhMucs
             .GroupBy(x => x.TenDanhMuc.Trim(), StringComparer.OrdinalIgnoreCase)
@@ -35,6 +42,10 @@ public class ProductController : Controller
         ViewBag.CurrentKichThuc = kichthuoc;
         ViewBag.MauSacs = mauSacs;
 
+        ViewBag.MucGia = mucGia;
+        ViewBag.MauSac = mauSac;
+        ViewBag.KhuVucId = khuVucId;
+
         var (products, totalItems) = await _productService.GetFilteredProducts(
             khuVucId, maDanhMuc, mucGia, mauSac, page, pageSize);
 
@@ -42,7 +53,6 @@ public class ProductController : Controller
 
         return View(products);
     }
-
     [HttpGet]
     public async Task<IActionResult> Details(int id, int page = 1, int? star = null, bool? hasImage = null)
     {
