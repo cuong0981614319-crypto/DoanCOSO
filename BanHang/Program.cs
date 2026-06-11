@@ -2,27 +2,18 @@ using BanHang.Models;
 using BanHang.Services;
 using BanHang.Services.Interfaces;
 using CloudinaryDotNet;
-using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// ==========================
 // DATABASE
-// ==========================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
-);
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// ==========================
 // IDENTITY
-// ==========================
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -32,74 +23,51 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
 
     options.SignIn.RequireConfirmedAccount = true;
-
-    options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
-    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-
-// ==========================
 // GOOGLE LOGIN
-// ==========================
 builder.Services
     .AddAuthentication()
     .AddGoogle(options =>
     {
-        options.ClientId =
-            builder.Configuration["Authentication:Google:ClientId"];
-
-        options.ClientSecret =
-            builder.Configuration["Authentication:Google:ClientSecret"];
-
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         options.CallbackPath = "/signin-google";
     });
 
+// FOR RENDER HTTPS
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
 
-// ==========================
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 // HTTP CLIENT + LOGGING
-// ==========================
 builder.Services.AddHttpClient();
 builder.Services.AddLogging();
 
-
-// ==========================
 // MOMO
-// ==========================
-builder.Services.Configure<MoMoOption>(
-    builder.Configuration.GetSection("MoMo")
-);
-
+builder.Services.Configure<MoMoOption>(builder.Configuration.GetSection("MoMo"));
 builder.Services.AddScoped<MoMoService>();
 
-
-// ==========================
 // VNPAY
-// ==========================
-builder.Services.Configure<VNPayOptions>(
-    builder.Configuration.GetSection("VNPay")
-);
-
+builder.Services.Configure<VNPayOptions>(builder.Configuration.GetSection("VNPay"));
 builder.Services.AddScoped<VNPayService>();
 
-
-// ==========================
 // EMAIL
-// ==========================
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-builder.Services.AddSession();
-// ==========================
 // MVC + RAZOR
-// ==========================
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-
-// ==========================
 // REPOSITORIES
-// ==========================
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<BanHang.Repositories.IHomeRepository, BanHang.Repositories.HomeRepository>();
 builder.Services.AddScoped<BanHang.Repositories.IDonHangRepository, BanHang.Repositories.DonHangRepository>();
@@ -110,9 +78,7 @@ builder.Services.AddScoped<BanHang.Repositories.IAdminDonHangRepository, BanHang
 builder.Services.AddScoped<BanHang.Repositories.IThongKeRepository, BanHang.Repositories.ThongKeRepository>();
 builder.Services.AddScoped<BanHang.Repositories.IOrderRepository, BanHang.Repositories.OrderRepository>();
 
-// ==========================
 // SERVICES
-// ==========================
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -121,40 +87,26 @@ builder.Services.AddScoped<BanHang.Services.IHomeService, BanHang.Services.HomeS
 builder.Services.AddScoped<BanHang.Services.IDonHangService, BanHang.Services.DonHangService>();
 builder.Services.AddScoped<BanHang.Services.IProductDetailService, BanHang.Services.ProductDetailService>();
 
-
-// ==========================
 // COOKIE
-// ==========================
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
-
-    options.AccessDeniedPath =
-        "/Identity/Account/AccessDenied";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
-
-// ==========================
 // SESSION
-// ==========================
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
-
     options.Cookie.HttpOnly = true;
-
     options.Cookie.IsEssential = true;
 });
 
-
-// ==========================
 // CLOUDINARY
-// ==========================
 builder.Services.Configure<CloudinarySettings>(
-    builder.Configuration.GetSection("CloudinarySettings")
-);
+    builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddSingleton(serviceProvider =>
 {
@@ -171,19 +123,16 @@ builder.Services.AddSingleton(serviceProvider =>
     return new Cloudinary(account);
 });
 
-
 var app = builder.Build();
 
-
-// ==========================
 // MIDDLEWARE
-// ==========================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-
     app.UseHsts();
 }
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
@@ -197,10 +146,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-
-// ==========================
 // AUTO MIGRATION + ADMIN
-// ==========================
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -224,7 +170,6 @@ using (var scope = app.Services.CreateScope())
         }
 
         var adminEmail = "admin@gmail.com";
-
         var admin = await userManager.FindByEmailAsync(adminEmail);
 
         if (admin == null)
@@ -250,26 +195,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
-// ==========================
 // ROUTE ADMIN
-// ==========================
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-
-// ==========================
 // ROUTE DEFAULT
-// ==========================
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
 
 app.Run();
-
-
