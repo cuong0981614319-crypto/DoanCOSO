@@ -364,6 +364,41 @@
     <script>
         let isTyping = false;
 
+        document.addEventListener("DOMContentLoaded", () => {
+            loadChatHistory();
+        });
+
+        function loadChatHistory() {
+            const history = localStorage.getItem("chat_history");
+            const chatBody = document.getElementById("chat-body");
+            if (history) {
+                chatBody.innerHTML = "";
+                try {
+                    const messages = JSON.parse(history);
+                    messages.forEach(msg => {
+                        renderMessage(msg.sender, msg.text);
+                    });
+                } catch (e) {
+                    console.error("Lỗi đọc lịch sử chat: ", e);
+                    localStorage.removeItem("chat_history");
+                }
+            }
+        }
+
+        function saveMessageToHistory(sender, text) {
+            let history = localStorage.getItem("chat_history");
+            let messages = [];
+            if (history) {
+                try {
+                    messages = JSON.parse(history);
+                } catch (e) {
+                    messages = [];
+                }
+            }
+            messages.push({ sender, text });
+            localStorage.setItem("chat_history", JSON.stringify(messages));
+        }
+
         function toggleChat() {
             const chatPopup = document.getElementById("chatPopup");
             chatPopup.classList.toggle("active");
@@ -427,19 +462,24 @@
             }
         }
 
-        function addMessage(sender, text) {
+        function renderMessage(sender, text) {
             const chatBody = document.getElementById("chat-body");
             const msgDiv = document.createElement("div");
             msgDiv.className = "msg " + sender;
             
             // Format line breaks
-            text = text.replace(/\n/g, "<br>");
+            let formattedText = text.replace(/\n/g, "<br>");
             // Format bold text **text** to <strong>text</strong>
-            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-            msgDiv.innerHTML = text;
+            msgDiv.innerHTML = formattedText;
             chatBody.appendChild(msgDiv);
             chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function addMessage(sender, text) {
+            renderMessage(sender, text);
+            saveMessageToHistory(sender, text);
         }
     </script>
 

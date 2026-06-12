@@ -68,14 +68,21 @@ namespace BanHang.Controllers
 
             try
             {
-                var topSanPhams = await _context.SanPhams
-                    .OrderByDescending(s => s.DaBan)
-                    .Take(30)
-                    .Select(s => new { s.TenSanPham, s.Gia, s.GiaKhuyenMai, s.MoTa })
+                var allSanPhams = await _context.SanPhams
+                    .Select(s => new {
+                        s.TenSanPham,
+                        GiaGoc = s.Gia,
+                        GiaGiam = s.GiaKhuyenMai,
+                        DanhMuc = s.DanhMuc != null ? s.DanhMuc.TenDanhMuc : string.Empty,
+                        s.MoTa,
+                        s.MauSac,
+                        s.kichthuc,
+                        s.chatlieu
+                    })
                     .ToListAsync();
 
                 string productData = JsonSerializer.Serialize(
-                    topSanPhams,
+                    allSanPhams,
                     new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
                 string thongTinCuaHang = @"
