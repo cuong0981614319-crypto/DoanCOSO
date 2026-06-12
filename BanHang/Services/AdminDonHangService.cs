@@ -21,24 +21,35 @@ namespace BanHang.Services
         public async Task<bool> UpdateStatusAsync(int maDonHang, string trangThai)
         {
             var donHang = await _repo.GetByIdWithDetailsAsync(maDonHang);
-            if (donHang == null) return false;
 
-            // ===== Business logic nằm đúng chỗ trong Service =====
+            if (donHang == null)
+                return false;
+
             if (trangThai == "Hoàn thành" && donHang.TrangThai != "Hoàn thành")
             {
-                donHang.DaThanhToan    = true;
-                donHang.NgayThanhToan  = DateTime.Now;
+                donHang.DaThanhToan = true;
+                donHang.NgayThanhToan = DateTime.Now;
 
-                // Tăng DaBan cho từng sản phẩm trong đơn
                 await _repo.IncrementDaBanAsync(donHang.ChiTietDonHangs);
             }
-            // ====================================================
+
+            // Lưu trạng thái cũ nếu muốn
+            var trangThaiCu = donHang.TrangThai;
 
             donHang.TrangThai = trangThai;
+
+            // THÊM LỊCH SỬ
+            donHang.LichSuDonHangs.Add(new LichSuDonHang
+            {
+                TrangThaiMoi = trangThai,
+                GhiChu = $"Đổi từ '{trangThaiCu}' sang '{trangThai}'",
+                NgayTao = DateTime.Now
+            });
+
             await _repo.UpdateAsync(donHang);
+
             return true;
         }
-
         public Task<bool> DeleteAsync(int id)
             => _repo.DeleteAsync(id);
     }
