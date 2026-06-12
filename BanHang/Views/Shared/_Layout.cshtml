@@ -57,27 +57,26 @@
                 </div>
 
                 <!-- SEARCH -->
-                <div class="col-md-5">
-                    <form method="get"
-                          action="/Product/Search"
-                          class="search-box">
+                <form asp-controller="Product"
+                      asp-action="Index"
+                      method="get"
+                      class="search-box">
 
-                        <input type="text"
-                               id="searchInput"
-                               name="keyword"
-                               placeholder="Tìm kiếm sản phẩm..."
-                               autocomplete="off" />
+                    <input type="text"
+                           id="searchInput"
+                           name="keyword"
+                           value="@ViewBag.Keyword"
+                           placeholder="Tìm kiếm sản phẩm..."
+                           autocomplete="off" />
 
-                        <button type="submit" id="searchBtn">
-                            <i class="fa fa-search"></i>
-                        </button>
+                    <button type="submit" id="searchBtn">
+                        <i class="fa fa-search"></i>
+                    </button>
 
-                        <div id="searchSuggestions"
-                             class="search-suggestions">
-                        </div>
-                    </form>
-                </div>
-
+                    <div id="searchSuggestions"
+                         class="search-suggestions">
+                    </div>
+                </form>
                 <!-- RIGHT -->
                 <div class="col-md-4 d-flex justify-content-end align-items-center gap-3">
 
@@ -482,7 +481,95 @@
             saveMessageToHistory(sender, text);
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
+            const input = document.getElementById("searchInput");
+            const box = document.getElementById("searchSuggestions");
+
+            if (!input || !box) return;
+
+            input.addEventListener("input", async function () {
+
+                const keyword = this.value.trim();
+
+                if (keyword.length < 1) {
+                    box.style.display = "none";
+                    box.innerHTML = "";
+                    return;
+                }
+
+                try {
+
+                    const response = await fetch(
+                        `/Product/Suggest?keyword=${encodeURIComponent(keyword)}`
+                    );
+
+                    const data = await response.json();
+
+                    if (!data.items || data.items.length === 0) {
+
+                        box.innerHTML = `
+                            <div class="search-empty">
+                                Không tìm thấy sản phẩm
+                            </div>
+                        `;
+
+                        box.style.display = "block";
+                        return;
+                    }
+
+                    let html = "";
+
+                    data.items.forEach(item => {
+
+                        html += `
+                        <a href="/Product/Details/${item.id}"
+                           class="search-item">
+
+                            <div class="search-item-info">
+
+                                <div class="search-item-name">
+                                    ${item.name}
+                                </div>
+
+                                <div class="search-item-price">
+                                    ${Number(item.price).toLocaleString()}đ
+                                </div>
+
+                            </div>
+
+                            <img src="${item.image}" />
+                        </a>
+                        `;
+                    });
+
+                    html += `
+                    <a href="/Product?keyword=${encodeURIComponent(keyword)}"
+                       class="search-item"
+                       style="justify-content:center;font-weight:700;">
+                        Xem thêm ${data.total} sản phẩm
+                    </a>
+                    `;
+
+                    box.innerHTML = html;
+                    box.style.display = "block";
+
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            });
+
+            document.addEventListener("click", function (e) {
+
+                if (!e.target.closest(".search-box")) {
+                    box.style.display = "none";
+                }
+            });
+
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

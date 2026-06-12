@@ -7,10 +7,13 @@ public interface IProductService
         int? maDanhMuc,
         string? mucGia,
         string? mauSac,
+        string? keyword,
         int page,
         int pageSize);
 
-    Task<SanPham?> GetDetails(int id); // ✔ giữ lại 1 cái thôi
+    Task<SanPham?> GetDetails(int id);
 
     Task<List<SanPham>> GetRelatedProducts(int productId, int? maDanhMuc);
+
+    Task<List<SanPham>> SearchProducts(string keyword);
 }

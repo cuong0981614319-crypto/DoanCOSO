@@ -424,9 +424,9 @@
 
 @section Scripts {
     <script>
-        function scrollSlider(id, direction) {                                                                                                                                  
+        function scrollSlider(id, direction) {
             const slider = document.getElementById(id);
-            if (!slider) return;                                                                                                    
+            if (!slider) return;
             const item = slider.querySelector(".product-item");
             if (!item) return;
             const scrollAmount = item.offsetWidth + 20;
@@ -440,7 +440,7 @@
         function showCartToast(message, isError = false) {
             const toast = document.getElementById("cart-toast");
             if (!toast) return;
-            toast.textContent = message;                                                                                                                                                                                
+            toast.textContent = message;
             toast.style.background = isError ? "#dc3545" : "#198754";
             toast.classList.add("show");
             setTimeout(() => { toast.classList.remove("show"); }, 2000);
