@@ -38,22 +38,13 @@ namespace BanHang.Repositories
                 .FirstOrDefaultAsync(x => x.MaDonHang == id);
         }
 
-        public async Task<bool> CancelOrderAsync(int id, string userId)
+        /// <summary>Chỉ cập nhật trạng thái — mọi kiểm tra nghiệp vụ phải được làm ở Service trước khi gọi hàm này.</summary>
+        public async Task SetStatusAsync(int id, string trangThai)
         {
-            var donHang = await _context.DonHangs
-                .Include(x => x.ChiTietDonHangs)
-                .FirstOrDefaultAsync(x => x.MaDonHang == id && x.UserId == userId);
-
-            if (donHang == null) return false;
-
-            // Chỉ hủy được khi chưa xử lý và chưa thanh toán
-            var cancelableStatuses = new[] { "Chờ xác nhận", "Chờ thanh toán" };
-            if (!cancelableStatuses.Contains(donHang.TrangThai) || donHang.DaThanhToan)
-                return false;
-
-            donHang.TrangThai = "Đã hủy";
+            var donHang = await _context.DonHangs.FindAsync(id);
+            if (donHang == null) return;
+            donHang.TrangThai = trangThai;
             await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<bool> AddDanhGiaAsync(DanhGia danhGia)

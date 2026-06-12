@@ -1,13 +1,12 @@
 using BanHang.Models;
 
-namespace BanHang.Repositories
+namespace BanHang.Services
 {
-    public interface IAdminDonHangRepository
+    public interface IAdminDonHangService
     {
         Task<List<DonHang>> GetAllAsync(string? status);
         Task<DonHang?> GetByIdWithDetailsAsync(int id);
-        Task UpdateAsync(DonHang donHang);
-        Task IncrementDaBanAsync(IEnumerable<ChiTietDonHang> chiTiets);
+        Task<bool> UpdateStatusAsync(int maDonHang, string trangThai);
         Task<bool> DeleteAsync(int id);
     }
 }

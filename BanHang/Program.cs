@@ -80,6 +80,7 @@ builder.Services.AddScoped<BanHang.Repositories.IKhuVucRepository, BanHang.Repos
 builder.Services.AddScoped<BanHang.Repositories.IAdminDonHangRepository, BanHang.Repositories.AdminDonHangRepository>();
 builder.Services.AddScoped<BanHang.Repositories.IThongKeRepository, BanHang.Repositories.ThongKeRepository>();
 builder.Services.AddScoped<BanHang.Repositories.IOrderRepository, BanHang.Repositories.OrderRepository>();
+builder.Services.AddScoped<BanHang.Repositories.IAdminProductRepository, BanHang.Repositories.AdminProductRepository>();
 
 // SERVICES
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -89,6 +90,8 @@ builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<BanHang.Services.IHomeService, BanHang.Services.HomeService>();
 builder.Services.AddScoped<BanHang.Services.IDonHangService, BanHang.Services.DonHangService>();
 builder.Services.AddScoped<BanHang.Services.IProductDetailService, BanHang.Services.ProductDetailService>();
+builder.Services.AddScoped<BanHang.Services.IAdminDonHangService, BanHang.Services.AdminDonHangService>();
+builder.Services.AddScoped<BanHang.Services.IThongKeService, BanHang.Services.ThongKeService>();
 
 // COOKIE
 builder.Services.ConfigureApplicationCookie(options =>

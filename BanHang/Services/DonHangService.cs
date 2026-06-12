@@ -32,15 +32,17 @@ namespace BanHang.Services
             if (donHang == null)
                 return (false, "Không tìm thấy đơn hàng.");
 
+            // ===== Business logic nằm ở đây — chỉ một chỗ duy nhất =====
             var cancelableStatuses = new[] { "Chờ xác nhận", "Chờ thanh toán" };
             if (!cancelableStatuses.Contains(donHang.TrangThai))
                 return (false, "Đơn hàng không thể hủy.");
 
             if (donHang.DaThanhToan)
                 return (false, "Đơn đã thanh toán, không thể hủy.");
+            // ================================================================
 
-            var result = await _repo.CancelOrderAsync(id, userId);
-            return result ? (true, string.Empty) : (false, "Không thể hủy đơn hàng.");
+            await _repo.SetStatusAsync(id, "Đã hủy");
+            return (true, string.Empty);
         }
 
         public async Task<(bool success, string error)> SubmitDanhGiaAsync(

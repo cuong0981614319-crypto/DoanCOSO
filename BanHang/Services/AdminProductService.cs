@@ -1,37 +1,32 @@
-﻿using BanHang.Models;
+using BanHang.Models;
 using BanHang.Services.Interfaces;
+using BanHang.Repositories;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+
 namespace BanHang.Services
 {
     public class AdminProductService : IAdminProductService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAdminProductRepository _repo;
         private readonly Cloudinary _cloudinary;
-        public AdminProductService(ApplicationDbContext context, Cloudinary cloudinary)
+
+        public AdminProductService(IAdminProductRepository repo, Cloudinary cloudinary)
         {
-            _context = context;
+            _repo = repo;
             _cloudinary = cloudinary;
         }
 
         public async Task<List<SanPham>> GetAllAsync()
         {
-            return await _context.SanPhams
-                .Include(x => x.DanhMuc)
-                .Include(x => x.KhuVucHienThi)
-                .OrderByDescending(x => x.MaSanPham)
-                .ToListAsync();
+            return await _repo.GetAllWithRelationsAsync();
         }
 
         public async Task<SanPham?> GetByIdAsync(int id)
         {
-            return await _context.SanPhams
-                .Include(x => x.HinhAnhSanPhams)
-                .FirstOrDefaultAsync(x => x.MaSanPham == id);
+            return await _repo.GetByIdWithImagesAsync(id);
         }
 
         public async Task<bool> CreateAsync(SanPham model, ModelStateDictionary modelState)
@@ -74,9 +69,7 @@ namespace BanHang.Services
                 }
             }
 
-            _context.SanPhams.Add(sanPham);
-            await _context.SaveChangesAsync();
-
+            await _repo.AddAsync(sanPham);
             return true;
         }
 
@@ -84,13 +77,10 @@ namespace BanHang.Services
         {
             if (!modelState.IsValid) return false;
 
-            var existing = await _context.SanPhams
-                .Include(x => x.HinhAnhSanPhams)
-                .FirstOrDefaultAsync(x => x.MaSanPham == id);
-
+            var existing = await _repo.GetByIdWithImagesAsync(id);
             if (existing == null) return false;
 
-            // Update info
+            // Cập nhật thông tin cơ bản
             existing.TenSanPham = model.TenSanPham;
             existing.Gia = model.Gia;
             existing.MoTa = model.MoTa;
@@ -101,7 +91,7 @@ namespace BanHang.Services
             existing.kichthuc = model.kichthuc;
             existing.chatlieu = model.chatlieu;
 
-            // 🔥 XÓA ảnh
+            // 🔥 XÓA ảnh cũ được chọn
             if (model.DeletedImageIds != null && model.DeletedImageIds.Any())
             {
                 var images = existing.HinhAnhSanPhams
@@ -110,7 +100,7 @@ namespace BanHang.Services
 
                 foreach (var img in images)
                 {
-                    _context.HinhAnhSanPhams.Remove(img);
+                    await _repo.RemoveImageAsync(img);
                 }
             }
 
@@ -121,7 +111,7 @@ namespace BanHang.Services
                 {
                     var url = await UploadImageAsync(file);
 
-                    _context.HinhAnhSanPhams.Add(new HinhAnhSanPham
+                    await _repo.AddImageAsync(new HinhAnhSanPham
                     {
                         MaSanPham = existing.MaSanPham,
                         DuongDanAnh = url
@@ -129,9 +119,9 @@ namespace BanHang.Services
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await _repo.UpdateAsync(existing);
 
-            // 🔥 SET thumbnail
+            // 🔥 SET thumbnail đại diện
             if (!string.IsNullOrEmpty(model.SelectedThumbnail))
             {
                 existing.HinhAnh = model.SelectedThumbnail;
@@ -142,41 +132,37 @@ namespace BanHang.Services
                     .FirstOrDefault()?.DuongDanAnh;
             }
 
-            await _context.SaveChangesAsync();
-
+            await _repo.UpdateAsync(existing);
             return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var sp = await _context.SanPhams.FindAsync(id);
+            var sp = await _repo.GetByIdAsync(id);
             if (sp == null) return false;
 
-            _context.SanPhams.Remove(sp);
-            await _context.SaveChangesAsync();
+            await _repo.DeleteAsync(sp);
             return true;
         }
-
-
 
         public async Task LoadDropdownsAsync(dynamic viewBag, SanPham? model = null)
         {
             viewBag.MaDanhMuc = new SelectList(
-                await _context.DanhMucs.ToListAsync(),
+                await _repo.GetDanhMucsAsync(),
                 "MaDanhMuc",
                 "TenDanhMuc",
                 model?.MaDanhMuc
             );
 
             viewBag.KhuVucHienThiId = new SelectList(
-                await _context.KhuVucHienThis.ToListAsync(),
+                await _repo.GetKhuVucHienThisAsync(),
                 "Id",
                 "Ten",
                 model?.KhuVucHienThiId
             );
         }
-        
-    private async Task<string> UploadImageAsync(IFormFile file)
+
+        private async Task<string> UploadImageAsync(IFormFile file)
         {
             await using var stream = file.OpenReadStream();
 
@@ -195,6 +181,5 @@ namespace BanHang.Services
 
             return result.SecureUrl.ToString();
         }
-
     }
 }

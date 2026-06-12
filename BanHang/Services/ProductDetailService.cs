@@ -31,14 +31,33 @@ namespace BanHang.Services
         {
             var danhGia = new DanhGia
             {
-                SanPhamId = sanPhamId,
-                Diem = diem,
-                NoiDung = noiDung,
-                NgayTao = DateTime.Now,
+                SanPhamId    = sanPhamId,
+                Diem         = diem,
+                NoiDung      = noiDung,
+                NgayTao      = DateTime.Now,
                 TenNguoiDung = userName
             };
 
-            await _repo.AddReviewAsync(danhGia, images, uploadPath);
+            // ===== File upload nằm ở Service — Repository không biết IFormFile =====
+            var imageUrls = new List<string>();
+            if (images != null && images.Count > 0)
+            {
+                if (!Directory.Exists(uploadPath))
+                    Directory.CreateDirectory(uploadPath);
+
+                foreach (var file in images)
+                {
+                    if (file.Length <= 0) continue;
+                    var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await file.CopyToAsync(stream);
+                    imageUrls.Add("/images/reviews/" + fileName);
+                }
+            }
+            // =======================================================================
+
+            await _repo.AddReviewAsync(danhGia, imageUrls);
         }
 
         public async Task<SanPham?> GetBasicAsync(int id)

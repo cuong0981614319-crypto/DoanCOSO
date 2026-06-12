@@ -1,4 +1,4 @@
-﻿using BanHang.Models;
+using BanHang.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace BanHang.Services.Interfaces

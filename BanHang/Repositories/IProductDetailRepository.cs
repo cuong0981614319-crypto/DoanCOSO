@@ -9,7 +9,7 @@ namespace BanHang.Repositories
         Task<double> GetAvgRatingAsync(int sanPhamId);
         Task<int> GetTotalReviewsAsync(int sanPhamId);
         Task<(List<DanhGia> items, int total)> GetReviewsPagedAsync(int sanPhamId, int? star, bool? hasImage, int page, int pageSize);
-        Task AddReviewAsync(DanhGia danhGia, List<IFormFile> images, string uploadPath);
+        Task AddReviewAsync(DanhGia danhGia, List<string> imageUrls);
         Task<SanPham?> GetBasicAsync(int id);
         Task<List<string>> GetDistinctKichThucsAsync();
         Task<List<string>> GetDistinctMauSacsAsync();

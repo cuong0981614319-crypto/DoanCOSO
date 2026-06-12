@@ -65,34 +65,21 @@ namespace BanHang.Repositories
             return (items, total);
         }
 
-        public async Task AddReviewAsync(DanhGia danhGia, List<IFormFile> images, string uploadPath)
+        public async Task AddReviewAsync(DanhGia danhGia, List<string> imageUrls)
         {
             _context.DanhGias.Add(danhGia);
             await _context.SaveChangesAsync();
 
-            if (images != null && images.Count > 0)
+            if (imageUrls != null && imageUrls.Count > 0)
             {
-                if (!Directory.Exists(uploadPath))
-                    Directory.CreateDirectory(uploadPath);
-
-                foreach (var file in images)
+                foreach (var url in imageUrls)
                 {
-                    if (file.Length > 0)
+                    _context.DanhGiaImages.Add(new DanhGiaImage
                     {
-                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                        var filePath = Path.Combine(uploadPath, fileName);
-
-                        using var stream = new FileStream(filePath, FileMode.Create);
-                        await file.CopyToAsync(stream);
-
-                        _context.DanhGiaImages.Add(new DanhGiaImage
-                        {
-                            DanhGiaId = danhGia.Id,
-                            ImageUrl = "/images/reviews/" + fileName
-                        });
-                    }
+                        DanhGiaId = danhGia.Id,
+                        ImageUrl  = url
+                    });
                 }
-
                 await _context.SaveChangesAsync();
             }
         }

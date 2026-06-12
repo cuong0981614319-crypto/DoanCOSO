@@ -42,42 +42,23 @@ namespace BanHang.Repositories
                 .FirstOrDefaultAsync(x => x.MaDonHang == id);
         }
 
-        public async Task<bool> UpdateStatusAsync(int maDonHang, string trangThai)
+        /// <summary>Chỉ lưu entity đã được Service chỉnh sửa — không có business logic ở đây.</summary>
+        public async Task UpdateAsync(DonHang donHang)
         {
-            var donHang = await _context.DonHangs
-                .Include(x => x.ChiTietDonHangs)
-                .FirstOrDefaultAsync(x => x.MaDonHang == maDonHang);
-
-            if (donHang == null) return false;
-
-            if (trangThai == "Hoàn thành" && donHang.TrangThai != "Hoàn thành")
-            {
-                donHang.DaThanhToan = true;
-                donHang.NgayThanhToan = DateTime.Now;
-
-                foreach (var item in donHang.ChiTietDonHangs)
-                {
-                    var sanPham = await _context.SanPhams.FindAsync(item.MaSanPham);
-                    if (sanPham != null)
-                    {
-                        sanPham.DaBan += item.SoLuong;
-                        _context.SanPhams.Update(sanPham);
-                    }
-                }
-            }
-
-            donHang.TrangThai = trangThai;
-
-            _context.lichSuDonHangs.Add(new LichSuDonHang
-            {
-                DonHang = donHang,
-                TrangThaiMoi = trangThai,
-                NgayTao = DateTime.Now,
-                GhiChu = "Admin cập nhật trạng thái"
-            });
-
+            _context.DonHangs.Update(donHang);
             await _context.SaveChangesAsync();
-            return true;
+        }
+
+        /// <summary>Tăng DaBan cho từng sản phẩm — được gọi bởi Service khi đơn Hoàn thành.</summary>
+        public async Task IncrementDaBanAsync(IEnumerable<ChiTietDonHang> chiTiets)
+        {
+            foreach (var item in chiTiets)
+            {
+                var sanPham = await _context.SanPhams.FindAsync(item.MaSanPham);
+                if (sanPham != null)
+                    sanPham.DaBan += item.SoLuong;
+            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteAsync(int id)
